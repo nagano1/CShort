@@ -1,0 +1,41 @@
+name: Build and Run Hello World
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install LLVM and Clang
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang llvm
+        
+    - name: Verify clang++ installation
+      run: clang++ --version
+      
+    - name: Build Hello World
+      run: make
+      
+    - name: Execute Hello World
+      run: ./hello
+      
+    - name: Verify output
+      run: |
+        output=$(./hello)
+        if [ "$output" = "Hello, World!" ]; then
+          echo "✓ Output is correct: $output"
+          exit 0
+        else
+          echo "✗ Unexpected output: $output"
+          exit 1
+        fi
