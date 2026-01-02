@@ -26,10 +26,7 @@ jobs:
     - name: Build Hello World
       run: make
       
-    - name: Execute Hello World
-      run: ./hello
-      
-    - name: Verify output
+    - name: Execute and verify Hello World output
       run: |
         output=$(./hello)
         if [ "$output" = "Hello, World!" ]; then
