@@ -29,10 +29,11 @@ jobs:
     - name: Execute and verify Hello World output
       run: |
         output=$(./hello)
-        if [ "$output" = "Hello, World!" ]; then
+        expected="Hello, World!"
+        if [ "$output" = "$expected" ]; then
           echo "✓ Output is correct: $output"
           exit 0
         else
-          echo "✗ Unexpected output: $output"
+          echo "✗ Unexpected output: '$output' (expected: '$expected')"
           exit 1
         fi
