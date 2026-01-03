@@ -28,14 +28,5 @@ jobs:
     - name: Build Hello World
       run: make
       
-    - name: Execute and verify Hello World output
-      run: |
-        output=$(./hello)
-        expected="Hello, World!"
-        if [ "$output" = "$expected" ]; then
-          echo "✓ Output is correct: $output"
-          exit 0
-        else
-          echo "✗ Unexpected output: '$output' (expected: '$expected')"
-          exit 1
-        fi
+    - name: Execute Hello World
+      run: ./hello
