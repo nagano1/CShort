@@ -1,6 +1,6 @@
 # CShort
 
-A simple C++ Hello World project built with LLVM.
+A simple C++ Hello World project built with LLVM
 
 ## Building
 
