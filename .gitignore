@@ -40,3 +40,6 @@ hello
 
 # debug information files
 *.dwo
+
+# CMake build directory
+build/
