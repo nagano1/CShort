@@ -1,23 +1,24 @@
 # CShort
 
-A simple C++ Hello World project built with LLVM
+A simple C++ Hello World project built with CMake
 
 ## Building
 
-To build the project, you need to have LLVM's clang++ compiler installed.
+To build the project, you need CMake 3.10+ and a C++ compiler installed.
 
 ```bash
-make
+cmake -B build
+cmake --build build
 ```
 
-This will compile `hello.cpp` and create the `hello` executable.
+This will compile `hello.cpp` and create the `hello` executable inside the `build/` directory.
 
 ## Running
 
 After building, run the program:
 
 ```bash
-./hello
+./build/hello
 ```
 
 Expected output:
@@ -27,13 +28,11 @@ Hello, World!
 
 ## Cleaning
 
-To remove the compiled executable:
-
 ```bash
-make clean
+rm -rf build/
 ```
 
 ## Requirements
 
-- LLVM/clang++ compiler
-- Make build system
+- C++ compiler (clang++ or g++)
+- CMake 3.10+
