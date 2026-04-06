@@ -4,7 +4,11 @@
 	"name": "C++",
 	"build": {
 		"dockerfile": "Dockerfile"
-	}
+
+	},
+	"features": {
+		"ghcr.io/devcontainers-community/features/llvm:3": {}
+}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
