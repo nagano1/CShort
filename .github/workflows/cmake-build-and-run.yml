@@ -1,4 +1,4 @@
-name: Build and Run Hello World
+name: Build and Run Hello World (CMake)
 
 on:
   push:
@@ -12,21 +12,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Install LLVM and Clang
+
+    - name: Install CMake, Clang, and LLVM
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang llvm
-        
-    - name: Verify clang++ installation
-      run: clang++ --version
-      
+        sudo apt-get install -y cmake clang llvm
+
+    - name: Verify cmake installation
+      run: cmake --version
+
+    - name: Configure with CMake
+      run: cmake -B build
+
     - name: Build Hello World
-      run: make
-      
+      run: cmake --build build
+
     - name: Execute Hello World
-      run: ./hello
+      run: ./build/hello
