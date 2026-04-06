@@ -4,12 +4,10 @@
 	"name": "C++",
 	"build": {
 		"dockerfile": "Dockerfile"
-
 	},
-	"features": {
-		"ghcr.io/devcontainers-community/features/llvm:3": {}
-}
-
+    "mounts": [
+		"source=${localWorkspaceFolderBasename}-build-vol,target=${containerWorkspaceFolder}/build,type=volume"
+	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
