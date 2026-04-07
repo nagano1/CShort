@@ -16,7 +16,9 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "gcc -v",
-	"postCreateCommand": "sudo rm -rf ${containerWorkspaceFolder}/build5/* 2>/dev/null; sudo chown vscode:vscode ${containerWorkspaceFolder}/build5",
+	"postCreateCommand": ["sudo rm -rf ${containerWorkspaceFolder}/build5/* 2>/dev/null",
+						  "sudo chown vscode:vscode ${containerWorkspaceFolder}/build5"
+						]
 
 	// Configure tool-specific properties.
 	// "customizations": {},
