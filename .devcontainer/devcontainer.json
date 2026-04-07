@@ -6,7 +6,7 @@
 		"dockerfile": "Dockerfile"
 	},
     "mounts": [
-		"source=${localWorkspaceFolderBasename}-build-vol,target=${containerWorkspaceFolder}/build4,type=volume"
+		"source=${localWorkspaceFolderBasename}-build-vol,target=${containerWorkspaceFolder}/build5,type=volume"
 	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -16,6 +16,7 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "gcc -v",
+	"postCreateCommand": "sudo rm -rf ${containerWorkspaceFolder}/build5/* 2>/dev/null; sudo chown vscode:vscode ${containerWorkspaceFolder}/build5",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
