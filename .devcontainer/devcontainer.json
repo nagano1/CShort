@@ -6,7 +6,7 @@
 		"dockerfile": "Dockerfile"
 	},
     "mounts": [
-		"source=${localWorkspaceFolderBasename}-build-vol,target=${containerWorkspaceFolder}/build,type=volume"
+		"source=${localWorkspaceFolderBasename}-build-vol,target=${containerWorkspaceFolder}/build4,type=volume"
 	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
