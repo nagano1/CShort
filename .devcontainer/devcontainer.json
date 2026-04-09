@@ -1,28 +1,45 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-	"name": "C++",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
-    "mounts": [
-		"source=${localWorkspaceFolderBasename}-build-vol,target=${containerWorkspaceFolder}/build5,type=volume"
+	"name": "C++ Clean & Optimized Environment",
+	"build": { "dockerfile": "Dockerfile" },
+	// "features": {
+	// 	"ghcr.io/devcontainers-community/features/llvm:3": {},
+	// 	"ghcr.io/devcontainers/features/cmake:1": {}
+	// },
+
+	"postCreateCommand": [
+		// Ensure the guide script is executable after container creation
+		// "chmod +x .devcontainer/build_in_devcontainer.bash"
 	],
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	/* --- [OPTIONAL: Persistent Build Cache Configuration] ---
+	   Uncomment the "mounts" and "postCreateCommand" below to enable 
+	   build cache persistence without polluting the host repository.
+	*/
+	
+	// 1. Mount a dedicated Docker Volume for persistent build data
+	// "mounts": [
+	// 	"source=${localWorkspaceFolderBasename}-persistent-build,target=${containerWorkspaceFolder}/build_persistent,type=volume"
+	// ],
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "gcc -v",
-	"postCreateCommand": ["sudo rm -rf ${containerWorkspaceFolder}/build5/* 2>/dev/null",
-						  "sudo chown vscode:vscode ${containerWorkspaceFolder}/build5"
-						]
+	// 2. Map /tmp/build to the persistent volume via symbolic link (zero-copy cost)
+	// "postCreateCommand": [
+	// 	"sudo rm -rf /tmp/build",
+	// 	"mkdir -p ${containerWorkspaceFolder}/build_persistent",
+	// 	"sudo chown vscode:vscode ${containerWorkspaceFolder}/build_persistent",
+	// 	"ln -s ${containerWorkspaceFolder}/build_persistent /tmp/build"
+	// ],
 
-	// Configure tool-specific properties.
-	// "customizations": {},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"cmake.buildDirectory": "/tmp/build",
+				"cmake.configureArgs": ["-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
+			},
+			"extensions": [
+				"ms-vscode.cpptools",
+				"ms-vscode.cmake-tools"
+			]
+		}
+	},
+	"remoteUser": "vscode"
 }
