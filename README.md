@@ -42,7 +42,9 @@ rm -rf build/
 
 To protect your host machine from file pollution , all build artifacts are stored in /tmp by default inside the container:
 ```bash
-/tmp/build`
+cmake -B /tmp/build
+cmake --build /tmp/build
+/tmp/build/hello
 ```
 
 ### Quick Build
