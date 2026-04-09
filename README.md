@@ -40,13 +40,10 @@ rm -rf build/
 
 ## 🛠 Development in Dev Containers
 
-This project is optimized for **VS Code + Dev Containers** to ensure a clean and high-performance development environment.
-
-### Build Artifacts Strategy
-To protect your host machine from file pollution and to minimize memory/disk overhead (especially when using remote SSH), all build artifacts are stored in a **temporary directory** inside the container:
-
-- **Build Directory:** `/tmp/build`
-- **Benefit:** Build files (objects, binaries) never touch your local repository or host disk. They are automatically cleaned up when the container is removed.
+To protect your host machine from file pollution , all build artifacts are stored in /tmp by default inside the container:
+```bash
+/tmp/build`
+```
 
 ### Quick Build
 Once the Dev Container is started, you can build the project using the following script:
