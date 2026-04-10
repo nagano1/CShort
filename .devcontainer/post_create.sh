@@ -1,4 +1,3 @@
-echo $0
 containerWorkspaceFolder=$1
 build_persistent=$2
 echo $containerWorkspaceFolder

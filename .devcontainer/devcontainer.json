@@ -7,6 +7,7 @@
 	// },
 
 
+	// -----------------------------------------------------------------------------------
 	// // --- [OPTIONAL: Persistent Build Cache Configuration] ---
 	// //   Uncomment the "mounts" and "postCreateCommand" below to enable 
 	// //   build cache persistence without polluting the host repository.
@@ -18,7 +19,9 @@
 
 	// 2. Map /tmp/build to the persistent volume via symbolic link (zero-copy cost)
 	"postCreateCommand": "bash ./.devcontainer/post_create.sh ${containerWorkspaceFolder} build_persistent",
+	// -----------------------------------------------------------------------------------
 
+	
 	"customizations": {
 		"vscode": {
 			"settings": {
