@@ -6,28 +6,18 @@
 	// 	"ghcr.io/devcontainers/features/cmake:1": {}
 	// },
 
-	"postCreateCommand": [
-		// Ensure the guide script is executable after container creation
-		// "chmod +x .devcontainer/build_in_devcontainer.bash"
+
+	// // --- [OPTIONAL: Persistent Build Cache Configuration] ---
+	// //   Uncomment the "mounts" and "postCreateCommand" below to enable 
+	// //   build cache persistence without polluting the host repository.
+	// //
+	// 1. Mount a dedicated Docker Volume for persistent build data
+	"mounts": [
+		"source=${localWorkspaceFolderBasename}-persistent-build,target=${containerWorkspaceFolder}/build_persistent,type=volume"
 	],
 
-	/* --- [OPTIONAL: Persistent Build Cache Configuration] ---
-	   Uncomment the "mounts" and "postCreateCommand" below to enable 
-	   build cache persistence without polluting the host repository.
-	*/
-	
-	// 1. Mount a dedicated Docker Volume for persistent build data
-	// "mounts": [
-	// 	"source=${localWorkspaceFolderBasename}-persistent-build,target=${containerWorkspaceFolder}/build_persistent,type=volume"
-	// ],
-
 	// 2. Map /tmp/build to the persistent volume via symbolic link (zero-copy cost)
-	// "postCreateCommand": [
-	// 	"sudo rm -rf /tmp/build",
-	// 	"mkdir -p ${containerWorkspaceFolder}/build_persistent",
-	// 	"sudo chown vscode:vscode ${containerWorkspaceFolder}/build_persistent",
-	// 	"ln -s ${containerWorkspaceFolder}/build_persistent /tmp/build"
-	// ],
+	"postCreateCommand": "bash ./.devcontainer/post_create.sh ${containerWorkspaceFolder} build_persistent",
 
 	"customizations": {
 		"vscode": {
