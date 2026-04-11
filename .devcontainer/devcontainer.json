@@ -13,13 +13,13 @@
 	// //   build cache persistence without polluting the host repository.
 	// //
 	// 1. Mount a dedicated Docker Volume for persistent build data
-	"mounts": [
-		"source=${localWorkspaceFolderBasename}-persistent-build,target=${containerWorkspaceFolder}/build_persistent,type=volume"
-	],
+	// "mounts": [
+	// 	"source=${localWorkspaceFolderBasename}-persistent-build,target=${containerWorkspaceFolder}/build_persistent,type=volume"
+	// ],
 
-	// 2. Map /tmp/build to the persistent volume via symbolic link (zero-copy cost)
-	"postCreateCommand": "bash ./.devcontainer/post_create.sh ${containerWorkspaceFolder} build_persistent",
-	// -----------------------------------------------------------------------------------
+	// // 2. Map /tmp/build to the persistent volume via symbolic link (zero-copy cost)
+	// "postCreateCommand": "bash ./.devcontainer/post_create.sh ${containerWorkspaceFolder} build_persistent",
+	// // -----------------------------------------------------------------------------------
 
 	
 	"customizations": {
