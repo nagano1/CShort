@@ -1,5 +1,5 @@
-FROM mcr.microsoft.com/devcontainers/cpp:ubuntu
-# FROM mcr.microsoft.com/devcontainers/cpp:2-debian13
+# FROM mcr.microsoft.com/devcontainers/cpp:ubuntu
+FROM mcr.microsoft.com/devcontainers/cpp:2-debian13
 
 ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.21.5"
 
