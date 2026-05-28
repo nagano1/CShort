@@ -57,21 +57,6 @@ namespace cshort {
 
 
 
-        static node_vtable _nullVTable = CREATE_VTABLE(NullNodeStruct,
-                                                       selfTextLength,
-                                                       copySelfText,
-                                                       appendToLine,
-                                                       SimpleTextNodeStruct_applyFuncToDescendants,
-                                                       "<NULL>", NodeTypeId::NULLId
-    );
-
-    const struct node_vtable *VTables::NullVTable = &_nullVTable;
-
-
-
-
-
-
 
 
 
@@ -104,14 +89,5 @@ namespace cshort {
             TEXT_MEMCPY(textNode->text, context->chars + pos, charLen);
         }
         textNode->text[charLen] = '\0';
-    }
-
-    NullNodeStruct *Alloc::newNullNode(ParseContext *context, NodeBase *parentNode)
-    {
-        auto *nullNode = context->newMemForNode<NullNodeStruct>();
-        auto *node = Cast::upcast(nullNode);
-
-        INIT_NODE(node, context, parentNode, VTables::NullVTable);
-        return nullNode;
     }
 }

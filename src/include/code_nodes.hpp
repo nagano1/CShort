@@ -24,127 +24,13 @@ namespace cshort {
     struct ParseContext;
     struct CodeLine;
 
-    enum class PrimitiveCalcRegisterEnum {
-        eax, ebx, ecx, edx
-    };
-
-
-
-    // macros for CalcRegister
-    #define __RX(reg) (reg)->r_x
-    #define __EX(reg) (reg)->e_x.e_x
-    #define __X(reg) (reg)->e_x.ax.ax
-    #define __H(reg) (reg)->e_x.ax.ahal.ah
-    #define __L(reg) (reg)->e_x.ax.ahal.al
-
-    #define __RAX(reg) (reg).r_x
-    #define __EAX(reg) (reg).e_x.e_x
-    #define __AX(reg) (reg).e_x.ax.ax
-    #define __AH(reg) (reg).e_x.ax.ahal.ah
-    #define __AL(reg) (reg).e_x.ax.ahal.al
-
-    // macros for CPU Register
-    #define RAX(cpu) __RAX((cpu)->rax)
-    #define EAX(cpu) __EAX((cpu)->rax)
-    #define AX(cpu) __AX((cpu)->rax)
-    #define AH(cpu) __AH((cpu)->rax)
-    #define AL(cpu) __AL((cpu)->rax)
-
-    #define RBX(cpu) __RAX((cpu)->rbx)
-    #define EBX(cpu) __EAX((cpu)->rbx)
-    #define BX(cpu) __AX((cpu)->rbx)
-    #define BH(cpu) __AH((cpu)->rbx)
-    #define BL(cpu) __AL((cpu)->rbx)
-
-    #define RCX(cpu) __RAX((cpu)->rcx)
-    #define ECX(cpu) __EAX((cpu)->rcx)
-    #define CX(cpu) __AX((cpu)->rcx)
-    #define CH(cpu) __AH((cpu)->rcx)
-    #define CL(cpu) __AL((cpu)->rcx)
-
-    #define RDX(cpu) __RAX((cpu)->rdx)
-    #define EDX(cpu) __EAX((cpu)->rdx)
-    #define DX(cpu) __AX((cpu)->rdx)
-    #define DH(cpu) __AH((cpu)->rdx)
-    #define DL(cpu) __AL((cpu)->rdx)
-
-    union CalcRegister {
-        uint64_t r_x; // rax, rbx, rcx
-        union {
-            uint32_t e_x; // eax, ebx, ecx
-            union {
-                uint16_t ax; // ax, bx, cx
-                struct {
-                    uint8_t al; // al, bl, cl
-                    uint8_t ah; // ah, bh, ch
-                } ahal; // ah&al, bh&bl, ch&cl
-            } ax;
-        } e_x;
-    };
-
-    /*
-          64bit RAX, RBX, RCX, RDX, RSI, RDI, RSP, RBP, R8~R15
-          32bit EAX, EBX, ECX, EDX, ESI, EDI, ESP, EBP, R8D~R15D
-          16bit AX, BX, CX, DX, SI, DI, SP, BP, R8W~R15W
-    upper 8bit 	AH, BH, CH, DH,
-    lower 8bit 	AL, BL, CL, DL, SIL, DIL, SPL, BPL, R8L~R15L
-    */
-
-
-    using CPURegister = struct _CPURegister {
-        CalcRegister rax;
-        CalcRegister rbx;
-        CalcRegister rcx;
-        CalcRegister rdx;
-
-        void add(int num) {
-            auto *reg = this;
-            RAX(reg) = RAX(reg) + num;
-        }
-    };
-
-
-    static inline const CalcRegister* CalcEnumToCalcRegister(PrimitiveCalcRegisterEnum regTypeEnum, const CPURegister* cpu)
-    {
-        if (regTypeEnum == PrimitiveCalcRegisterEnum::eax) {
-            return &cpu->rax;
-        }
-        else if (regTypeEnum == PrimitiveCalcRegisterEnum::ebx) {
-            return &cpu->rbx;
-        }
-        else if (regTypeEnum == PrimitiveCalcRegisterEnum::ecx) {
-            return &cpu->rcx;
-        }
-        else if (regTypeEnum == PrimitiveCalcRegisterEnum::edx) {
-            return  &cpu->rdx;
-        }
-        return nullptr;
-    }
-
-    static inline st_byte* GetDataPointerFromCalcRegister(const CalcRegister* calcRegister, int dataSize)
-    {
-        if (dataSize == 4) {
-            return (st_byte*)&__EX(calcRegister);
-        }
-        else if (dataSize == 8) {
-            return (st_byte*)&__RX(calcRegister);
-        }
-
-        return nullptr;
-    }
-
     #define NODE_HEADER \
         const struct node_vtable *vtable; /* virtual table */ \
         _NodeBase *parentNode; \
         _NodeBase *nextNode; \
         _NodeBase *nextNodeInLine; \
         CodeLine *codeLine; \
-        int indentType; \
         ParseContext *context; \
-        PrimitiveCalcRegisterEnum calcRegEnum; \
-        st_byte *calcReg;                 \
-        int typeIndex;                \
-        bool typeAtHeap;                \
         int foundPos; \
         /* precedingSpaceCount holds number of chars before this node, used for error reporting and code generation. */ \
         /* this reduces memory usage and keeps AST simple by avoid creating additional nodes for all spaces. */ \
@@ -165,12 +51,9 @@ namespace cshort {
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
         (node)->foundPos = -1; \
-        (node)->typeIndex = -1; \
-        (node)->typeAtHeap = false; \
         (node)->nextNode = nullptr; \
         (node)->nextNodeInLine = nullptr; \
         (node)->precedingLineBreakNode = nullptr; \
-        (node)->calcRegEnum = PrimitiveCalcRegisterEnum::eax; \
         (node)->precedingCommentNode = nullptr; \
         (0)
 
@@ -188,7 +71,6 @@ namespace cshort {
         SIMPLE_TEXT_CONTENT;
     };
 
-    using NullNodeStruct = SimpleTextNodeStruct;
     using LineCommentNodeStruct = SimpleTextNodeStruct;
     using BlockCommentFragmentStruct = SimpleTextNodeStruct;
 
@@ -224,36 +106,6 @@ namespace cshort {
         int_fast32_t nameLength;
     };
 
-    using VariableNodeStruct = NameNodeStruct;
-
-    using StringLiteralNodeStruct = struct _StringLiteralNodeStruct {
-        NODE_HEADER;
-        char *text; // unparsed text including ""
-        int_fast32_t textLength;
-
-        char *str;
-        int strLength;
-
-        int literalType; // 0: "text", 1: `text`
-    };
-
-    using BoolNodeStruct = struct _BoolNodeStruct {
-        NODE_HEADER;
-
-        SIMPLE_TEXT_CONTENT;
-        bool boolValue;
-    };
-
-
-    using NumberNodeStruct = struct _NumberNodeStruct {
-        NODE_HEADER;
-
-        char *text;
-        int textLength;
-        int64_t num;
-        int unit;
-    };
-
     using SymbolStruct = struct _SymbolStruct {
         NODE_HEADER;
 
@@ -261,43 +113,6 @@ namespace cshort {
         utf8byte symbol[2];
     };
 
-
-    // ?string str
-    using TypeNodeStruct = struct _TypeNodeStruct {
-        NODE_HEADER;
-
-        bool hasImmutableMark; // # immutable
-        bool hasNullableMark; // ? nullable
-        bool isLet; // or has type
-
-        NameNodeStruct nameNode;
-    };
-
-
-    // int a = 5
-    // immutable: #int a = 5
-    // nullable: ?let *ptr = "jfwio"
-    using AssignStatementNodeStruct = struct _AssignStatementNodeStruct {
-        NODE_HEADER;
-
-        TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
-        bool hasTypeDecl; // only assignment: a = 3
-        SymbolStruct pointerAsterisk; // *
-
-        int stackOffset;
-        NameNodeStruct nameNode; // variable name
-        SymbolStruct equalSymbol; // =
-        NodeBase *expressionNode; // 32
-    };
-
-    using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {
-        NODE_HEADER;
-
-        SimpleTextNodeStruct returnText;
-        NodeBase *expressionNode;
-    };
-
-    using ReturnStatementNodeStruct = KeywordAndExpressionStruct;
 
     using ClassNodeStruct = struct _ClassNodeStruct {
         NODE_HEADER;
@@ -316,92 +131,6 @@ namespace cshort {
         NodeBase *firstChildNode;
         NodeBase *lastChildNode;
         int childCount;
-    };
-
-    /*
-    * for FuncNodeStruct
-    */
-    using BodyNodeStruct = struct _BodyNodeStruct {
-        NODE_HEADER;
-
-        bool startFound;
-        bool firstStatementFound;
-
-        SymbolStruct bodyStartNode;
-        SymbolStruct endBodyNode;
-
-        NodeBase *firstChildNode;
-        NodeBase *lastChildNode;
-        int childCount;
-    };
-
-
-
-    // (?int point = null)
-    using FuncParameterItemStruct = struct _FuncParameterItemStruct {
-        NODE_HEADER;
-        AssignStatementNodeStruct *assignStatementNodeStruct;
-        SymbolStruct follwingComma;
-        bool hasComma;
-    };
-
-    using FuncNodeStruct = struct _FuncNodeStruct {
-        NODE_HEADER;
-
-        NameNodeStruct nameNode;
-        int stackSize;
-
-        SymbolStruct parameterStartNode; // (
-        SymbolStruct parameterEndNode; // )
-
-        BodyNodeStruct bodyNode;
-
-        int parameterParsePhase;
-        FuncParameterItemStruct *firstChildParameterNode;
-        FuncParameterItemStruct *lastChildParameterNode;
-        int parameterChildCount;
-    };
-
-
-    using ParenthesesNodeStruct = struct _ParenthesesNodeStruct {
-        NODE_HEADER;
-
-        SymbolStruct openNode;
-        SymbolStruct closeNode;
-
-        NodeBase *valueNode;
-    };
-
-
-    using BinaryOperationNodeStruct = struct _BinaryOperationNodeStruct {
-        NODE_HEADER;
-
-        NodeBase *leftExprNode;
-        SymbolStruct opNode;
-        NodeBase *rightExprNode;
-    };
-
-
-    using FuncArgumentItemStruct = struct _FuncArgumentItemStruct {
-        NODE_HEADER;
-
-        NodeBase *exprNode; // expression Node
-        SymbolStruct follwingComma;
-        bool hasComma;
-    };
-
-
-    // func(param, param)
-    using FuncCallNodeStruct = struct _FuncCallNodeStruct {
-        NODE_HEADER;
-
-        NodeBase *exprNode;
-        int parsePhase;
-        SymbolStruct openNode;
-        SymbolStruct closeNode2;
-
-        FuncArgumentItemStruct *firstArgumentItem;
-        FuncArgumentItemStruct *lastArgumentItem;
     };
 
 
@@ -427,62 +156,6 @@ namespace cshort {
     };
 
 
-    enum class TokenTypeIds {
-        namespaceId = 0,
-        typeId = 1,
-        classId = 2,
-        enumId = 3,
-        interfaceId = 4,
-        structId = 5,
-        typeParameterId = 6,
-        parameterId = 7,
-        variableId = 8,
-        propertyId = 9,
-        enumMemberId = 10,
-        eventId = 11,
-        functionId = 12,
-        methodId = 13,
-        macroId = 14,
-        keywordId = 15,
-        modifierId = 16,
-        commentId = 17,
-        stringId = 18,
-        numberId = 19,
-        regexp = 20,
-        operatorId = 21,
-        decoratorId = 22,
-        myclass = 23,
-    };
-
-    static const char* tokenTypes[] = {
-            "namespace",
-            "type",
-            "class",
-            "enum",
-            "interface",
-            "struct",
-            "typeParameter",
-            "parameter",
-            "variable",
-            "property",
-            "enumMember",
-            "event",
-            "function",
-            "method",
-            "macro",
-            "keyword",
-            "modifier",
-            "comment",
-            "string",
-            "number",
-            "regexp",
-            "operator",
-            "decorator",
-            "myclass",
-            nullptr
-    };
-    static const char* tokenModifiers[] = {"declaration", "documentation", nullptr};
-
     enum class AppendLineMode {
         Normal,
         DetectErrorSpanNodes // add nodes only on the line that has syntax error, used for LSP server to reduce unnecessary addition.
@@ -501,9 +174,7 @@ namespace cshort {
         NodeBase *generatedPrimaryNode; // store the primary node generated by tokenizer, used for dealing with it in caller.
         utf8byte *chars;
 
-
         // node caches
-        AssignStatementNodeStruct *unusedAssignment;
         ClassNodeStruct *unusedClassNode;
 
         LineBreakNodeStruct *remainedLineBreakNode;
@@ -566,123 +237,25 @@ namespace cshort {
         
         int baseIndent;
         SyntaxErrorInfo syntaxErrorInfo;
-        bool has_cancel_request{false};
         bool has_depth_error{false};
         int parentDepth { -1 };
         int arithmeticBaseDepth{ -1 };
 
         void setError(ErrorIndex errorCode, st_int startPos) {
-            auto &errorInfo = this->syntaxErrorInfo;
-            if (errorInfo.hasError) {
-                return;
-            }
-
-            int a = 0, b = 0;
-            if (this->length == startPos) {
-                startPos--;
-            }
-
-            getLineAndPos(startPos, this->chars, this->length,
-                          reinterpret_cast<int *>(&a),
-                          reinterpret_cast<int *>(&b));
-
-            errorInfo.errorItem.charPosition = startPos;
-
-
-            this->setError3(errorCode, a, b, a+1, 0);
         }
 
         void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
-            auto &errorInfo = this->syntaxErrorInfo;
-            if (errorInfo.hasError) {
-                return;
-            }
 
-            if (this->length == startPos) {
-                startPos--;
-            }
-            if (this->length == startPos2) {
-                startPos2--;
-            }
-
-            int a, b, c, d;
-            getLineAndPos(startPos, this->chars, this->length,
-                          reinterpret_cast<int *>(&a),
-                          reinterpret_cast<int *>(&b));
-
-            getLineAndPos(startPos2, this->chars, this->length,
-                          reinterpret_cast<int *>(&c),
-                          reinterpret_cast<int *>(&d));
-
-
-            errorInfo.errorItem.charPosition = startPos;
-            errorInfo.errorItem.charPosition2 = startPos2;
-
-            this->setError3(errorCode, a, b, c, d);
         }
 
 
         void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1) {
-            auto &errorInfo = this->syntaxErrorInfo;
-            if (errorInfo.hasError) {
-                return;
-            }
-            this->setError3(errorCode, line1, 0, line1, charPos1);
+
         }
 
         void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2) {
-            auto &errorInfo = this->syntaxErrorInfo;
-            if (errorInfo.hasError) {
-                return;
-            }
 
-            errorInfo.errorItem.linePos1 = line1;
-            errorInfo.errorItem.linePos2 = line2;
-            errorInfo.errorItem.charPos1 = charPos1;
-            errorInfo.errorItem.charPos2 = charPos2;
-
-
-            errorInfo.hasError = true;
-            errorInfo.errorItem.errorIndex = errorCode;
-
-            errorInfo.errorItem.errorId = getErrorCode(errorCode);
-            const char* reason = getErrorMessage(errorCode);
-            if (reason == nullptr) {
-                reason = "";
-            }
-            int len = (int)strlen(reason);
-            errorInfo.errorItem.reasonLength = len < MAX_REASON_LENGTH ? len : MAX_REASON_LENGTH;
-            memcpy(errorInfo.errorItem.reason, reason, errorInfo.errorItem.reasonLength);
-            errorInfo.errorItem.reason[errorInfo.errorItem.reasonLength] = '\0';
         }
-
-        static bool getLineAndPos(int pos, const utf8byte *text, int textLength, int *line, int *charactor) {
-            int currentLine = 0;
-            int currentCharactor = 0;
-            int lineFirstPos = 0;
-
-            for (int32_t i = 0; i < textLength; i++) {
-
-                if (i == pos) {
-                    *line = currentLine;
-                    *charactor = ParseUtil::utf16_length(text + lineFirstPos, currentCharactor);
-                    return true;
-                }
-
-                currentCharactor++;
-
-                utf8byte ch = text[i];
-                //if (ParseUtil::isBreakLine(ch)) {
-                if ('\n' == ch) {
-                    currentCharactor = 0;
-                    currentLine++;
-                    lineFirstPos = i;
-                }
-            }
-
-            return false;
-        }
-
     };
 
 
@@ -820,31 +393,11 @@ namespace cshort {
         static const node_vtable
                 *DocumentVTable,
 
-                *AssignStatementVTable,
-                *ReturnStatementVTable,
-
                 *ClassVTable,
-
-                *FnVTable,
-
                 *NameVTable,
-                *VariableVTable,
-                *BodyVTable,
-                *TypeVTable,
-                *StringLiteralVTable,
-                *NumberVTable,
-                *BoolVTable,
                 *SymbolVTable,
                 *SimpleTextVTable,
-                *NullVTable,
                 *LineBreakVTable,
-                *ParenthesesVTable,
-                *FuncCallVTable,
-                *FuncArgumentVTable,
-                *FuncParameterVTable,
-
-                // operation
-                *BinaryOperationVTable,
 
                 *LineCommentVTable,
                 *BlockCommentVTable,
@@ -1009,94 +562,39 @@ namespace cshort {
 
     };
 
-    struct NodeUtils {
-        static int getTypeNameLength(TypeNodeStruct *typeNode);
-        static char* getTypeName(TypeNodeStruct *typeNode);
-    };
-
     struct DocumentUtils {
 
-        static OperationResult* performCodingOperation(
-            CodingOperations op,
-            DocumentStruct* doc,
-            NodeBase* startNode,
-            NodeBase* endNode
-        );
 
         static void parseText(DocumentStruct *docStruct, const utf8byte *text, int length);
 
         static void regenerateCodeLines(DocumentStruct *docStruct);
-        static void checkIndentSyntaxErrors(DocumentStruct *doc);
-        static void assignIndents(DocumentStruct *doc);
-        static void calcStackSize(DocumentStruct *doc);
-        static void formatIndent(DocumentStruct *doc);
 
         static utf8byte *getTextFromTree(DocumentStruct *doc);
-        static utf8byte *getSemanticTokensTextFromTree(DocumentStruct *doc, int *len, int line0, int line1);
-        static utf8byte *getTypeTextFromTree(DocumentStruct *doc);
         static utf8byte *getTextFromNode(NodeBase *line);
     };
 
 
     struct Init {
         static void initNameNode(NameNodeStruct *name, ParseContext *context, void *parentNode);
-        static void initBodyNode(BodyNodeStruct *name, ParseContext *context, void *parentNode);
-        static void initStringLiteralNode(StringLiteralNodeStruct *name, ParseContext *context,
-                                          NodeBase *parentNode);
 
         static void initSymbolNode(SymbolStruct *self, ParseContext *context, void *parent, utf8byte letter);
-        static void initTypeNode(TypeNodeStruct *self, ParseContext *context, void *parent);
 
         static void initSimpleTextNode(SimpleTextNodeStruct *name, ParseContext *context, void *parentNode, int charLen);
         static void assignText_SimpleTextNode(SimpleTextNodeStruct *name, ParseContext *context, int pos, int charLen);
-
-
-        static void initAssignStatement(ParseContext *context, NodeBase *parentNode,
-                                       AssignStatementNodeStruct *assignStatement
-        );
-
-        static void initReturnStatement(ParseContext *context, NodeBase *parentNode,
-                                        ReturnStatementNodeStruct *returnStatement
-        );
-
     };
 
 
     struct Alloc {
 
-        static TypeNodeStruct *newTypeNode(ParseContext *context, NodeBase *parentNode);
-
-        static NumberNodeStruct *newNumberNode(ParseContext *context, NodeBase *parentNode);
-        static VariableNodeStruct *newVariableNode(ParseContext *context, NodeBase *parentNode);
-        static ParenthesesNodeStruct *newParenthesesNode(ParseContext *context, NodeBase *parentNode);
-        static FuncCallNodeStruct *newFuncCallNode(ParseContext *context, NodeBase *parentNode);
-
-        static BoolNodeStruct *newBoolNode(ParseContext *context, NodeBase *parentNode);
         static LineBreakNodeStruct *newLineBreakNode(ParseContext *context, NodeBase *parentNode);
         static SimpleTextNodeStruct *newSimpleTextNode(ParseContext *context, NodeBase *parentNode);
-        static NullNodeStruct *newNullNode(ParseContext *context, NodeBase *parentNode);
 
         // comment
         static LineCommentNodeStruct *newLineCommentNode(ParseContext *context, NodeBase *parentNode);
         static BlockCommentNodeStruct *newBlockCommentNode(ParseContext *context, NodeBase *parentNode);
         static BlockCommentFragmentStruct *newBlockCommentFragmentNode(ParseContext *context, NodeBase *parentNode);
 
-        // operations
-        static BinaryOperationNodeStruct *newBinaryOperationNode(ParseContext *context, NodeBase *parentNode, char op);
-
-
-
-
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
-
-        // statement
-        static AssignStatementNodeStruct *newAssignStatement(ParseContext *context, NodeBase *parentNode);
-        static ReturnStatementNodeStruct *newReturnStatement(ParseContext *context, NodeBase *parentNode);
-
-        static FuncNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
-
-        static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
-        static FuncArgumentItemStruct *newFuncArgumentItem(ParseContext *context, NodeBase *parentNode);
 
         static DocumentStruct *newDocument(DocumentType docType);
 
@@ -1119,26 +617,9 @@ namespace cshort {
 
     struct Tokenizers {
         static int nameTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int variableTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int tokenizeExpression(TokenizerParams_argNode_ch_start_context);
-        static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int tokenizeFuncCall(TokenizerParams_argNode_ch_start_context);
-        static int binaryOperationTokenizer(TokenizerParams_argNode_ch_start_context);
-
-
-        static int typeTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int numberTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int nullTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int stringLiteralTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int boolTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int classTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int fnTokenizer(TokenizerParams_argNode_ch_start_context);
 
-        static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
         // genereater is a function pointer for generating corresponding node, it will be called when the word is matched, and the generated node will be returned by the tokenizer.
@@ -1191,41 +672,3 @@ namespace cshort {
         static int scanLoop(void *parentNode, TokenizerFunction tokenizer, ParseContext *context, int start);
     };
 }
-
-
-/**
- *
- * Abstract Message
- *    A general message as defined by JSON-RPC.
- *    The language server protocol always uses “2.0” as the jsonrpc version.
- */
-struct Message {
-public:
-    //std::string jsonrpc; // jsonrpc: string;
-};
-
-
-/**
- *  Request Message
- *     A request message to describe a request between the client and the server.
- *     Every processed request must send a response back to the sender of the request.
- */
-struct RequestMessage : Message {
-
-    /**
-     * The request id.
-     */
-    //std::string id; // id: number | std::string;
-
-    /**
-     * The method to be invoked.
-     */
-    //std::string method; // method: string;
-
-    /**
-     * The method's params.
-     */
-    //std::vector<std::string> params; //params?: array | object;
-
-};
-

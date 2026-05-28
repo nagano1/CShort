@@ -68,25 +68,6 @@ namespace cshort {
     }
 
 
-    VariableNodeStruct *Alloc::newVariableNode(ParseContext *context, NodeBase *parentNode)
-    {
-        auto *node = context->newMem<VariableNodeStruct>();
-        INIT_NODE(node, context, parentNode, VTables::VariableVTable);
-
-        node->stackOffset = 0;
-        node->name = nullptr;
-        node->nameLength = 0;   
-        // segmentation fault 
-        // Init::initNameNode(reinterpret_cast<NameNodeStruct *>(&node), context, parentNode);
-        return node;
-    }
-
-    int Tokenizers::variableTokenizer(TokenizerParams_argNode_ch_start_context)
-    {
-        auto *variableNode = Alloc::newVariableNode(context, argNode);
-        return Tokenizers::nameTokenizer(reinterpret_cast<NodeBase *>(variableNode), ch, start, context);
-    }
-
     static int NameNodeStruct_applyFuncToDescendants(NameNodeStruct *node, ApplyFunc_params3)
     {
         if (targetVTable == nullptr || node->vtable == targetVTable) {
@@ -105,16 +86,6 @@ namespace cshort {
                                                          nameTypeText, NodeTypeId::Name);
     const node_vtable *VTables::NameVTable = &_nameVTable;
 
-
-
-    static constexpr const char variableTypeText[] = "<Variable>";
-
-    static node_vtable _variableVTable = CREATE_VTABLE(VariableNodeStruct, selfTextLength,
-                                                         copySelfText, appendToLine,
-                                                       NameNodeStruct_applyFuncToDescendants,
-                                                       variableTypeText,
-                                                         NodeTypeId::Variable);
-    const node_vtable *VTables::VariableVTable = &_variableVTable;
 
 
     void Init::initNameNode(NameNodeStruct *name, ParseContext *context, void *parentNode) {

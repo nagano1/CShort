@@ -157,12 +157,6 @@ namespace cshort {
                 return result;
             }
 
-            if (Search::IsTokenized(result = Tokenizers::fnTokenizer(parent, ch, start, context))) {
-                auto* innerClassNode = Cast::downcast<ClassNodeStruct*>(parent);
-                appendChildNode(innerClassNode, context->generatedPrimaryNode);
-                return result;
-            }
-
             context->scanEnd = true;
             context->setError2(ErrorIndex::no_brace_of_end_for_class, classNode->foundPos, start);
         }

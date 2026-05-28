@@ -2,14 +2,6 @@
 #include "common.hpp"
 
 struct ParseUtil {
-    // \u8e60
-    // parse \uXXXX utf16 sequense in json string, and convert it to utf8 char, return the number of utf8 char, and set consumed to the number of chars consumed in utf16 chars
-    static int parseJsonUtf16Sequense(const char* utf16_chars, unsigned int len, int index, int *consumed,
-        unsigned char* ch1, unsigned  char* ch2, unsigned char* ch3, unsigned char* ch4);
-
-
-
-    static int utf16_length(const char *utf8_chars, unsigned int byte_len);
 
     template<class T>
     static inline int detectOne(const T &tokenizer, const utf8byte *chars, utf8byte ch, int i) {
