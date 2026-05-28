@@ -10,7 +10,6 @@
 
 
 
-// EXPECT_EQ(0, Tokenizer::matchAt("class A{}", "class"));
 int ParseUtil::_matchFirstWithTrim(const char *chars, int charsLength, const char *target, int start)
 {
     int currentTargetIndex = 0;

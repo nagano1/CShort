@@ -57,11 +57,8 @@ fn method() {
 }
 
 
-public static bool
-fn afunc(int intA
-         double b
-         float c
-) {
+public bool or AErrors,Berror,Aeeow
+fn afunc(int intA, double b, float c) {
     @Attr(awf="jofwie")
     int a = 342
 
@@ -81,6 +78,7 @@ fn afunc(int intA
     for i = 0
         i < 10
         i++ {
+
     }
 
     let res2 = method()
@@ -91,7 +89,13 @@ fn afunc(int intA
 
     let res = try stop()
 
-    let gg = begin() catch(err) {
+    let gg = begin() catchs(err) {
+        awe =>  {
+            return 35
+        }
+        awef => {
+            ret 213
+        }
     }
 
 
