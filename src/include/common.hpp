@@ -30,11 +30,7 @@ using st_byte = unsigned char;
 
 #define st_size_of(T) ((int)sizeof(T))
 
-#ifdef assert
-#undef assert
-#endif
-#define assert(expression) static_assert(true, "ok")
-
+// 
 namespace Search {
     // Parse result code
     constexpr int NOTFOUND = -1;
@@ -110,8 +106,8 @@ struct MemBuffer {
 
             // can delete & free
             auto *prev = memBufferBlock->prev;
-            if (prev == nullptr) {
-                assert(targetBufferList == this->firstBufferBlock);
+            if (prev == nullptr) { // memBufferBlock is the first block
+                assert(memBufferBlock == this->firstBufferBlock);
 
                 this->firstBufferBlock = memBufferBlock->next;
                 memBufferBlock->next->prev = nullptr;
