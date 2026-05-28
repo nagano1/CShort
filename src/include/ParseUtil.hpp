@@ -57,7 +57,8 @@ struct ParseUtil {
     {
         int pos = _matchFirstWithTrim(chars, charsLength, target, startIndex);
         if (pos > -1) {
-            if (startIndex + SIZE - 1 < charsLength && ParseUtil::isTerminatableChar(chars[startIndex + SIZE - 1])) {
+            int terminatorIndex = pos + SIZE - 1; // SIZE includes null terminator
+            if (terminatorIndex < charsLength && ParseUtil::isTerminatableChar(chars[terminatorIndex])) {
                 return pos;
             }
         }
