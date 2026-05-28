@@ -1,0 +1,255 @@
+﻿#pragma once
+#include "common.hpp"
+
+struct ParseUtil {
+    // \u8e60
+    // parse \uXXXX utf16 sequense in json string, and convert it to utf8 char, return the number of utf8 char, and set consumed to the number of chars consumed in utf16 chars
+    static int parseJsonUtf16Sequense(const char* utf16_chars, unsigned int len, int index, int *consumed,
+        unsigned char* ch1, unsigned  char* ch2, unsigned char* ch3, unsigned char* ch4);
+
+
+
+    static int utf16_length(const char *utf8_chars, unsigned int byte_len);
+
+    template<class T>
+    static inline int detectOne(const T &tokenizer, const utf8byte *chars, utf8byte ch, int i) {
+        if (tokenizer.first_char == ch) {
+            auto idx = tokenizer.tryTokenize(chars, i);
+            if (Search::IsTokenized(idx)) {
+                return idx;
+            }
+        }
+
+        return Search::NOTFOUND;
+    };
+
+    template<class T>
+    static inline int detect(const T &tokenizer, const utf8byte *chars, utf8byte ch, int i) {
+        for (int k = 0; k < tokenizer.first_chars_length; k++) {
+            if (tokenizer.first_chars[k] == ch) {
+                auto idx = tokenizer.tryTokenize(chars, i);
+                if (Search::IsTokenized(idx)) {
+                    return idx;
+                }
+            }
+        }
+
+        return Search::NOTFOUND;
+    };
+
+    static inline bool matchWord(const utf8byte *text,
+        st_size text_length,
+        const char *word, st_size word_length,
+        st_uint start)
+    {
+        if (start + word_length <= text_length) { // determine word has enough length
+            for (st_uint i = 0; i < word_length; i++) {
+                if (text[start + i] != word[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool IsKeyword(utf8byte *ch, st_int length);
+
+    static int _matchFirstWithTrim(const char *chars, int charsLength, const char *target, int start);
+
+    /// match target at startIndex with trim, and ensure the char after target is terminatable char
+    /// trim means it allows spaces and line breaks before target
+    template<int SIZE>
+    static int matchWordWithTerminatableEnd(const char *chars, int charsLength, int startIndex, const char(&target)[SIZE])
+    {
+        int pos = _matchFirstWithTrim(chars, charsLength, target, startIndex);
+        if (pos > -1) {
+            if (startIndex + SIZE - 1 < charsLength && ParseUtil::isTerminatableChar(chars[startIndex + SIZE - 1])) {
+                return pos;
+            }
+        }
+
+        return -1;
+    }
+
+    // EXPECT_EQ(0, Tokenizer::matchAt("class A{}", "class"));
+
+    static bool hasCharBeforeLineBreak(const char *chars, int charsLength, int startIndex) {
+        for (int i = startIndex; i < charsLength; i++) {
+            if (chars[i] == ' ' || chars[i] == '\r') {
+                continue;
+            } else  if (chars[i] == '\n' || chars[i] == '\0') {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    static inline bool isTerminatableChar(utf8byte ch)
+    {
+        return ' ' == ch || ch == '\n' || '\t' == ch
+            || '/' == ch || '\r' == ch
+            || ')' == ch || '}' == ch || ']' == ch
+            || ',' == ch;// || '.' == ch;
+    }
+
+
+    static inline int indexOfBreakOrEnd(const char *chars, int charsLength, int startIndex)
+    {
+        if (startIndex == charsLength) { // end of chars
+            return charsLength;
+        }
+
+        if (startIndex > charsLength) { // invalid start index
+            return -1;
+        }
+
+        for (int i = startIndex; i < charsLength; i++) {
+            if ('\r' == chars[i] || '\0' == chars[i] || '\n' == chars[i]) {
+                return i;
+            }
+        }
+        return charsLength;
+    }
+
+    static inline int indexOf(const char *chars, int charsLength, int startIndex, char ch)
+    {
+        for (int i = startIndex; i < charsLength; i++) {
+            if (ch == chars[i]) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static inline int indexOf(const char *chars, int charsLength, int startIndex, const char* word, int wordLength)
+    {
+        for (int i = startIndex; i < charsLength - wordLength + 1; i++) {
+            if (ParseUtil::matchWord(chars, charsLength, word, wordLength, i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static inline int indexOf2(const char *chars, int charsLength, int startIndex, char ch1, char ch2)
+    {
+        for (int i = startIndex; i < charsLength - 1; i++) {
+            if (ch1 == chars[i] && ch2 == chars[i+1]) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+
+    static inline bool isSpace(utf8byte ch)
+    {
+        return ' ' == ch || '\t' == ch;
+    }
+
+    static inline bool endsWith(const char* chars, int charsLength, const char* suffix, int suffixLength)
+    {
+        if (charsLength < suffixLength) {
+            return false;
+        }
+
+        for (int i = 0; i < suffixLength; i++) {
+            int idx = charsLength - (suffixLength - i);
+            if (chars[idx] != suffix[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static inline bool equals(const char* chars, int charsLength, const char* chars2, int chars2Length) {
+        if (charsLength == chars2Length) {
+            return endsWith(chars, charsLength, chars2, chars2Length);
+        }
+        return false;
+    }
+
+
+    template<int SIZE>
+    static inline bool endsWith(const char* chars, int charsLength, const char(&suffix)[SIZE])
+    {
+        const int suffixLength = SIZE - 1;
+        return endsWith(chars, charsLength, suffix, suffixLength);
+    }
+
+
+    static inline bool isNonIdentifierChar(utf8byte ch)
+    {
+        return ch == ' ' || '\t' == ch || '!' == ch || '#' == ch || '\n' == ch
+               || '%' == ch || ']' == ch || '"' == ch || '[' == ch || '\'' == ch
+               || '=' == ch || '*' == ch || '+' == ch || '-' == ch || '?' == ch
+               || '@' == ch || '{' == ch || '}' == ch || ',' == ch || ';' == ch
+               || ':' == ch || '.' == ch || '`' == ch || '&' == ch || '|' == ch
+               || '<' == ch || '>' == ch || '^' == ch || '\\' == ch || '/' == ch
+               || '\0' == ch;
+    }
+
+
+    static inline bool isBreakLine(utf8byte ch)
+    {
+        return '\r' == ch || '\n' == ch;
+    }
+
+
+    static inline bool isNumberLetter(utf8byte ch)
+    {
+        return '0' <= ch && ch <= '9';
+    }
+
+
+    static inline bool isIdentifierLetter(utf8byte ch)
+    {
+        if ('A' <= ch && ch <= 'Z') {
+            return true;
+        } else if ('a' <= ch && ch <= 'z') {
+            return true;
+        }
+        else if ('0' <= ch && ch <= '9') {
+            return true;
+        }
+        else if ('_' == ch) {
+            return true;
+        }
+
+        // non-ascii char, allow it in identifier, since it's common in modern languages to allow non-ascii char in identifier,
+        // and the target language of this parser is designed for modern programming, so we allow non-ascii char in identifier.
+        // we can use & with 0x80 to determine if it's ascii char or not, since ascii char has 0 in the most significant bit,
+        // while non-ascii char has 1 in the most significant bit.
+        return (ch & 0x80) == 0x80;
+    }
+
+    static bool isValuePresevedWord(utf8byte ch, utf8byte* bytes, int len)
+    {
+        if (ch == 'n') {
+            if (ParseUtil::equals(bytes, len, "null", 4)) {
+                return false;
+            }
+        }
+        else if (ch == 't') {
+            if (ParseUtil::equals(bytes, len, "true", 4)) {
+                return false;
+            }
+        }
+        else if (ch == 'f') {
+            if (ParseUtil::equals(bytes, len, "false", 4)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+

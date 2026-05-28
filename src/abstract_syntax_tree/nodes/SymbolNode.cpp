@@ -1,0 +1,60 @@
+﻿#include <cstdio>
+#include <iostream>
+#include <string>
+#include <array>
+#include <algorithm>
+
+
+#include <cstdlib>
+#include <cassert>
+#include <cstdio>
+#include <chrono>
+#include <unordered_map>
+#include <vector>
+
+#include <cstdint>
+#include <ctime>
+
+#include "code_nodes.hpp"
+
+namespace cshort {
+
+    static CodeLine *appendToLine(SymbolStruct *self, CodeLine *currentCodeLine) {
+        return currentCodeLine->AddAttachedFormatNodes(self)->appendNode(self);
+    }
+
+    static void copySelfText(SymbolStruct *self, utf8byte *buf)
+    {
+        buf[0] = self->symbol[0];
+    }
+
+    static int selfTextLength(SymbolStruct *) {
+        return 1;
+    }
+
+    static int applyFuncToDescendants(SymbolStruct *node, ApplyFunc_params3) {
+
+        if (targetVTable == nullptr || node->vtable == targetVTable) {
+            func(Cast::upcast(node), ApplyFunc_pass);
+        }
+
+        return 0;
+    }
+
+
+    static constexpr const char SymbolTypeText[] = "<Symbol>";
+
+    static node_vtable _symbolVTable = CREATE_VTABLE(SymbolStruct, selfTextLength, copySelfText,
+                                                   appendToLine, applyFuncToDescendants, SymbolTypeText, NodeTypeId::Symbol);
+    const node_vtable *VTables::SymbolVTable = &_symbolVTable;
+
+
+    void Init::initSymbolNode(SymbolStruct *node, ParseContext *context, void *parentNode,
+        utf8byte letter) {
+        INIT_NODE(node, context, parentNode, VTables::SymbolVTable);
+        node->isEnabled = false;
+        node->symbol[0] = letter;
+        node->symbol[1] = '\0';
+    }
+
+}
