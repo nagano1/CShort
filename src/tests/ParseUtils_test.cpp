@@ -54,25 +54,23 @@ int testParseUtil() {
 
 
     static constexpr char chars[] = "class A{}";
-    assert(0 == ParseUtil::matchWordWithTerminatableEnd(chars, sizeof(chars) - 1, 0, "class"));
+    assert(true == ParseUtil::matchWordWithTerminatableEnd(chars, sizeof(chars) - 1, 0, "class"));
 
-    assert(-1 == ParseUtil::matchWordWithTerminatableEnd("", 0, 0, "class"));
-    assert(-1 == ParseUtil::matchWordWithTerminatableEnd("", 0, 0, ""));
+    assert(false == ParseUtil::matchWordWithTerminatableEnd("", 0, 0, "class"));
+    assert(true == ParseUtil::matchWordWithTerminatableEnd("", 0, 0, ""));
 
     constexpr char txt[] = "aefvariable aowef \n";
-    assert(-1 == ParseUtil::matchWordWithTerminatableEnd(txt, sizeof(txt)-1, 2, "false"));
+    assert(false == ParseUtil::matchWordWithTerminatableEnd(txt, sizeof(txt)-1, 2, "false"));
 
     {
         std::string class_text(u8"class auto * 😂日本語=10234;");
-        int index = ParseUtil::matchWordWithTerminatableEnd(class_text.c_str(), class_text.length(), 0, "class");
-        assert(0 == index);
+        assert(true == ParseUtil::matchWordWithTerminatableEnd(class_text.c_str(), class_text.length(), 0, "class"));
     }
 
 
     {
         std::string class_text(u8"😂classauto;");
-        int index = ParseUtil::matchWordWithTerminatableEnd(class_text.c_str(), class_text.length(), 0, "class");
-        assert(-1 == index);
+        assert(false == ParseUtil::matchWordWithTerminatableEnd(class_text.c_str(), class_text.length(), 0, "class"));
     }
 
 

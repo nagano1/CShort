@@ -50,22 +50,21 @@ struct ParseUtil {
 
     static int _matchFirstWithTrim(const char *chars, int charsLength, const char *target, int start);
 
-    /// match target at startIndex with trim, and ensure the char after target is terminatable char
-    /// trim means it allows spaces and line breaks before target
+    /// match target at startIndex, and ensure the char after target is terminatable 
     template<int SIZE>
-    static int matchWordWithTerminatableEnd(const char *chars, int charsLength, int startIndex, const char(&target)[SIZE])
+    static bool matchWordWithTerminatableEnd(const char *chars, int charsLength, int startIndex, const char(&target)[SIZE])
     {
         if (matchWord(chars, charsLength, target, SIZE - 1, startIndex)) {
             int terminatorIndex = startIndex + SIZE - 1; // SIZE includes null terminator
             if (terminatorIndex == charsLength) { // end-of-input is a valid terminator
-                return startIndex;
+                return true;
             }
             if (terminatorIndex < charsLength && ParseUtil::isTerminatableChar(chars[terminatorIndex])) {
-                return startIndex;
+                return true;
             }
         }
 
-        return -1;
+        return false;
     }
 
     // EXPECT_EQ(0, Tokenizer::matchAt("class A{}", "class"));
