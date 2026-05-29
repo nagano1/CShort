@@ -65,7 +65,7 @@ int ParseUtil::_matchFirstWithTrim(const char *chars, int charsLength, const cha
 };
 
 
-bool ParseUtil::IsKeyword(utf8byte *ch, st_int length)
+bool ParseUtil::IsKeyword(const utf8byte *ch, st_int length)
 {
     constexpr const char* keywords[] = {"return", "class", "fn", "false", "true", "null", "ret"};
     for (auto &&keyword : keywords)
