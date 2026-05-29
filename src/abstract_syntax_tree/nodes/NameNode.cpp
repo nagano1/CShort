@@ -35,8 +35,12 @@ namespace cshort {
     }
 
     int Tokenizers::nameTokenizer(TokenizerParams_argNode_ch_start_context) {
+        // First character cannot be a digit (but allow '_' and non-ASCII bytes).
+        if (!(('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z') || ch == '_' || ((static_cast<unsigned char>(ch) & 0x80u) != 0))) {
+            return Search::NOTFOUND;
+        }
+
         int found_count = 0;
-        // TODO: first letter should be letter or _. simple solution is to use a flag to indicate if it's the first letter, and only allow letter or _ for the first letter, but it will add some overhead, since we need to check the flag for every letter. better solution is to use a separate loop to check the first letter, and then use another loop to check the rest of the letters, since it's common that the first letter is not valid, so we can fail fast without checking the rest of the letters.
         for (int_fast32_t i = start; i < context->length; i++) {
             if (ParseUtil::isIdentifierLetter(context->chars[i])) {
                 found_count++;
