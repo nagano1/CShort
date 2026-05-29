@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(main)
+project(CShort)
 
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11) # 11, 14, C++14...

@@ -32,30 +32,21 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          WinConf=$(cat <<-END
-            ${{ toJSON(matrix.config.win) }}
-          END)
-          WinConf="${WinConf%\}*}";
+          WinConf='${{ toJSON(matrix.config.win) }}'
+          UnixConf='${{ toJSON(matrix.config.unix) }}'
 
-          UnixConf=$(cat <<-END
-            ${{ toJSON(matrix.config.unix) }}
-          END)
-          UnixConf="${UnixConf%\}*}";
+           matrixJson=$(jq -cn --argjson win "$WinConf" --argjson unix "$UnixConf" '
+             [
+               ($win  + {os:"windows-latest", name:"Windows-latest"}),
+               ($win  + {os:"windows-2022",  name:"Windows-2022"}),
+               ($unix + {os:"ubuntu-latest", name:"ubuntu-latest"}),
+               ($unix + {os:"macos-latest",  name:"mac-latest"})
+             ]')
 
           # https://cmake.org/cmake/help/v4.3/manual/cmake-generators.7.html
           # https://cmake.org/cmake/help/v3.16/generator/Visual%20Studio%2016%202019.html#platform-selection
 
-          matrixJson=$(cat <<-END
-          [
-            $WinConf, os:"windows-latest", name: "Windows-latest" },
-            $WinConf, os:"windows-2022", name: "Windows-2022" },
-            $UnixConf, os: "ubuntu-latest", name: "ubuntu-latest"},
-            $UnixConf, os: "macos-latest", name: "mac-latest"},
-          ]
-          END)
-
-          echo "value=${matrixJson}"
-          echo "value=${matrixJson//$'\n'/}" >> $GITHUB_OUTPUT
+          echo "value=$matrixJson" >> "$GITHUB_OUTPUT"
 
   mybuild:
     permissions:

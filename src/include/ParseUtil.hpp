@@ -91,7 +91,7 @@ struct ParseUtil {
         return ' ' == ch || ch == '\n' || '\t' == ch
             || '/' == ch || '\r' == ch
             || ')' == ch || '}' == ch || ']' == ch
-            || ',' == ch;// || '.' == ch;
+            || ',' == ch || '\0' == ch;// || '.' == ch;
     }
 
 
