@@ -139,7 +139,7 @@ namespace cshort
 
                 if (hasLineBreak) {
                     // create a line break node for the line break after the comment fragment
-                    LineBreakNodeStruct *newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(parentNode));
+                    LineBreakNodeStruct *newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(blockComment));
                     bool rn = (endIndex + 1) < context->length && context->chars[endIndex] == '\r' && context->chars[endIndex + 1] == '\n';
                     if (rn) { // \r\n
                         newLineBreak->text[0] = '\r';
@@ -148,13 +148,15 @@ namespace cshort
                         currentIndex = endIndex + 2;
                     }
                     else {
+                        newLineBreak->text[0] = context->chars[endIndex];
+                        newLineBreak->text[1] = '\0';
                         currentIndex = endIndex + 1;
                     }
 
                     lastBreakLine = newLineBreak;
                 }
                 else {
-                    currentIndex = endIndex + 1;
+                    currentIndex = endIndex;
                 }
 
                 if (lastNode != nullptr) {
