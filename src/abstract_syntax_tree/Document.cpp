@@ -18,9 +18,9 @@ namespace cshort {
 
     // --------------------- Defines Document VTable ----------------------
 
-    static int selfTextLength(DocumentStruct *self)
+    static int selfTextLength(DocumentStruct *)
     {
-        return 5;
+        return 0;
     }
 
     static void copySelfText(DocumentStruct *self, utf8byte *buf)
