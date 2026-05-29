@@ -200,6 +200,8 @@ namespace cshort {
 
 
     static const char *translateErrorMessage(ErrorIndex errorIndex, Language lang) {
+        (void)errorIndex;
+        (void)lang;
         return nullptr;
     }
 
@@ -223,7 +225,7 @@ namespace cshort {
         auto&& errorInfo = ErrorInfo::ErrorInfoList[static_cast<int>(errorIndex)];
         mes = errorInfo.msg;
 
-        auto *transMess = translateErrorMessage(errorIndex, Language::jp);
+        const char *transMess = translateErrorMessage(errorIndex, Language::en);
         if (transMess != nullptr) {
             mes = transMess;
         }
