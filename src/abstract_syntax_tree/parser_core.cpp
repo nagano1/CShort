@@ -321,7 +321,7 @@ namespace cshort
         int lastTokenizedPos = context->lastTokenizedPos;
 
         for (int32_t i = start; i <= context->length;) {
-            ch = context->chars[i];
+            ch = (i < context->length) ? context->chars[i] : 0;
 
             if (ch == '/') {
                 int endPos = tryDetectComments(parentNode, context, i, &parsingData);
