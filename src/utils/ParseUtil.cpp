@@ -16,6 +16,9 @@ int ParseUtil::_matchFirstWithTrim(const char *chars, int charsLength, const cha
     int matchStartIndex = -1;
 
     for (int i = start; true; i++) {
+        if (target[currentTargetIndex] == '\0') { // allow match at end-of-input
+            break;
+        }
         if (i < 0 || i >= charsLength) { // end of chars, match failed (chars may not be null-terminated)
             return -1;
         }

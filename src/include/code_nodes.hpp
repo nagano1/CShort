@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <array>
+#include <utility> // std::declval
 
 #include <cstdlib>
 #include <cassert>
@@ -194,6 +195,9 @@ namespace cshort {
             memBuffer.init();
             memBufferForCodeLines.init();
             appendLineMode = AppendLineMode::Normal;
+            syntaxErrorInfo.hasError = false;
+            syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
+            syntaxErrorInfo.errorItem.errorId = 10000;
         }
 
         void dispose() {

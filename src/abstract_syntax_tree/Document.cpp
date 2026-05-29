@@ -221,6 +221,12 @@ namespace cshort {
         assert(docStruct->context != nullptr);
 
         auto *context = docStruct->context;
+        // Reset previous parse state (parseText can be called multiple times on the same document)
+        docStruct->firstRootNode = nullptr;
+        docStruct->lastRootNode = nullptr;
+        docStruct->nodeCount = 0;
+        context->memBuffer.freeAll();
+        context->memBuffer.init();
         context->syntaxErrorInfo.hasError = false;
         context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
         context->syntaxErrorInfo.errorItem.errorId = 10000;
@@ -233,7 +239,6 @@ namespace cshort {
         context->mostLeftNode = nullptr;
         context->generatedPrimaryNode = nullptr;
         context->lastTokenizedPos = 0;
-
         context->remainedLineBreakNode = nullptr;
         context->remainedCommentNode = nullptr;
 
