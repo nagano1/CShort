@@ -665,7 +665,7 @@ namespace cshort {
         {
             if (capitalLetter == ch) {
                 int length = st_size_of(word) - 1;
-                if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, word) > -1 ) {
+                if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, word)) {
                     auto *boolNode = (SimpleTextNodeStruct*)(genereater(context, argNode));
 
                     boolNode->text = context->memBuffer.newText(length);
