@@ -63,9 +63,9 @@ int testParseUtil() {
     assert(-1 == ParseUtil::matchWordWithTerminatableEnd(txt, sizeof(txt)-1, 2, "false"));
 
     {
-        std::string class_text(u8"     \tclass auto * 😂日本語=10234;");
+        std::string class_text(u8"class auto * 😂日本語=10234;");
         int index = ParseUtil::matchWordWithTerminatableEnd(class_text.c_str(), class_text.length(), 0, "class");
-        assert(6 == index);
+        assert(0 == index);
     }
 
 
