@@ -157,9 +157,10 @@ struct ParseUtil {
     }
 
 
+    // \t is currently converted into a single space for simplicity.
     static inline bool isSpace(utf8byte ch)
     {
-        return ' ' == ch;
+        return ' ' == ch || '\t' == ch;
     }
 
     static inline bool endsWith(const char* chars, int charsLength, const char* suffix, int suffixLength)
