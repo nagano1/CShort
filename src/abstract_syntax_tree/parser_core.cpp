@@ -345,7 +345,7 @@ namespace cshort
                 context->isAfterLineBreak = true;
                 continue;
             }
-            else if (ParseUtil::isSpace(ch)) { // \t is currently converted into a single space for simplicity.
+            else if (ParseUtil::isSpace(ch)) {
                 parsingData.whitespace_startpos = i;
                 i = detectSpaceEndIndex(i, context);
                 continue;
