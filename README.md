@@ -1,6 +1,6 @@
 # CShort
 
-CShort is a Computer Language
+CShort is a programming language.
 
 ## Building
 
