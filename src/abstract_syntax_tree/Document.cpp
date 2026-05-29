@@ -232,6 +232,7 @@ namespace cshort {
         context->length = length;
         context->mostLeftNode = nullptr;
         context->generatedPrimaryNode = nullptr;
+        context->lastTokenizedPos = 0;
 
         context->remainedLineBreakNode = nullptr;
         context->remainedCommentNode = nullptr;

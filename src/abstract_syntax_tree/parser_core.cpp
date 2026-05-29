@@ -47,6 +47,10 @@ namespace cshort
     {
         int textStartPos = i + 2;
 
+        if (i + 2 >= context->length) {
+            // not enough chars for block comment start tag
+            return context->length;
+        }
         if (context->chars[i + 2] == '[') { // /*[hoge] ... [hoge]*/
             int nameStartPos = i + 3;
             // find out the tag name: hoge
@@ -292,6 +296,8 @@ namespace cshort
             result = position + 2;
         }
         else {
+            newLineBreak->text[0] = ch;
+            newLineBreak->text[1] = '\0';
             result = position + 1;
         }
         return result;

@@ -105,6 +105,7 @@ namespace cshort {
         INIT_NODE(classNode, context, parentNode, &_classVTable);
         classNode->lastChildNode = nullptr;
         classNode->firstChildNode = nullptr;
+        classNode->childCount = 0;
 
         Init::initNameNode(&classNode->nameNode, context, classNode);
 

@@ -40,7 +40,7 @@ namespace cshort {
         // string
         missing_closing_quote,
         missing_closing_quote2,
-        missing_object_delemeter,
+        missing_object_delimeter,
 
         // class
         invalid_class_name,
@@ -67,7 +67,7 @@ namespace cshort {
         assign_null_to_unnullable,
         assign_to_immutable,
         cant_put_immutable_mark_for_non_value_assignment,
-        type_is_not_assigneable,
+        type_is_not_assignable,
 
 
         last_keeper
@@ -140,7 +140,7 @@ namespace cshort {
             ErrorInfo{ ErrorIndex::missing_closing_quote, 989800, "missing closing quote" },
             ErrorInfo{ ErrorIndex::missing_closing_quote2, 989900, "missing closing quote" },
 
-            ErrorInfo{ ErrorIndex::missing_object_delemeter, 7677812, "missing object delimeter"},
+            ErrorInfo{ ErrorIndex::missing_object_delimeter, 7677812, "missing object delimeter"},
 
             // class
             ErrorInfo{ ErrorIndex::invalid_class_name, 7777413, "Invalid class name"},
@@ -167,7 +167,7 @@ namespace cshort {
             ErrorInfo{ErrorIndex::assign_null_to_unnullable, 57770003, "assign null to unnullable type"},
             ErrorInfo{ErrorIndex::assign_to_immutable,  57770004, "assign to immutable"},
             ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770005, "cant put immutable mark for non value assignment"},
-            ErrorInfo{ErrorIndex::type_is_not_assigneable, 57770006, "type is not assigneable"},
+            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770006, "type is not assigneable"},
 
 
             ErrorInfo{ ErrorIndex::last_keeper, 99999999, "end" },

@@ -239,7 +239,7 @@ struct ParseUtil {
         return (ch & 0x80) == 0x80;
     }
 
-    static bool isValuePresevedWord(utf8byte ch, utf8byte* bytes, int len)
+    static bool isValuePreservedWord(utf8byte ch, utf8byte* bytes, int len)
     {
         if (ch == 'n') {
             if (ParseUtil::equals(bytes, len, "null", 4)) {
