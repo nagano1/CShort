@@ -261,6 +261,7 @@ namespace cshort
         }
 
         parsingData->assignLineBreak(newCommentNode);
+        return commentEndIndex;
     }
 
     
