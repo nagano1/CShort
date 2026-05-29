@@ -157,10 +157,9 @@ struct ParseUtil {
     }
 
 
-
     static inline bool isSpace(utf8byte ch)
     {
-        return ' ' == ch || '\t' == ch;
+        return ' ' == ch;
     }
 
     static inline bool endsWith(const char* chars, int charsLength, const char* suffix, int suffixLength)
