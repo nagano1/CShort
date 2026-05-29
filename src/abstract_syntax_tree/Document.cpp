@@ -74,15 +74,7 @@ namespace cshort {
         return doc;
     }
 
-    static inline void deleteLineNodes(CodeLine *line) {
-        assert(line != nullptr);
-        if (line) {
-            if (line->nextLine) {
-                deleteLineNodes(line->nextLine);
-            }
-            free(line);
-        }
-    }
+    // CodeLine instances are arena-allocated via ParseContext::memBufferForCodeLines; freeing is handled by memBufferForCodeLines.freeAll().
 
     void Alloc::deleteDocument(DocumentStruct *doc) {
         doc->context->dispose();
