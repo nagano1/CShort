@@ -113,7 +113,7 @@ namespace cshort
 
         // split block comment into fragments by line break, and create LineBreakNodeStruct for each line break
         while (currentIndex <= commentEndIndex) {
-            auto result = ParseUtil::indexOfBreakOrEnd(context->chars, context->length, currentIndex);
+            auto result = ParseUtil::indexOfBreakOrEndWithInfo(context->chars, context->length, currentIndex);
             int endIndex = result.index;
             bool hasLineBreak = result.hasLineBreak;
 
@@ -222,9 +222,14 @@ namespace cshort
         char *tagText = nullptr; // name of named block comment
         int tagLength = 0;
 
+        if (i + 1 >= context->length) {
+            return -1; // not enough chars for comment start tag
+        }
+        
         // line comment with "//"
         if ('/' == context->chars[i + 1]) {
             commentEndIndex = ParseUtil::indexOfBreakOrEnd(context->chars, context->length, i);
+            assert(commentEndIndex > -1);
             isLineComment = true;
 
         } // block comment /* */
@@ -232,31 +237,30 @@ namespace cshort
             commentEndIndex = detectBlockCommentEnd(i, context, tagLength, tagText);
         }
 
-        if (commentEndIndex > -1) {
-
-            NodeBase *newCommentNode;
-            if (isLineComment) {
-                auto* comment = Alloc::newLineCommentNode(context, Cast::upcast(parentNode));
-                Init::assignText_SimpleTextNode(comment, context, i, commentEndIndex - i);
-
-                newCommentNode = Cast::upcast(comment);
-            }
-            else {
-                newCommentNode = generateBlockCommentFragments(parentNode, context, i, commentEndIndex, tagText, tagLength);
-            }
-
-            parsingData->assignWhiteSpaces(newCommentNode, i);
-
-            NodeBase* prevCommentNode = parsingData->commentNode;
-            parsingData->commentNode = newCommentNode;
-            if (prevCommentNode != nullptr) {
-                newCommentNode->precedingCommentNode = prevCommentNode;
-            }
-
-            parsingData->assignLineBreak(newCommentNode);
+        if (commentEndIndex == -1) {
+            return -1; // not a comment
         }
 
-        return commentEndIndex;
+        NodeBase *newCommentNode;
+        if (isLineComment) {
+            auto* comment = Alloc::newLineCommentNode(context, Cast::upcast(parentNode));
+            Init::assignText_SimpleTextNode(comment, context, i, commentEndIndex - i);
+
+            newCommentNode = Cast::upcast(comment);
+        }
+        else {
+            newCommentNode = generateBlockCommentFragments(parentNode, context, i, commentEndIndex, tagText, tagLength);
+        }
+
+        parsingData->assignWhiteSpaces(newCommentNode, i);
+
+        NodeBase* prevCommentNode = parsingData->commentNode;
+        parsingData->commentNode = newCommentNode;
+        if (prevCommentNode != nullptr) {
+            newCommentNode->precedingCommentNode = prevCommentNode;
+        }
+
+        parsingData->assignLineBreak(newCommentNode);
     }
 
     
