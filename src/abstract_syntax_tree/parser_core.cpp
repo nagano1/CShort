@@ -320,7 +320,7 @@ namespace cshort
         context->isAfterLineBreak = false;
         int lastTokenizedPos = context->lastTokenizedPos;
 
-        for (int32_t i = start; i <= context->length;) {
+        for (int32_t i = start; i <= context->length;) { // iterate until the end of chars
             ch = (i < context->length) ? context->chars[i] : 0;
 
             if (ch == '/') {
