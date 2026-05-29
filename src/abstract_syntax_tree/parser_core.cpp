@@ -117,24 +117,24 @@ namespace cshort
         LineBreakNodeStruct *lastBreakLine = nullptr;
 
         // split block comment into fragments by line break, and create LineBreakNodeStruct for each line break
-        while (currentIndex <= commentEndIndex) {
+        while (currentIndex < commentEndIndex) {
             auto result = ParseUtil::indexOfBreakOrEndWithInfo(context->chars, context->length, currentIndex);
             int endIndex = result.index;
             bool hasLineBreak = result.hasLineBreak;
 
             if (commentEndIndex < endIndex) {
                 endIndex = commentEndIndex;
+                hasLineBreak = false;
             }
 
             if (endIndex > -1 && currentIndex <= endIndex) {
-                auto *commentFragment = Alloc::newBlockCommentFragmentNode(context, Cast::upcast(parentNode));
+                auto *commentFragment = Alloc::newBlockCommentFragmentNode(context, Cast::upcast(blockComment));
 
                 // link with previous line break node
                 commentFragment->precedingLineBreakNode = lastBreakLine;
 
-                // the length of comment fragment should not include the line break character, 
-                // so use endIndex instead of currentIndex + commentLength
-                int commentLength = hasLineBreak ? (endIndex - currentIndex) : (endIndex - currentIndex + 1);
+                // endIndex is exclusive for the fragment text (it points to a line break, '\0', or commentEndIndex)
+                int commentLength = endIndex - currentIndex;
                 Init::assignText_SimpleTextNode(commentFragment, context, currentIndex, commentLength);
 
                 if (hasLineBreak) {
