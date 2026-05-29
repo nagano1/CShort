@@ -20,13 +20,13 @@ int main()
     return 0;
 }
 
-constexpr auto *classOnlyText = const_cast<char *>(u8R"(
+constexpr const char *classOnlyText = u8R"(
 class TestClass { /*comment*/
     // comment
 }
 
-    )");
-constexpr auto *multipleRowsComment = const_cast<char *>(u8R"(
+    )";
+constexpr const char *multipleRowsComment = u8R"(
 class TestClass { /*comment
 
     test
@@ -35,7 +35,7 @@ class TestClass { /*comment
 }
 /*comment
 
-*/)");
+*/)";
 
 
 

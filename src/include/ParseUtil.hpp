@@ -58,6 +58,9 @@ struct ParseUtil {
         int pos = _matchFirstWithTrim(chars, charsLength, target, startIndex);
         if (pos > -1) {
             int terminatorIndex = pos + SIZE - 1; // SIZE includes null terminator
+            if (terminatorIndex == charsLength) { // end-of-input is a valid terminator
+                return pos;
+            }
             if (terminatorIndex < charsLength && ParseUtil::isTerminatableChar(chars[terminatorIndex])) {
                 return pos;
             }

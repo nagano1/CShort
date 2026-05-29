@@ -82,6 +82,7 @@ namespace cshort
             // [hoge]*/
             if (context->chars[endCommentPos - 1] == ']') {
                 if (tagLength > 0
+                    && (endCommentPos - tagLength - 2) >= 0
                     && context->chars[endCommentPos - tagLength - 2] == '['
                     && ParseUtil::matchWord(context->chars, context->length, tagText, tagLength, endCommentPos - tagLength - 1)
                 ) {
@@ -139,7 +140,7 @@ namespace cshort
                 if (hasLineBreak) {
                     // create a line break node for the line break after the comment fragment
                     LineBreakNodeStruct *newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(parentNode));
-                    bool rn = context->chars[endIndex] == '\r' && context->chars[endIndex+1] == '\n';
+                    bool rn = (endIndex + 1) < context->length && context->chars[endIndex] == '\r' && context->chars[endIndex + 1] == '\n';
                     if (rn) { // \r\n
                         newLineBreak->text[0] = '\r';
                         newLineBreak->text[1] = '\n';

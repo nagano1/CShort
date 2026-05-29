@@ -16,16 +16,13 @@ int ParseUtil::_matchFirstWithTrim(const char *chars, int charsLength, const cha
     int matchStartIndex = -1;
 
     for (int i = start; true; i++) {
-        auto ch = chars[i];
-
-        // use & and != 0x80 to determine if it's a ascii char, since the target should be ascii char.
-        // ascii char has 0 in the most significant bit, while non-ascii char has 1 in the most significant bit,
-        // so we can use & with 0x80 to determine if it's ascii char or not
-        if ((ch & 0x80) == 0x80) {
+        if (i < 0 || i >= charsLength) { // end of chars, match failed (chars may not be null-terminated)
             return -1;
         }
+        auto ch = chars[i];
 
-        if (ch == '\0') { // end of chars, match failed
+        // use & 0x80 to determine if it's an ascii char; target is expected to be ascii.
+        if ((static_cast<unsigned char>(ch) & 0x80u) != 0) {
             return -1;
         }
 

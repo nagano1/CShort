@@ -208,7 +208,7 @@ namespace cshort {
 
         template<typename T>
         void tryDelete(T *m) {
-            (T *) memBuffer.tryDelete(m);
+            memBuffer.tryDelete(m);
         }
 
         template<typename T>

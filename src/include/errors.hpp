@@ -40,7 +40,7 @@ namespace cshort {
         // string
         missing_closing_quote,
         missing_closing_quote2,
-        missing_object_delimeter,
+        missing_object_delimiter,
 
         // class
         invalid_class_name,
@@ -130,7 +130,7 @@ namespace cshort {
             // common
             ErrorInfo{ ErrorIndex::syntax_error, 418030, "syntax error" },
             ErrorInfo{ ErrorIndex::syntax_error2, 418031, "syntax error2" },
-            ErrorInfo{ ErrorIndex::should_break_line, 418032, "should have a line break2" },
+            ErrorInfo{ ErrorIndex::should_break_line, 418032, "should have a line break" },
             ErrorInfo{ ErrorIndex::indent_error, 418033, "indent error" },
 
             // value
@@ -140,7 +140,7 @@ namespace cshort {
             ErrorInfo{ ErrorIndex::missing_closing_quote, 989800, "missing closing quote" },
             ErrorInfo{ ErrorIndex::missing_closing_quote2, 989900, "missing closing quote" },
 
-            ErrorInfo{ ErrorIndex::missing_object_delimeter, 7677812, "missing object delimeter"},
+            ErrorInfo{ ErrorIndex::missing_object_delimiter, 7677812, "missing object delimiter"},
 
             // class
             ErrorInfo{ ErrorIndex::invalid_class_name, 7777413, "Invalid class name"},
@@ -167,7 +167,7 @@ namespace cshort {
             ErrorInfo{ErrorIndex::assign_null_to_unnullable, 57770003, "assign null to unnullable type"},
             ErrorInfo{ErrorIndex::assign_to_immutable,  57770004, "assign to immutable"},
             ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770005, "cant put immutable mark for non value assignment"},
-            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770006, "type is not assigneable"},
+            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770006, "type is not assignable"},
 
 
             ErrorInfo{ ErrorIndex::last_keeper, 99999999, "end" },
