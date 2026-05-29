@@ -7,7 +7,7 @@ CShort is a Computer Language
 Currently only the parser is implemented.
 Building executable files is not available yet.
 
-To build the project, you need CMake 3.10+ and a C++ compiler installed.
+To build the project, you need CMake 3.12+ and a C++ compiler installed.
 
 ```bash
 cmake -B build
