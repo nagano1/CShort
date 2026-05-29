@@ -46,7 +46,7 @@ struct ParseUtil {
         return false;
     }
 
-    static bool IsKeyword(utf8byte *ch, st_int length);
+    static bool IsKeyword(const utf8byte *ch, st_int length);
 
     static int _matchFirstWithTrim(const char *chars, int charsLength, const char *target, int start);
 
