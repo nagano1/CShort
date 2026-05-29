@@ -55,7 +55,7 @@ struct ParseUtil {
     template<int SIZE>
     static int matchWordWithTerminatableEnd(const char *chars, int charsLength, int startIndex, const char(&target)[SIZE])
     {
-        int pos = _matchFirstWithTrim(chars, charsLength, target, startIndex);
+        int pos = matchWord(chars, charsLength, target, SIZE - 1, startIndex);
         if (pos > -1) {
             int terminatorIndex = pos + SIZE - 1; // SIZE includes null terminator
             if (terminatorIndex == charsLength) { // end-of-input is a valid terminator
