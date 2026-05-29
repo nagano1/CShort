@@ -242,19 +242,49 @@ namespace cshort {
         int arithmeticBaseDepth{ -1 };
 
         void setError(ErrorIndex errorCode, st_int startPos) {
+            setError2(errorCode, startPos, startPos);
         }
 
         void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
+            if (syntaxErrorInfo.hasError) {
+                return;
+            }
+            syntaxErrorInfo.hasError = true;
+            auto &item = syntaxErrorInfo.errorItem;
+            item.errorIndex = errorCode;
+            item.errorId = getErrorCode(errorCode);
+            item.charPosition = startPos;
+            item.charPosition2 = startPos2;
 
+            const char *msg = getErrorMessage(errorCode);
+            if (msg != nullptr) {
+                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
+                item.reasonLength = static_cast<int>(strlen(item.reason));
+            }
         }
 
-
         void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1) {
-
+            setError3(errorCode, line1, charPos1, line1, charPos1);
         }
 
         void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2) {
+            if (syntaxErrorInfo.hasError) {
+                return;
+            }
+            syntaxErrorInfo.hasError = true;
+            auto &item = syntaxErrorInfo.errorItem;
+            item.errorIndex = errorCode;
+            item.errorId = getErrorCode(errorCode);
+            item.linePos1 = line1;
+            item.charPos1 = charPos1;
+            item.linePos2 = line2;
+            item.charPos2 = charPos2;
 
+            const char *msg = getErrorMessage(errorCode);
+            if (msg != nullptr) {
+                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
+                item.reasonLength = static_cast<int>(strlen(item.reason));
+            }
         }
     };
 
