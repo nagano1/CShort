@@ -26,6 +26,17 @@ class TestClass { /*comment*/
 }
 
     )");
+constexpr auto *multipleRowsComment = const_cast<char *>(u8R"(
+class TestClass { /*comment
+
+    test
+*/
+    // comment
+}
+/*comment
+
+*/)");
+
 
 
 
@@ -60,6 +71,7 @@ void testParsing()
 {
     CheckTextEq(classOnlyText);
     CheckTextEq(classCommentText);
+    CheckTextEq(multipleRowsComment);
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
 

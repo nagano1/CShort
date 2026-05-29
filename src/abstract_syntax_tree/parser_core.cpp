@@ -106,13 +106,17 @@ namespace cshort
         blockComment->tagText = tagText;
         blockComment->tagTextLength = tagLength;
 
+        // i is the position of '/'
         int currentIndex = i;
         BlockCommentFragmentStruct *lastNode = nullptr;
         LineBreakNodeStruct *lastBreakLine = nullptr;
 
         // split block comment into fragments by line break, and create LineBreakNodeStruct for each line break
         while (currentIndex <= commentEndIndex) {
-            int endIndex  = ParseUtil::indexOfBreakOrEnd(context->chars, context->length, currentIndex);
+            auto result = ParseUtil::indexOfBreakOrEnd(context->chars, context->length, currentIndex);
+            int endIndex = result.index;
+            bool hasLineBreak = result.hasLineBreak;
+
             if (commentEndIndex < endIndex) {
                 endIndex = commentEndIndex;
             }
@@ -123,23 +127,30 @@ namespace cshort
                 // link with previous line break node
                 commentFragment->precedingLineBreakNode = lastBreakLine;
 
-                int commentLength = endIndex - currentIndex;
+                // the length of comment fragment should not include the line break character, 
+                // so use endIndex instead of currentIndex + commentLength
+                int commentLength = hasLineBreak ? (endIndex - currentIndex) : (endIndex - currentIndex + 1);
                 Init::assignText_SimpleTextNode(commentFragment, context, currentIndex, commentLength);
 
-                // create a line break node for the line break after the comment fragment
-                LineBreakNodeStruct *newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(parentNode));
-                bool rn = context->chars[endIndex] == '\r' && context->chars[endIndex+1] == '\n';
-                if (rn) { // \r\n
-                    newLineBreak->text[0] = '\r';
-                    newLineBreak->text[1] = '\n';
-                    newLineBreak->text[2] = '\0';
-                    currentIndex = endIndex + 2;
+                if (hasLineBreak) {
+                    // create a line break node for the line break after the comment fragment
+                    LineBreakNodeStruct *newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(parentNode));
+                    bool rn = context->chars[endIndex] == '\r' && context->chars[endIndex+1] == '\n';
+                    if (rn) { // \r\n
+                        newLineBreak->text[0] = '\r';
+                        newLineBreak->text[1] = '\n';
+                        newLineBreak->text[2] = '\0';
+                        currentIndex = endIndex + 2;
+                    }
+                    else {
+                        currentIndex = endIndex + 1;
+                    }
+
+                    lastBreakLine = newLineBreak;
                 }
                 else {
                     currentIndex = endIndex + 1;
                 }
-
-                lastBreakLine = newLineBreak;
 
                 if (lastNode != nullptr) {
                     lastNode->nextNode = Cast::upcast(commentFragment);

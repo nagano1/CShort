@@ -92,22 +92,29 @@ struct ParseUtil {
     }
 
 
-    static inline int indexOfBreakOrEnd(const char *chars, int charsLength, int startIndex)
+    struct IndexOfBreakOrEndResult {
+        int index;
+        bool hasLineBreak;
+    };
+    static inline IndexOfBreakOrEndResult indexOfBreakOrEnd(const char *chars, int charsLength, int startIndex)
     {
         if (startIndex == charsLength) { // end of chars
-            return charsLength;
+            return {charsLength, false};
         }
 
         if (startIndex > charsLength) { // invalid start index
-            return -1;
+            return {-1, false};
         }
 
         for (int i = startIndex; i < charsLength; i++) {
-            if ('\r' == chars[i] || '\0' == chars[i] || '\n' == chars[i]) {
-                return i;
+            if ('\r' == chars[i] || '\n' == chars[i]) {
+                return {i, true};
+            }
+            else if ('\0' == chars[i]) {
+                return {i, false};
             }
         }
-        return charsLength;
+        return {charsLength, false};
     }
 
     static inline int indexOf(const char *chars, int charsLength, int startIndex, char ch)
