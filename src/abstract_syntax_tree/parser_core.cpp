@@ -283,7 +283,7 @@ namespace cshort
         parsingData->assignWhiteSpaces(Cast::upcast(newLineBreak), position);
         parsingData->assignCommentNode(Cast::upcast(newLineBreak));
 
-        bool rn = ch == '\r' && context->chars[position + 1] == '\n';
+        bool rn = ch == '\r' && (position + 1) < context->length && context->chars[position + 1] == '\n';
         int result;
         if (rn) { // \r\n
             newLineBreak->text[0] = '\r';
