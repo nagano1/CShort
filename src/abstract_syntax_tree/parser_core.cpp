@@ -388,8 +388,8 @@ namespace cshort
             break;
         }
 
-        if (parsingData.returnPos == Search::NOTFOUND) {
-            context->lastTokenizedPos = lastTokenizedPos; // reset lastTokenizedPos if not found
+        if (parsingData.returnPos == Search::NOTFOUND && context->lastTokenizedPos == lastTokenizedPos) {
+            context->lastTokenizedPos = lastTokenizedPos; // reset lastTokenizedPos only if nothing was tokenized in this scan
         }
         context->scanEnd = false; // reset scanEnd for the next scan
         return parsingData;
