@@ -86,7 +86,7 @@ namespace cshort {
     utf8byte *DocumentUtils::getTextFromTree(DocumentStruct *doc)
     {
         // get size of chars
-        int totalCount = 0;
+        size_t totalCount = 0;
         {
             auto *line = doc->firstCodeLine;
             while (line) {
@@ -105,7 +105,7 @@ namespace cshort {
         }
 
         // malloc and copy text
-        auto *text = (char *) malloc(sizeof(char) * totalCount + 1);
+        auto *text = (char *) malloc(totalCount + 1);
         text[totalCount] = '\0';
         if (totalCount > 0) {
             CodeLine *line = doc->firstCodeLine;
