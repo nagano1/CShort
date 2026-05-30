@@ -66,10 +66,7 @@ void checkTextEquality(const char *name, const char* code)
 
     assert(document->context->syntaxErrorInfo.hasError == false);
 
-    if (strcmp(code, treeText) == 0) {
-
-    }
-    else {
+    if (strcmp(code, treeText) != 0) {
         fprintf(stderr, "expected:\n[%s]\n", code);
         fprintf(stderr, "actual:\n[%s]\n", treeText);
         assert(false && "text not equal");
