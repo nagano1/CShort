@@ -19,18 +19,18 @@
 
 namespace cshort {
 
-    static CodeLine *appendToLine(NameNodeStruct *self, CodeLine *currentCodeLine) {
-        currentCodeLine = currentCodeLine->AddAttachedFormatNodes(self);
-        currentCodeLine->appendNode(self);
+    static CodeLine *appendToLine(NameTokenStruct *self, CodeLine *currentCodeLine) {
+        currentCodeLine = currentCodeLine->AddAttachedFormatTokens(self);
+        currentCodeLine->appendToken(self);
 
         return currentCodeLine;
     }
 
-    static void copySelfText(NameNodeStruct *self, utf8byte *buf) {
+    static void copySelfText(NameTokenStruct *self, utf8byte *buf) {
         TEXT_MEMCPY(buf, self->name, self->nameLength);
     }
 
-    static int selfTextLength(NameNodeStruct *self) {
+    static int selfTextLength(NameTokenStruct *self) {
         return self->nameLength;
     }
 
@@ -55,15 +55,15 @@ namespace cshort {
             if (ParseUtil::IsKeyword(context->chars + start, found_count)) {
                 return Search::NOTFOUND;
             }
-            auto *nameNode = Cast::downcast<NameNodeStruct *>(argNode);
+            auto *identifierToken = Cast::downcast<NameTokenStruct *>(argNode);
 
-            context->setCodeNode(nameNode);
-            nameNode->name = context->memBuffer.newText(found_count);
-            nameNode->nameLength = found_count;
-            nameNode->foundPos = start;
+            context->mostLeftToken = Cast::upcastToken(identifierToken);
+            identifierToken->name = context->memBuffer.newText(found_count);
+            identifierToken->nameLength = found_count;
+            identifierToken->foundPos = start;
 
-            memcpy(nameNode->name, context->chars + start, found_count);
-            nameNode->name[found_count] = '\0';
+            memcpy(identifierToken->name, context->chars + start, found_count);
+            identifierToken->name[found_count] = '\0';
 
             return start + found_count;
         }
@@ -72,10 +72,10 @@ namespace cshort {
     }
 
 
-    static int NameNodeStruct_applyFuncToDescendants(NameNodeStruct *node, ApplyFunc_params3)
+    static int IdentifierTokenStruct_applyFuncToDescendants(NameTokenStruct *token, TokenApplyFunc_params3)
     {
-        if (targetVTable == nullptr || node->vtable == targetVTable) {
-            func(Cast::upcast(node), ApplyFunc_pass);
+        if (targetVTable == nullptr || token->vtable == targetVTable) {
+            func(Cast::upcastToken(token), ApplyFunc_pass);
         }
 
         return 0;
@@ -84,16 +84,16 @@ namespace cshort {
 
     static constexpr const char nameTypeText[] = "<Name>";
 
-    static node_vtable _nameVTable = CREATE_VTABLE(NameNodeStruct, selfTextLength,
+    static token_vtable _nameVTable = CREATE_TOKEN_VTABLE(NameTokenStruct, selfTextLength,
                                                          copySelfText, appendToLine,
-                                                   NameNodeStruct_applyFuncToDescendants,
-                                                         nameTypeText, NodeTypeId::Name);
-    const node_vtable *VTables::NameVTable = &_nameVTable;
+                                                   IdentifierTokenStruct_applyFuncToDescendants,
+                                                         nameTypeText, TokenTypeId::Name);
+    const token_vtable *VTables::NameVTable = &_nameVTable;
 
 
 
-    void Init::initNameNode(NameNodeStruct *name, ParseContext *context, void *parentNode) {
-        INIT_NODE(name, context, parentNode, VTables::NameVTable);
+    void Init::initIdentifierToken(NameTokenStruct *name, ParseContext *context, void *parentNode) {
+        INIT_TOKEN(name, context, parentNode, VTables::NameVTable);
         name->name = nullptr;
         name->nameLength = 0;
     }

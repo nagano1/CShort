@@ -20,13 +20,10 @@ namespace cshort {
     /**
      *  EndOfFile Struct
      * EndOfFile node is a special node that represents the end of the file. It is used to indicate the end of the code and
-     * to attach some format nodes like comments/line-breaks that are after the last code node in the file.
+     * to attach some format tokens like comments/line-breaks that are after the last code node in the file.
      */
     static CodeLine *appendToLine(EndOfFileNodeStruct *self, CodeLine *currentCodeLine) {
-        currentCodeLine = currentCodeLine->AddAttachedFormatNodes(self);
-        currentCodeLine->appendNode(self);
-
-        return currentCodeLine;
+        return  TokenVTableCall::callAppendTokenToLine(&self->eofToken, currentCodeLine);
     }
 
     static void copySelfText(EndOfFileNodeStruct *self, utf8byte *buf) {

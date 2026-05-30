@@ -31,7 +31,7 @@ namespace cshort {
     {
         auto *child = self->firstRootNode;
         while (child) {
-            currentCodeLine = VTableCall::callAppendToLine(child, currentCodeLine);
+            currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
             child = child->nextNode;
         }
         return currentCodeLine;
@@ -58,10 +58,12 @@ namespace cshort {
 
         auto *context = mallocForType<ParseContext>();
         auto *doc = mallocForType<DocumentStruct>();
+        context->init();
 
 
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
+        Init::initSimpleTextToken(&doc->endOfFile.eofToken, context, Cast::upcast(&doc->endOfFile), 0);
 
         doc->documentType = docType;
         doc->firstRootNode = nullptr;
@@ -70,7 +72,6 @@ namespace cshort {
         doc->firstCodeLine = nullptr;
         doc->nodeCount = 0;
 
-        context->init();
         return doc;
     }
 
@@ -82,24 +83,6 @@ namespace cshort {
         free(doc);
     }
 
-
-    utf8byte *DocumentUtils::getTextFromNode(NodeBase *node) {
-        int len = VTableCall::selfTextLength(node);
-        int spaceCount = node->precedingSpaceCount;
-        auto *text = node->context->newText(len + spaceCount);
-
-        for (int i = 0; i < spaceCount; i++) {
-            text[i] = ' ';
-        }
-
-        if (len > 0) {
-            VTableCall::copySelfText(node, text + spaceCount);
-        }
-
-        text[len + spaceCount] = '\0';
-        return text;
-    }
-
     utf8byte *DocumentUtils::getTextFromTree(DocumentStruct *doc)
     {
         // get size of chars
@@ -107,14 +90,14 @@ namespace cshort {
         {
             auto *line = doc->firstCodeLine;
             while (line) {
-                auto *node = line->firstNode;
-                while (node) {
-                    if (node->precedingSpaceCount > 0) {
-                        totalCount += node->precedingSpaceCount;
+                auto *token = line->firstToken;
+                while (token) {
+                    if (token->precedingSpaceCount > 0) {
+                        totalCount += token->precedingSpaceCount;
                     }
-                    int len = VTableCall::selfTextLength(node);
+                    int len = TokenVTableCall::selfTextLength(token);
                     totalCount += len;
-                    node = node->nextNodeInLine;
+                    token = token->nextTokenInLine;
                 }
 
                 line = line->nextLine;
@@ -128,18 +111,18 @@ namespace cshort {
             CodeLine *line = doc->firstCodeLine;
             size_t currentOffset = 0;
             while (line) {
-                auto *node = line->firstNode;
-                while (node) {
-                    if (node->precedingSpaceCount > 0) {
-                        memset(text + currentOffset, ' ', node->precedingSpaceCount);
-                        currentOffset += node->precedingSpaceCount;
+                auto *token = line->firstToken;
+                while (token) {
+                    if (token->precedingSpaceCount > 0) {
+                        memset(text + currentOffset, ' ', token->precedingSpaceCount);
+                        currentOffset += token->precedingSpaceCount;
                     }
 
-                    size_t len = VTableCall::selfTextLength(node);
-                    VTableCall::copySelfText(node, text + currentOffset);
+                    size_t len = TokenVTableCall::selfTextLength(token);
+                    TokenVTableCall::copySelfText(token, text + currentOffset);
 
                     currentOffset += len;
-                    node = node->nextNodeInLine;
+                    token = token->nextTokenInLine;
                 }
 
                 line = line->nextLine;
@@ -205,7 +188,7 @@ namespace cshort {
         docStruct->firstCodeLine = context->newCodeLine();
         docStruct->firstCodeLine->init(context);
 
-        VTableCall::callAppendToLine(docStruct, docStruct->firstCodeLine);
+        VTableCall::callAppendNodeToLine(docStruct, docStruct->firstCodeLine);
     }
 
     void DocumentUtils::parseText(DocumentStruct *docStruct, const utf8byte *text, int length)
@@ -228,11 +211,11 @@ namespace cshort {
         context->start = 0;
         context->scanEnd = false;
         context->length = length;
-        context->mostLeftNode = nullptr;
+        context->mostLeftToken = nullptr;
         context->generatedPrimaryNode = nullptr;
         context->lastTokenizedPos = 0;
-        context->remainedLineBreakNode = nullptr;
-        context->remainedCommentNode = nullptr;
+        context->remainedLineBreakToken = nullptr;
+        context->remainedCommentToken = nullptr;
 
         context->remainedSpaceCount = 0;
         context->baseIndent = 4;
@@ -255,9 +238,9 @@ namespace cshort {
                 docStruct->firstRootNode = Cast::upcast(&docStruct->endOfFile);
             }
             docStruct->lastRootNode = Cast::upcast(&docStruct->endOfFile);
-            docStruct->lastRootNode->precedingSpaceCount = context->remainedSpaceCount;
-            docStruct->lastRootNode->precedingLineBreakNode = context->remainedLineBreakNode;
-            docStruct->lastRootNode->precedingCommentNode = context->remainedCommentNode;
+            docStruct->endOfFile.eofToken.precedingSpaceCount = context->remainedSpaceCount;
+            docStruct->endOfFile.eofToken.precedingLineBreakToken = context->remainedLineBreakToken;
+            docStruct->endOfFile.eofToken.precedingCommentToken = context->remainedCommentToken;
 
             DocumentUtils::regenerateCodeLines(docStruct);
 

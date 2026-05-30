@@ -27,15 +27,23 @@ namespace cshort
 
     
     // forward declaration of functions in parser_core.cpp to avoid circular dependency 
-    CodeLine *VTableCall::callAppendToLine(void *node, CodeLine *currentCodeLine) {
+    CodeLine *VTableCall::callAppendNodeToLine(void *node, CodeLine *currentCodeLine) {
         if (node == nullptr) {
             return currentCodeLine;
         }
         auto *nodeBase = Cast::upcast(node);
-        // if the node has precedingLineBreakNode, append the precedingLineBreakNode before appending the node itself,
-        // so that the line break will be before the node in the code line,
-        // which is more intuitive and easier to handle when generating code later
         return nodeBase->vtable->appendToLine(nodeBase, currentCodeLine);
+    }
+
+    CodeLine *TokenVTableCall::callAppendTokenToLine(void *token, CodeLine *currentCodeLine) {
+        if (token == nullptr) {
+            return currentCodeLine;
+        }
+        auto *tokenBase = Cast::upcastToken(token);
+        // if the token has precedingLineBreakToken, append the precedingLineBreakToken before appending the token itself,
+        // so that the line break will be before the token in the code line,
+        // which is more intuitive and easier to handle when generating code later
+        return tokenBase->vtable->appendToLine(tokenBase, currentCodeLine);
     }
 
     // Nested block comments are not supported, instead, we support named block comments which can be closed with the corresponding tag,
@@ -105,18 +113,18 @@ namespace cshort
         return -1;
     }
 
-    inline NodeBase* generateBlockCommentFragments(void *parentNode, ParseContext *context,
+    inline TokenBase* generateBlockCommentFragments(void *parentNode, ParseContext *context,
                                            const int32_t &i, int commentEndIndex, char* tagText, int tagLength) {
-        auto *blockComment = Alloc::newBlockCommentNode(context, Cast::upcast(parentNode));
+        auto *blockComment = Alloc::newBlockCommentToken(context, Cast::upcast(parentNode));
         blockComment->tagText = tagText;
         blockComment->tagTextLength = tagLength;
 
         // i is the position of '/'
         int currentIndex = i;
-        BlockCommentFragmentStruct *lastNode = nullptr;
-        LineBreakNodeStruct *lastBreakLine = nullptr;
+        BlockCommentFragmentStruct *lastFragment = nullptr;
+        LineBreakTokenStruct *lastBreakLine = nullptr;
 
-        // split block comment into fragments by line break, and create LineBreakNodeStruct for each line break
+        // split block comment into fragments by line break, and create LineBreakTokenStruct for each line break
         while (currentIndex < commentEndIndex) {
             auto result = ParseUtil::indexOfBreakOrEndWithInfo(context->chars, context->length, currentIndex);
             int endIndex = result.index;
@@ -128,18 +136,18 @@ namespace cshort
             }
 
             if (endIndex > -1 && currentIndex <= endIndex) {
-                auto *commentFragment = Alloc::newBlockCommentFragmentNode(context, Cast::upcast(blockComment));
+                auto *commentFragment = Alloc::newBlockCommentFragmentToken(context, Cast::upcast(blockComment));
 
-                // link with previous line break node
-                commentFragment->precedingLineBreakNode = lastBreakLine;
+                // link with previous line break token
+                commentFragment->precedingLineBreakToken = lastBreakLine;
 
                 // endIndex is exclusive for the fragment text (it points to a line break, '\0', or commentEndIndex)
                 int commentLength = endIndex - currentIndex;
-                Init::assignText_SimpleTextNode(commentFragment, context, currentIndex, commentLength);
+                Init::assignText_SimpleTextToken(commentFragment, context, currentIndex, commentLength);
 
                 if (hasLineBreak) {
-                    // create a line break node for the line break after the comment fragment
-                    LineBreakNodeStruct *newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(blockComment));
+                    // create a line break token for the line break after the comment fragment
+                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(blockComment));
                     bool rn = (endIndex + 1) < context->length && context->chars[endIndex] == '\r' && context->chars[endIndex + 1] == '\n';
                     if (rn) { // \r\n
                         newLineBreak->text[0] = '\r';
@@ -159,10 +167,10 @@ namespace cshort
                     currentIndex = endIndex;
                 }
 
-                if (lastNode != nullptr) {
-                    lastNode->nextNode = Cast::upcast(commentFragment);
+                if (lastFragment != nullptr) {
+                    lastFragment->nextToken = Cast::upcastToken(commentFragment);
                 }
-                lastNode = commentFragment;
+                lastFragment = commentFragment;
                 if (blockComment->firstCommentFragment == nullptr) {
                     blockComment->firstCommentFragment = commentFragment;
                 }
@@ -171,7 +179,7 @@ namespace cshort
                 break;
             }
         }
-        return Cast::upcast(blockComment);
+        return Cast::upcastToken(blockComment);
     }
 
 
@@ -181,38 +189,38 @@ namespace cshort
 
         int32_t whitespace_startpos = -1;
 
-        // the first line break node before the code node generated by tokenizer.
-        LineBreakNodeStruct *firstLineBreak = nullptr;
-        // the last line break node, used for linking line break nodes in sequence when there are multiple line breaks before the next code node.
-        LineBreakNodeStruct *lastLineBreak = nullptr;
+        // the first line break token before the token generated by tokenizer.
+        LineBreakTokenStruct *firstLineBreak = nullptr;
+        // the last line break token, used for linking line break tokens in sequence when there are multiple line breaks before the next token.
+        LineBreakTokenStruct *lastLineBreak = nullptr;
 
-        NodeBase *commentNode = nullptr; // LineCommentNodeStruct or BlockCommentNodeStruct
+        TokenBase *commentToken = nullptr; // LineCommentTokenStruct or BlockCommentTokenStruct
 
-        void assignCommentNode(NodeBase* leftNode)
+        void assignCommentToken(TokenBase* targetToken)
         {
-            assert(leftNode != nullptr);
+            assert(targetToken != nullptr);
 
-            if (commentNode != nullptr) {
-                leftNode->precedingCommentNode = Cast::upcast(commentNode);
-                commentNode = nullptr;
+            if (commentToken != nullptr) {
+                targetToken->precedingCommentToken = Cast::upcast(commentToken);
+                commentToken = nullptr;
             }
         }
 
-        void assignWhiteSpaces(NodeBase* commentNode, int endIndex)
+        void assignWhiteSpaces(TokenBase* commentToken, int endIndex)
         {
             if (whitespace_startpos != -1) {
                 assert(whitespace_startpos < endIndex);
                 // precedingSpaceCount allows only ascii whitespace. Japanese whitespaces are not allowed.
-                commentNode->precedingSpaceCount = endIndex - whitespace_startpos;
+                commentToken->precedingSpaceCount = endIndex - whitespace_startpos;
                 whitespace_startpos = -1;
             }
         }
 
-        // attach line break node to the code node generated by tokenizer.
-        void assignLineBreak(NodeBase* node)
+        // attach line break token to the token generated by tokenizer.
+        void assignLineBreak(TokenBase* token)
         {
             if (this->firstLineBreak != nullptr) {
-                node->precedingLineBreakNode = firstLineBreak;
+                token->precedingLineBreakToken = firstLineBreak;
                 firstLineBreak = nullptr;
                 lastLineBreak = nullptr;
             }
@@ -248,47 +256,47 @@ namespace cshort
             return -1; // not a comment
         }
 
-        NodeBase *newCommentNode;
+        TokenBase *newCommentToken;
         if (isLineComment) {
-            auto* comment = Alloc::newLineCommentNode(context, Cast::upcast(parentNode));
-            Init::assignText_SimpleTextNode(comment, context, i, commentEndIndex - i);
+            auto* comment = Alloc::newLineCommentToken(context, Cast::upcast(parentNode));
+            Init::assignText_SimpleTextToken(comment, context, i, commentEndIndex - i);
 
-            newCommentNode = Cast::upcast(comment);
+            newCommentToken = Cast::upcastToken(comment);
         }
         else {
-            newCommentNode = generateBlockCommentFragments(parentNode, context, i, commentEndIndex, tagText, tagLength);
+            newCommentToken = generateBlockCommentFragments(parentNode, context, i, commentEndIndex, tagText, tagLength);
         }
 
-        parsingData->assignWhiteSpaces(newCommentNode, i);
+        parsingData->assignWhiteSpaces(newCommentToken, i);
 
-        NodeBase* prevCommentNode = parsingData->commentNode;
-        parsingData->commentNode = newCommentNode;
-        if (prevCommentNode != nullptr) {
-            newCommentNode->precedingCommentNode = prevCommentNode;
+        TokenBase* prevCommentToken = parsingData->commentToken;
+        parsingData->commentToken = newCommentToken;
+        if (prevCommentToken != nullptr) {
+            newCommentToken->precedingCommentToken = prevCommentToken;
         }
 
-        parsingData->assignLineBreak(newCommentNode);
+        parsingData->assignLineBreak(newCommentToken);
         return commentEndIndex;
     }
 
     
 
-    static inline int createLineBreakNode(void* parentNode, ParseContext* context, 
+    static inline int createLineBreakToken(void* parentNode, ParseContext* context, 
                                           int32_t& position, utf8byte ch, InternalParsingData* parsingData)
     {
-        auto* newLineBreak = Alloc::newLineBreakNode(context, Cast::upcast(parentNode));
+        auto* newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(parentNode));
 
         if (parsingData->firstLineBreak == nullptr) { // the first line break
             parsingData->lastLineBreak = parsingData->firstLineBreak = newLineBreak;
         }
         else {
             assert(parsingData->lastLineBreak != nullptr);
-            parsingData->lastLineBreak->nextLineBreakNode = newLineBreak;
+            parsingData->lastLineBreak->nextLineBreak = newLineBreak;
             parsingData->lastLineBreak = newLineBreak;
         }
 
-        parsingData->assignWhiteSpaces(Cast::upcast(newLineBreak), position);
-        parsingData->assignCommentNode(Cast::upcast(newLineBreak));
+        parsingData->assignWhiteSpaces(Cast::upcastToken(newLineBreak), position);
+        parsingData->assignCommentToken(Cast::upcastToken(newLineBreak));
 
         bool rn = ch == '\r' && (position + 1) < context->length && context->chars[position + 1] == '\n';
         int result;
@@ -341,7 +349,7 @@ namespace cshort
                 }
             }
             else if (ParseUtil::isBreakLine(ch)) {
-                i = createLineBreakNode(parentNode, context, i, ch, &parsingData);
+                i = createLineBreakToken(parentNode, context, i, ch, &parsingData);
                 context->isAfterLineBreak = true;
                 continue;
             }
@@ -364,10 +372,10 @@ namespace cshort
                 context->isAfterLineBreak = false;
                 context->lastTokenizedPos = result;
 
-                assert(context->mostLeftNode != nullptr);
-                parsingData.assignWhiteSpaces(context->mostLeftNode, i);
-                parsingData.assignCommentNode(context->mostLeftNode);
-                parsingData.assignLineBreak(context->mostLeftNode);
+                assert(context->mostLeftToken != nullptr);
+                parsingData.assignWhiteSpaces(context->mostLeftToken, i);
+                parsingData.assignCommentToken(context->mostLeftToken);
+                parsingData.assignLineBreak(context->mostLeftToken);
 
                 if (loopMode && !context->scanEnd) {
                     i = result;
@@ -399,8 +407,8 @@ namespace cshort
     int Scanner::scanRoot(void *parentNode, TokenizerFunction tokenizer, ParseContext *context) {
         InternalParsingData parsingData = scanWithTokenizer(parentNode, tokenizer, context, 0, /* loopMode */ true);
 
-        context->remainedLineBreakNode = parsingData.firstLineBreak;
-        context->remainedCommentNode = parsingData.commentNode;
+        context->remainedLineBreakToken = parsingData.firstLineBreak;
+        context->remainedCommentToken = parsingData.commentToken;
         if (parsingData.whitespace_startpos > -1 && parsingData.whitespace_startpos < context->length) {
             context->remainedSpaceCount = context->length - parsingData.whitespace_startpos;
         }

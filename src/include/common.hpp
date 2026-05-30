@@ -30,7 +30,6 @@ using st_byte = unsigned char;
 
 #define st_size_of(T) ((int)sizeof(T))
 
-// 
 namespace Search {
     // Parse result code
     constexpr int NOTFOUND = -1;
@@ -45,7 +44,7 @@ namespace Search {
     }
 }
 
-// malloc using type. e.g. auto node = mallocForType<NodeStruct>();
+// malloc using type. e.g. auto *node = mallocForType<NodeStruct>();
 template<class T>
 static inline T *mallocForType() {
     return (T *) malloc(sizeof(T));

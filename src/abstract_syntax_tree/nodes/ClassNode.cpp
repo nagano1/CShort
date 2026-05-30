@@ -28,25 +28,21 @@ namespace cshort {
 
     static int selfTextLength(ClassNodeStruct *)
     {
-        return 5;
+        return 0;
     }
 
     static void copySelfText(ClassNodeStruct * classNode, utf8byte *buf) {
-        TEXT_MEMCPY(buf, "class", 5); 
     }
 
     static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine) {
-
-        currentCodeLine = currentCodeLine->AddAttachedFormatNodes(classNode);
-        currentCodeLine->appendNode(classNode);
-
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->classKeywordToken, currentCodeLine);
 
         auto formerParentDepth = classNode->context->parentDepth;
         classNode->context->parentDepth += 1;
-        currentCodeLine = VTableCall::callAppendToLine(&classNode->nameNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
         classNode->context->parentDepth = formerParentDepth;
 
-        currentCodeLine = VTableCall::callAppendToLine(&classNode->bodyStartNode, currentCodeLine);
+        currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);
 
         formerParentDepth = classNode->context->parentDepth;
         classNode->context->parentDepth += 1;
@@ -54,7 +50,7 @@ namespace cshort {
         {
             auto *child = classNode->firstChildNode;
             while (child) {
-                currentCodeLine = VTableCall::callAppendToLine(child, currentCodeLine);
+                currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
                 child = child->nextNode;
             }
         }
@@ -62,7 +58,7 @@ namespace cshort {
 
 
         auto* prevCodeLine = currentCodeLine;
-        currentCodeLine = VTableCall::callAppendToLine(&classNode->endBodyNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->endBodySymbolToken, currentCodeLine);
 
         if (prevCodeLine != currentCodeLine) {
             currentCodeLine->depth = formerParentDepth+1;
@@ -107,12 +103,15 @@ namespace cshort {
         classNode->firstChildNode = nullptr;
         classNode->childCount = 0;
 
-        Init::initNameNode(&classNode->nameNode, context, classNode);
+        Init::initSimpleTextToken(&classNode->classKeywordToken, context, classNode, /*"class",*/ 5);
+        memcpy(classNode->classKeywordToken.text, "class", 5);
+
+        Init::initIdentifierToken(&classNode->identifierToken, context, classNode);
 
         classNode->startFound = false;
 
-        Init::initSymbolNode(&classNode->bodyStartNode, context, classNode, '{');
-        Init::initSymbolNode(&classNode->endBodyNode, context, classNode, '}');
+        Init::initSymbolToken(&classNode->bodyStartSymbolToken, context, classNode, '{');
+        Init::initSymbolToken(&classNode->endBodySymbolToken, context, classNode, '}');
 
         return classNode;
     }
@@ -132,13 +131,13 @@ namespace cshort {
     }
 
     static int inner_classBodyTokenizer(TokenizerParams_argNode_ch_start_context) {
-        NodeBase *parent = argNode;
+        NodeBase *parent = reinterpret_cast<NodeBase *>(argNode);
         auto *classNode = Cast::downcast<ClassNodeStruct *>(parent);
 
         if (!classNode->startFound) {
             if (ch == '{') {
                 classNode->startFound = true;
-                context->setCodeNode(&classNode->bodyStartNode);
+                context->mostLeftToken = Cast::upcastToken(&classNode->bodyStartSymbolToken);
                 return start + 1;
             }
             else {
@@ -147,7 +146,7 @@ namespace cshort {
         }
         else if (ch == '}') {
             context->scanEnd = true;
-            context->setCodeNode(&classNode->endBodyNode);
+            context->mostLeftToken = Cast::upcastToken(&classNode->endBodySymbolToken);
             return start + 1;
         }
         else {
@@ -172,7 +171,7 @@ namespace cshort {
         static constexpr const char class_chars[] = "class";
         static constexpr int size_of_class = sizeof(class_chars) - 1;
 
-        NodeBase *parent = argNode;
+        NodeBase *parent = reinterpret_cast<NodeBase *>(argNode);
 
         if ('c' == ch) {
             if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, class_chars)) {
@@ -184,7 +183,7 @@ namespace cshort {
                 classNode->foundPos = start;
 
                 {
-                    resultPos = Scanner::scanOnce(&classNode->nameNode,
+                    resultPos = Scanner::scanOnce(&classNode->identifierToken,
                                               Tokenizers::nameTokenizer,
                                               context, currentPos);
 
@@ -203,7 +202,8 @@ namespace cshort {
                     return Search::NOTFOUND;
                 }
 
-                context->setCodeNode(classNode);
+                context->mostLeftToken = Cast::upcastToken( &classNode->classKeywordToken);
+                context->generatedPrimaryNode = Cast::upcast(classNode);
                 return resultPos;
             }
         }

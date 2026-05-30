@@ -21,28 +21,28 @@
 
 namespace cshort
 {
-    // Line Break Node implementation
-    static int selfTextLength(LineBreakNodeStruct *self) {
+    // Line Break Token
+    static int selfTextLength(LineBreakTokenStruct *self) {
         return self->text[1] == '\0' ? 1 : 2;
     }
 
-    static void copySelfText(LineBreakNodeStruct *self, utf8byte *buf) {
+    static void copySelfText(LineBreakTokenStruct *self, utf8byte *buf) {
         buf[0] = self->text[0];
         if (self->text[1] != '\0') { // if it's "\r\n"
             buf[1] = self->text[1];
         }
     }
 
-    static CodeLine *appendToLine(LineBreakNodeStruct *self, CodeLine *currentCodeLine) {
+    static CodeLine *appendToLine(LineBreakTokenStruct *self, CodeLine *currentCodeLine) {
         auto *currentLineBreakItem = self;
         while (currentLineBreakItem) {
-            currentCodeLine = currentCodeLine->AddAttachedFormatNodes(currentLineBreakItem);
+            currentCodeLine = currentCodeLine->AddAttachedFormatTokens(currentLineBreakItem);
 
-            currentCodeLine->appendNode(Cast::upcast(currentLineBreakItem));
+            currentCodeLine->appendToken(Cast::upcast(currentLineBreakItem));
 
             // if there are multiple line breaks in a row, we need to add them all to the code line,
             // and the depth of the code line will be increased by 1 for each line break,
-            // so that the nodes after the line breaks will be in the new line with correct indentation
+            // so that the tokens after the line breaks will be in the new line with correct indentation
             auto *newNextLine = self->context->newCodeLine();
             newNextLine->init(self->context);
 
@@ -51,16 +51,16 @@ namespace cshort
 
             currentCodeLine->depth = self->context->parentDepth + 1;
 
-            currentLineBreakItem = currentLineBreakItem->nextLineBreakNode;
+            currentLineBreakItem = currentLineBreakItem->nextLineBreak;
         }
         
         return currentCodeLine;
     }
 
-    static int applyFuncToDescendants(LineBreakNodeStruct *node, ApplyFunc_params3) {
+    static int applyFuncToDescendants(LineBreakTokenStruct *token, TokenApplyFunc_params3) {
 
-        if (targetVTable == nullptr || node->vtable == targetVTable) {
-            func(Cast::upcast(node), ApplyFunc_pass);
+        if (targetVTable == nullptr || token->vtable == targetVTable) {
+            func(Cast::upcastToken(token), ApplyFunc_pass);
         }
 
         return 0;
@@ -68,25 +68,24 @@ namespace cshort
 
     static constexpr const char LineBreakTypeText[] = "<LineBreak>";
 
-    static node_vtable _lineBreakVTable = CREATE_VTABLE(LineBreakNodeStruct,
+    static token_vtable _lineBreakVTable = CREATE_TOKEN_VTABLE(LineBreakTokenStruct,
                                                         selfTextLength,
                                                         copySelfText,
                                                         appendToLine,
                                                         applyFuncToDescendants,
                                                         LineBreakTypeText,
-                                                        NodeTypeId::LineBreak);
+                                                        TokenTypeId::LineBreak);
 
-    const node_vtable *VTables::LineBreakVTable = &_lineBreakVTable;
+    const token_vtable *VTables::LineBreakVTable = &_lineBreakVTable;
 
-    LineBreakNodeStruct *Alloc::newLineBreakNode(ParseContext *context, NodeBase *parentNode) {
-        auto *lineNode = context->newLineBreakNode();
-        auto *node = Cast::upcast(lineNode);
+    LineBreakTokenStruct *Alloc::newLineBreakToken(ParseContext *context, NodeBase *parentNode) {
+        auto *lineBreakToken = context->newLineBreakToken();
 
-        INIT_NODE(node, context, parentNode, VTables::LineBreakVTable);
-        lineNode->nextLineBreakNode = nullptr;
-        lineNode->text[0] = '\n';
-        lineNode->text[1] = '\0';
+        INIT_TOKEN(Cast::upcastToken(lineBreakToken), context, parentNode, VTables::LineBreakVTable);
+        lineBreakToken->nextLineBreak = nullptr;
+        lineBreakToken->text[0] = '\n';
+        lineBreakToken->text[1] = '\0';
 
-        return lineNode;
+        return lineBreakToken;
     }
 }
