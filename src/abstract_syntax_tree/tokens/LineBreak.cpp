@@ -40,9 +40,8 @@ namespace cshort
 
             currentCodeLine->appendToken(currentLineBreakItem);
 
-            // if there are multiple line breaks in a row, we need to add them all to the code line,
-            // and the depth of the code line will be increased by 1 for each line break,
-            // so that the tokens after the line breaks will be in the new line with correct indentation
+            // If there are multiple line breaks in a row, append them all and create one new CodeLine per break.
+            // The new line depth is derived from the current parentDepth (indentation context) and does not accumulate per break.
             auto *newNextLine = self->context->newCodeLine();
             newNextLine->init(self->context);
 
