@@ -59,7 +59,6 @@ void checkTextEquality(const char *name, const char* code)
         fprintf(stderr, "expected:\n[%s]\n", code);
         fprintf(stderr, "actual:\n[%s]\n", treeText);
         assert(false && "text not equal");
-        exit(1);
     }
 
     free(treeText);
