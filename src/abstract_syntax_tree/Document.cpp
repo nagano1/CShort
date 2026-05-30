@@ -69,7 +69,7 @@ namespace cshort {
 
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
-        DocumentUtils::initDocument(docStruct);
+        DocumentUtils::initDocument(doc);
 
         return doc;
     }
@@ -231,18 +231,16 @@ namespace cshort {
          context->memBuffer.init();
 
 
-                 // Reset previous parse state (parseText can be called multiple times on the same document)
+        // Reset previous parse state (parseText can be called multiple times on the same document)
         docStruct->firstRootNode = nullptr;
         docStruct->lastRootNode = nullptr;
         docStruct->nodeCount = 0;
 
 
-
-
-         docStruct->firstCodeLine = nullptr;
-         docStruct->lineCount = 0;
-         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
-         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
+        docStruct->firstCodeLine = nullptr;
+        docStruct->lineCount = 0;
+        // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
+        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
         context->syntaxErrorInfo.hasError = false;
         context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
