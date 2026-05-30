@@ -70,6 +70,7 @@ namespace cshort {
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
 
+        DocumentUtils::initDocument(doc);
         return doc;
     }
 
