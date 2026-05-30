@@ -1,6 +1,6 @@
 set(SRC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
-file(GLOB cpp_lib_files
+file(GLOB CONFIGURE_DEPENDS cpp_lib_files
     "${SRC_ROOT}/utils/*.cpp"
     "${SRC_ROOT}/abstract_syntax_tree/*.cpp"
     "${SRC_ROOT}/abstract_syntax_tree/nodes/*.cpp"
