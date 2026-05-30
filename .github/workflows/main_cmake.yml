@@ -15,8 +15,8 @@ jobs:
         config:
           - {
             win: {
-              testdir: "src/tests/Release/",
-              cmakeBuildConfig: "--config Release ",
+              testdir: "src/tests/Debug/",
+              cmakeBuildConfig: "--config Debug ",
               cmakeConfig: "-T v143,host=x64",
               prescript: "chcp 65001",
             },
