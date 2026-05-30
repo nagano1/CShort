@@ -1,5 +1,7 @@
+#if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable : 4267) // conversion from 'size_t' to 'int', possible loss of data
+#endif
 
 #include <cstdio>
 
