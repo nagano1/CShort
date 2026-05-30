@@ -111,7 +111,7 @@ namespace cshort
             }
         }
 
-        return -1;
+        return context->length;
     }
 
     inline TokenBase* generateBlockCommentFragments(void *parentNode, ParseContext *context,
