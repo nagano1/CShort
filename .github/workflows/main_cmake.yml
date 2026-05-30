@@ -1,0 +1,106 @@
+name: 🌕 CMake Build Matrix
+
+on:
+  push:
+  schedule:
+    - cron: '15 1 1 * *' # minute hour day-of-month month day-of-week
+
+jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrixJson: ${{ steps.set-matrix.outputs.value }}
+    strategy:
+      matrix:
+        config:
+          - {
+            win: {
+              testdir: "src/tests/Debug/",
+              cmakeBuildConfig: "--config Debug ",
+              cmakeConfig: "-T v143,host=x64",
+              prescript: "chcp 65001",
+            },
+            unix: {
+              testdir: "./src/tests/",
+              prescript: "export CXX=clang++",
+              cmakeConfig: "",
+              cmakeBuildConfig: ""
+            },
+          }
+    steps:
+      - name: make values
+        id: set-matrix
+        shell: bash
+        run: |
+          WinConf='${{ toJSON(matrix.config.win) }}'
+          UnixConf='${{ toJSON(matrix.config.unix) }}'
+
+           matrixJson=$(jq -cn --argjson win "$WinConf" --argjson unix "$UnixConf" '
+             [
+               ($win  + {os:"windows-latest", name:"Windows-latest"}),
+               ($win  + {os:"windows-2022",  name:"Windows-2022"}),
+               ($unix + {os:"ubuntu-latest", name:"ubuntu-latest"}),
+               ($unix + {os:"macos-latest",  name:"mac-latest"})
+             ]')
+
+          # https://cmake.org/cmake/help/v4.3/manual/cmake-generators.7.html
+          # https://cmake.org/cmake/help/v3.16/generator/Visual%20Studio%2016%202019.html#platform-selection
+
+          echo "value=$matrixJson" >> "$GITHUB_OUTPUT"
+
+  mybuild:
+    permissions:
+      contents: read
+    needs: set-matrix
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.set-matrix.outputs.matrixJson) }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: "Set current date as env variable"
+        shell: bash
+        run: |
+          echo "builddate=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+        id: version
+
+      - name: cmake
+        run: |
+          mkdir build
+          cd build/
+
+          ${{ matrix.config.prescript }}
+
+          cmake ${{ matrix.config.cmakeConfig }} .. 
+          cmake --build . ${{ matrix.config.cmakeBuildConfig }}
+      
+      - name: run test
+        shell: bash
+        run: |
+          cd build/
+
+          echo ${{ matrix.config.testdir }}
+          ls ${{ matrix.config.testdir }}
+
+          for SCRIPT in ${{ matrix.config.testdir }}*
+          do
+            if [[ $SCRIPT == *_run* && $SCRIPT != *".pdb" ]]; then
+                echo $SCRIPT
+                $SCRIPT
+            fi
+          done
+
+      - name: Copy artifact
+        shell: bash
+        run: |
+          cd build;
+          mkdir -p deb/${{ matrix.config.name }};
+          cp -r ${{ matrix.config.testdir }}* deb/${{ matrix.config.name }}
+          ls -al deb/${{ matrix.config.name }}
+
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: cshort_${{ matrix.config.name }}_${{ steps.version.outputs.builddate }}
+          path: build/deb

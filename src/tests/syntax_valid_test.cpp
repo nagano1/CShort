@@ -1,0 +1,94 @@
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4267) // conversion from 'size_t' to 'int', possible loss of data
+#endif
+
+#include <cstdio>
+
+#include "code_nodes.hpp"
+#include "ParseUtil.hpp"
+
+using namespace cshort;
+
+void testParsing();
+
+int main()
+{
+    printf("cshort");
+    fflush(stdout);
+
+    testParsing();
+
+    return 0;
+}
+
+constexpr const char *classOnlyText = u8R"(
+class TestClass { /*comment*/
+    // comment
+}
+
+    )";
+constexpr const char *multipleRowsComment = u8R"(
+class TestClass { /*comment
+
+    test
+*/
+    // comment
+}
+/*comment
+
+*/)";
+
+constexpr const char *namedTagCommentText = u8R"(
+/*[tag1]
+class TestClass { /*comment
+
+    test
+*/
+    // comment
+}
+/*comment
+
+*/
+[tag1]*/)";
+
+
+
+const char classCommentText[] = u8"class A \r\n // comment \r\n {}";
+
+void checkTextEquality(const char *name, const char* code)
+{
+    fprintf(stderr, "checking: %s\n", name);
+
+    auto *document = Alloc::newDocument(DocumentType::CodeDocument);
+    DocumentUtils::parseText(document, code, strlen(code));
+    char *treeText = DocumentUtils::getTextFromTree(document);
+
+    assert(document->context->syntaxErrorInfo.hasError == false);
+
+    if (strcmp(code, treeText) != 0) {
+        fprintf(stderr, "expected:\n[%s]\n", code);
+        fprintf(stderr, "actual:\n[%s]\n", treeText);
+        assert(false && "text not equal");
+    }
+
+    free(treeText);
+    Alloc::deleteDocument(document);
+}
+
+
+#define CheckTextEq(x) checkTextEquality(#x, x)
+void testParsing()
+{
+    CheckTextEq(classOnlyText);
+    CheckTextEq(classCommentText);
+    CheckTextEq(multipleRowsComment);
+    CheckTextEq(namedTagCommentText);
+    CheckTextEq(""); // empty text
+    CheckTextEq(" \r\n \n\n  ");
+
+}
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif

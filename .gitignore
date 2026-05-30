@@ -43,3 +43,34 @@
 # CMake build directory
 build/
 build
+
+
+bin/*
+obj/*
+
+build/*
+!build/placeholder
+
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+# Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+
+node_modules
+
+*.s
+*.o
+*.d
+
+package-lock.json
+
+#Libre office draw
+.~lock.*
