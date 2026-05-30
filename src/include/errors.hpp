@@ -243,10 +243,10 @@ namespace cshort {
 
         st_int charPosition;
         st_int charPosition2;
-        st_uint linePos1;
-        st_uint charPos1;
-        st_uint linePos2;
-        st_uint charPos2;
+        st_int linePos1;
+        st_int charPos1;
+        st_int linePos2;
+        st_int charPos2;
 
         int errorId;
         int charEndPosition;
