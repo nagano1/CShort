@@ -140,8 +140,8 @@ struct MemBuffer {
         auto length = bytes + sizeOfPointerToBlock;
 
 
-        if (currentMemOffset + length < DEFAULT_BUFFER_SIZE) {
-
+        if (currentMemOffset + length <= DEFAULT_BUFFER_SIZE) {
+            // Enough space in the current buffer block.
         }
         else {
             MemBufferBlock* tryDeleteBlock = nullptr;
