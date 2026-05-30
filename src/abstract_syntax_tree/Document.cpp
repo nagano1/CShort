@@ -223,7 +223,7 @@ namespace cshort {
         context->syntaxErrorInfo.errorItem.errorId = 10000;
         context->syntaxErrorInfo.errorItem.charPosition = -1;
         context->syntaxErrorInfo.errorItem.charPosition2 = -1;
-        context->chars = const_cast<utf8byte *>(text);
+        context->chars = text;
         context->start = 0;
         context->scanEnd = false;
         context->length = length;
