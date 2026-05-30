@@ -212,7 +212,7 @@ namespace cshort {
 
 
         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
-        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
+//        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
         context->syntaxErrorInfo.hasError = false;
         context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
