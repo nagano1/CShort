@@ -95,12 +95,9 @@ namespace cshort
                 ) {
                     return endCommentPos + 2;
                 }
-                if (tagLength == 0) {
-                    // For non-named block comments, any "*/" closes the comment (even if preceded by ']').
-                    return endCommentPos + 2;
-                }
-
-                continue; // if the block comment has tag, it must be closed with the same tag, so skip if the tag doesn't match
+                // if the block comment has tag, it must be closed with the same tag, so skip if the tag doesn't match
+                // if the block comment doesn't have tag, it can be closed with */, but we only treat */ that is not preceded by a tag as the end, so skip if there is a tag before */
+                continue;
             }
             else {
                 if (tagLength == 0) { // comments of /* needs to be closed with */ (not named block comment)
