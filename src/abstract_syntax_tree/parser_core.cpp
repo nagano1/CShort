@@ -201,8 +201,9 @@ namespace cshort
             assert(targetToken != nullptr);
 
             if (commentToken != nullptr) {
-                targetToken->precedingCommentToken = Cast::upcast(commentToken);
+                targetToken->precedingCommentToken = commentToken;
                 commentToken = nullptr;
+            }
             }
         }
 
