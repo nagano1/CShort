@@ -62,7 +62,7 @@ int ParseUtil::_matchFirstWithTrim(const char *chars, int charsLength, const cha
     else {
         return matchStartIndex;
     }
-};
+}
 
 
 bool ParseUtil::IsKeyword(const utf8byte *ch, st_int length)
