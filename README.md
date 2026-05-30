@@ -25,7 +25,7 @@ rm -rf build/
 ## Requirements
 
 - C++ compiler (clang++ or g++)
-- CMake 3.10+
+- CMake 3.12+
 
 
 ## 🛠 Development in Dev Containers
