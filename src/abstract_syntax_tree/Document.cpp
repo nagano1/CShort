@@ -194,6 +194,10 @@ namespace cshort {
     void DocumentUtils::initDocument(DocumentStruct *docStruct) {
         auto *context = docStruct->context;
 
+        
+        docStruct->firstCodeLine = nullptr;
+        docStruct->lineCount = 0;
+        
         // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
         context->memBufferForCodeLines.freeAll();
         context->memBufferForCodeLines.init();
@@ -207,8 +211,6 @@ namespace cshort {
         docStruct->nodeCount = 0;
 
 
-        docStruct->firstCodeLine = nullptr;
-        docStruct->lineCount = 0;
         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
