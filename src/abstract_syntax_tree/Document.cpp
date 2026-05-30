@@ -52,17 +52,11 @@ namespace cshort {
     const node_vtable *VTables::DocumentVTable = &DocumentVTable_;
 
 
-    /// @brief Reinitialize the document's members that are related to the context's memory buffer. This is necessary when reusing the same document instance for multiple parses, to ensure that the document's state is consistent with the newly initialized memory buffer.
-    static void reinitDocumentForContextMemBuffer(DocumentStruct *doc)
+    static void reinitDocument(DocumentStruct *doc)
     {
-        Init::initSimpleTextToken(&doc->endOfFile.eofToken, doc->context, Cast::upcast(&doc->endOfFile), 0);
-
         doc->firstRootNode = nullptr;
         doc->lastRootNode = nullptr;
-
-        doc->firstCodeLine = nullptr;
         doc->nodeCount = 0;
-        doc->lineCount = 0;
     }
 
     // --------------------- Implements Document functions ----------------------
@@ -72,10 +66,17 @@ namespace cshort {
         auto *doc = mallocForType<DocumentStruct>();
         context->init();
 
+
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
+        Init::initSimpleTextToken(&doc->endOfFile.eofToken, context, Cast::upcast(&doc->endOfFile), 0);
 
-        reinitDocumentForContextMemBuffer(doc);
+        doc->documentType = docType;
+        doc->firstRootNode = nullptr;
+        doc->lastRootNode = nullptr;
+
+        doc->firstCodeLine = nullptr;
+        doc->nodeCount = 0;
 
         return doc;
     }
@@ -201,13 +202,27 @@ namespace cshort {
         assert(docStruct->context != nullptr);
 
         auto *context = docStruct->context;
+        // Reset previous parse state (parseText can be called multiple times on the same document)
+        docStruct->firstRootNode = nullptr;
+        docStruct->lastRootNode = nullptr;
+        docStruct->nodeCount = 0;
 
-        context->memBufferForCodeLines.freeAll();
-        context->memBufferForCodeLines.init();
-        context->memBuffer.freeAll();
-        context->memBuffer.init();
 
-        reinitDocumentForContextMemBuffer(docStruct);
+
+
+         docStruct->firstCodeLine = nullptr;
+         docStruct->lineCount = 0;
+         // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
+         context->memBufferForCodeLines.freeAll();
+         context->memBufferForCodeLines.init();
+         // Clear previous token/node arena (this invalidates pointers from the previous parse).
+         context->memBuffer.freeAll();
+         context->memBuffer.init();
+         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
+         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
+
+
+
 
 
         context->syntaxErrorInfo.hasError = false;
