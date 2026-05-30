@@ -158,7 +158,7 @@ namespace cshort {
             }
 
             context->scanEnd = true;
-            context->setError2(ErrorIndex::no_brace_of_end_for_class, classNode->foundPos, start);
+            context->setError(ErrorIndex::syntax_error, start);
         }
 
         return Search::NOTFOUND;
