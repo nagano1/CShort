@@ -137,9 +137,11 @@ struct MemBuffer {
     }
 
     void *newBytesMem(unsigned int bytes) {
+        constexpr std::size_t alignment = alignof(std::max_align_t);
+        currentMemOffset = static_cast<st_uint>(((currentMemOffset + (alignment - 1)) / alignment) * alignment);
+
         auto sizeOfPointerToBlock = st_size_of(MemBufferBlock*);
         auto length = bytes + sizeOfPointerToBlock;
-
 
         if (currentMemOffset + length <= DEFAULT_BUFFER_SIZE) {
             // Enough space in the current buffer block.
