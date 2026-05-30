@@ -106,7 +106,7 @@ int testParseUtil() {
 
     {
         std::string text(u8"ab");
-        auto result = ParseUtil::matchWord(text.c_str(), text.length(), "abcdefg", 5, 0);
+        auto result = ParseUtil::matchWord(text.c_str(), text.length(), "abcdefg", 7, 0);
         assert(result == false);
     }
 
