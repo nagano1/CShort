@@ -97,7 +97,8 @@ namespace cshort
                     return endCommentPos + 2;
                 }
                 if (tagLength == 0) {
-                    // TODO: check '[' exists before ']' and allow non-named block comment to be closed with ]*/ if it doesn't have a tag,
+                    // For non-named block comments, any "*/" closes the comment (even if preceded by ']').
+                    return endCommentPos + 2;
                 }
 
                 continue; // if the block comment has tag, it must be closed with the same tag, so skip if the tag doesn't match
