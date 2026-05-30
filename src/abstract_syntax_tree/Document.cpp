@@ -200,18 +200,20 @@ namespace cshort {
         docStruct->firstRootNode = nullptr;
         docStruct->lastRootNode = nullptr;
         docStruct->nodeCount = 0;
-        
-         docStruct->firstCodeLine = nullptr;
-         docStruct->lineCount = 0;
-         // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
-         context->memBufferForCodeLines.freeAll();
-         context->memBufferForCodeLines.init();
-         // Clear previous token/node arena (this invalidates pointers from the previous parse).
-         context->memBuffer.freeAll();
-         context->memBuffer.init();
-         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
-         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
+        // Ensure the embedded EOF node doesn't retain links from a previous parse.
+        INIT_NODE(&docStruct->endOfFile, context, docStruct, VTables::EndOfFileVTable);
+
+        docStruct->firstCodeLine = nullptr;
+        docStruct->lineCount = 0;
+        // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
+        context->memBufferForCodeLines.freeAll();
+        context->memBufferForCodeLines.init();
+        // Clear previous token/node arena (this invalidates pointers from the previous parse).
+        context->memBuffer.freeAll();
+        context->memBuffer.init();
+        // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
+        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
 
 
