@@ -67,9 +67,9 @@ struct ParseUtil {
 
     static bool hasCharBeforeLineBreak(const char *chars, int charsLength, int startIndex) {
         for (int i = startIndex; i < charsLength; i++) {
-            if (chars[i] == ' ' || chars[i] == '\r') {
+            if (ParseUtil::isSpace(chars[i])) {
                 continue;
-            } else  if (chars[i] == '\n' || chars[i] == '\0') {
+            } else if (ParseUtil::isBreakLine(chars[i]) || chars[i] == '\0') {
                 return false;
             } else {
                 return true;
