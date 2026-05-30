@@ -48,8 +48,6 @@ struct ParseUtil {
 
     static bool IsKeyword(const utf8byte *ch, st_int length);
 
-    static int _matchFirstWithTrim(const char *chars, int charsLength, const char *target, int start);
-
     /// match target at startIndex, and ensure the char after target is terminatable 
     template<int SIZE>
     static bool matchWordWithTerminatableEnd(const char *chars, int charsLength, int startIndex, const char(&target)[SIZE])
@@ -66,8 +64,6 @@ struct ParseUtil {
 
         return false;
     }
-
-    // EXPECT_EQ(0, Tokenizer::matchAt("class A{}", "class"));
 
     static bool hasCharBeforeLineBreak(const char *chars, int charsLength, int startIndex) {
         for (int i = startIndex; i < charsLength; i++) {

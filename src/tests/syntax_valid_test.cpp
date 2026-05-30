@@ -37,6 +37,18 @@ class TestClass { /*comment
 
 */)";
 
+constexpr const char *namedTagCommentText = u8R"(
+/*[tag1]
+class TestClass { /*comment
+
+    test
+*/
+    // comment
+}
+/*comment
+
+*/
+[tag1]*/)";
 
 
 
@@ -72,6 +84,7 @@ void testParsing()
     CheckTextEq(classOnlyText);
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);
+    CheckTextEq(namedTagCommentText);
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
 
