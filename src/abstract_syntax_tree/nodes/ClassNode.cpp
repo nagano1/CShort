@@ -155,7 +155,6 @@ namespace cshort {
                 appendChildNode(classNode, context->generatedPrimaryNode);
                 return result;
             }
-            }
 
             context->scanEnd = true;
             context->setError(ErrorIndex::syntax_error, start);
