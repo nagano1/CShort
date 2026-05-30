@@ -86,7 +86,7 @@ namespace cshort {
     utf8byte *DocumentUtils::getTextFromTree(DocumentStruct *doc)
     {
         // get size of chars
-        int totalCount = 0;
+        size_t totalCount = 0;
         {
             auto *line = doc->firstCodeLine;
             while (line) {
