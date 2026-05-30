@@ -804,17 +804,17 @@ namespace cshort {
 
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
-        // genereater is a function pointer for generating corresponding token, it will be called when the word is matched, and the generated token will be returned by the tokenizer.
+        // generator is a function pointer for generating corresponding token, it will be called when the word is matched, and the generated token will be returned by the tokenizer.
         template<typename TYPE, std::size_t SIZE, typename GENTYPE>
         static inline int tokenizeWord(TokenizerParams_argNode_ch_start_context
-                      , GENTYPE* (*genereater)(ParseContext *, NodeBase*)
+                      , GENTYPE* (*generator)(ParseContext *, NodeBase*)
                       , utf8byte capitalLetter
                       , const TYPE(&word)[SIZE])
         {
             if (capitalLetter == ch) {
                 int length = st_size_of(word) - 1;
                 if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, word)) {
-                    auto *boolNode = (SimpleTextTokenStruct*)(genereater(context, argNode));
+                    auto *boolNode = (SimpleTextTokenStruct*)(generator(context, argNode));
 
                     boolNode->text = context->memBuffer.newText(length);
                     boolNode->textLength = length;
