@@ -3,7 +3,7 @@ name: 🌕 CMake Build Matrix
 on:
   push:
   schedule:
-    - cron: '15 1 1 * *' # minute hour day month monday
+    - cron: '15 1 1 * *' # minute hour day-of-month month day-of-week
 
 jobs:
   set-matrix:
