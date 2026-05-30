@@ -18,7 +18,7 @@ foreach (file ${test_files})
     get_filename_component(filename ${file} NAME_WE)
     add_executable(${filename}_run ${file})
     target_link_libraries(${filename}_run common_lib)
-    install(TARGETS ${filename}_run RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+    install(TARGETS ${filename}_run RUNTIME DESTINATION bin)
 endforeach()
 
 
