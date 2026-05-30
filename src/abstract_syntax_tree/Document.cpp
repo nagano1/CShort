@@ -52,12 +52,6 @@ namespace cshort {
     const node_vtable *VTables::DocumentVTable = &DocumentVTable_;
 
 
-    static void reinitDocument(DocumentStruct *doc)
-    {
-        doc->firstRootNode = nullptr;
-        doc->lastRootNode = nullptr;
-        doc->nodeCount = 0;
-    }
 
     // --------------------- Implements Document functions ----------------------
     DocumentStruct *Alloc::newDocument(DocumentType docType) {
@@ -70,16 +64,19 @@ namespace cshort {
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
         Init::initSimpleTextToken(&doc->endOfFile.eofToken, context, Cast::upcast(&doc->endOfFile), 0);
-                doc->firstRootNode = nullptr;
+
+        doc->documentType = docType;
+        doc->firstRootNode = nullptr;
         doc->lastRootNode = nullptr;
-        doc->nodeCount = 0;
+
         doc->firstCodeLine = nullptr;
-        doc->lineCount = 0;
+        doc->nodeCount = 0;
 
         return doc;
     }
 
     // CodeLine instances are arena-allocated via ParseContext::memBufferForCodeLines; freeing is handled by memBufferForCodeLines.freeAll().
+
     void Alloc::deleteDocument(DocumentStruct *doc) {
         doc->context->dispose();
         free(doc->context);
@@ -194,38 +191,42 @@ namespace cshort {
         VTableCall::callAppendNodeToLine(docStruct, docStruct->firstCodeLine);
     }
 
+    void DocumentUtils::parseText(DocumentStruct *docStruct, const utf8byte *text, int length)
+    {
+        assert(docStruct->context != nullptr);
 
-
-    void DocumentUtils::initDocument(DocumentStruct *docStruct) {
         auto *context = docStruct->context;
-
-                // Reset previous parse state (parseText can be called multiple times on the same document)
+        // Reset previous parse state (parseText can be called multiple times on the same document)
         docStruct->firstRootNode = nullptr;
         docStruct->lastRootNode = nullptr;
         docStruct->nodeCount = 0;
-        docStruct->firstCodeLine = nullptr;
-        docStruct->lineCount = 0;
+        
+         docStruct->firstCodeLine = nullptr;
+         docStruct->lineCount = 0;
+         // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
+         context->memBufferForCodeLines.freeAll();
+         context->memBufferForCodeLines.init();
+         // Clear previous token/node arena (this invalidates pointers from the previous parse).
+         context->memBuffer.freeAll();
+         context->memBuffer.init();
+         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
+         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
-        // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
-        context->memBufferForCodeLines.freeAll();
-        context->memBufferForCodeLines.init();
-        // Clear previous token/node arena (this invalidates pointers from the previous parse).
-        context->memBuffer.freeAll();
-        context->memBuffer.init();
 
 
 
 
-        // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
-        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
+
 
         context->syntaxErrorInfo.hasError = false;
         context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
         context->syntaxErrorInfo.errorItem.errorId = 10000;
         context->syntaxErrorInfo.errorItem.charPosition = -1;
         context->syntaxErrorInfo.errorItem.charPosition2 = -1;
+        context->chars = const_cast<utf8byte *>(text);
         context->start = 0;
         context->scanEnd = false;
+        context->length = length;
         context->mostLeftToken = nullptr;
         context->generatedPrimaryNode = nullptr;
         context->lastTokenizedPos = 0;
@@ -239,17 +240,6 @@ namespace cshort {
         context->isAfterLineBreak = false;
 
         context->unusedClassNode = nullptr;
-    }
-
-    void DocumentUtils::parseText(DocumentStruct *docStruct, const utf8byte *text, int length)
-    {
-        assert(docStruct->context != nullptr);
-
-        DocumentUtils::initDocument(docStruct);
-
-        auto *context = docStruct->context;
-        context->chars = const_cast<utf8byte *>(text);
-        context->length = length;
 
 
         if (docStruct->documentType == DocumentType::CodeDocument) {
