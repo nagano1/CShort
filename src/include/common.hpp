@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <cstdint>
+#include <cstddef> // std::max_align_t
 #include <ctime>
 
 
