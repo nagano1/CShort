@@ -38,7 +38,7 @@ namespace cshort
         while (currentLineBreakItem) {
             currentCodeLine = currentCodeLine->AddAttachedFormatTokens(currentLineBreakItem);
 
-            currentCodeLine->appendToken(Cast::upcast(currentLineBreakItem));
+            currentCodeLine->appendToken(currentLineBreakItem);
 
             // if there are multiple line breaks in a row, we need to add them all to the code line,
             // and the depth of the code line will be increased by 1 for each line break,
