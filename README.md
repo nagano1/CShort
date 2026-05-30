@@ -43,6 +43,68 @@ bash .devcontainer/build_in_devcontainer.bash
 
 
 
+## Language Specification
+
+### Classes
+
+A class is declared with the `class` keyword, followed by an identifier and a body enclosed in `{ }`.
+
+```
+class ClassName {
+    // class body
+}
+```
+
+- Class names are identifiers (letters, digits, underscores).
+- The body may contain nested declarations (more classes, future constructs, etc.).
+- The opening `{` and closing `}` are required.
+
+### Comments
+
+CShort has three kinds of comments.
+
+#### Line comments
+
+Start with `//` and extend to the end of the line.
+
+```
+// this is a line comment
+```
+
+#### Block comments (non-named)
+
+Start with `/*` and end at the first `*/`.
+
+```
+/* this is a
+   multi-line block comment */
+```
+
+- `*/` always closes the comment, regardless of what appears inside it.
+- Nested block comments are **not** supported.
+
+#### Named block comments
+
+Start with `/*[tag]` (where `tag` is any label) and end only at the matching `[tag]*/`.
+
+```
+/*[outer]
+    This text is commented out.
+    /*[inner]
+        This part is also commented out.
+    [inner]*/
+    Back in the outer comment.
+[outer]*/
+```
+
+Rules:
+- The opening tag `/*[tag]` must appear on a single line; `[` immediately follows `/*`.
+- The tag name is everything between `[` and `]` in the opening delimiter.
+- The comment is closed **only** by `[tag]*/` using the **same** tag name; a bare `*/` inside a named block comment does **not** close it.
+- Named block comments can be nested inside one another (each using a different tag name), allowing a form of comment nesting that ordinary `/* */` does not support.
+
+---
+
 ### Planned language syntax
 
 
