@@ -8,7 +8,7 @@ file(GLOB CONFIGURE_DEPENDS cpp_lib_files
     "${SRC_ROOT}/script_runtime/*.cpp"
 )
 
-file(GLOB test_files
+file(GLOB CONFIGURE_DEPENDS test_files
     "${SRC_ROOT}/tests/*.cpp"
 )
 
