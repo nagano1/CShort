@@ -191,7 +191,7 @@ struct ParseUtil {
 
     static inline bool isNonIdentifierChar(utf8byte ch)
     {
-        return ch == ' ' || '\t' == ch || '!' == ch || '#' == ch || '\n' == ch
+        return ch == ' ' || '\t' == ch || '!' == ch || '#' == ch || '\n' == ch || '\r' == ch
                || '%' == ch || ']' == ch || '"' == ch || '[' == ch || '\'' == ch
                || '=' == ch || '*' == ch || '+' == ch || '-' == ch || '?' == ch
                || '@' == ch || '{' == ch || '}' == ch || ',' == ch || ';' == ch
