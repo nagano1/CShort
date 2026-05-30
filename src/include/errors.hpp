@@ -82,7 +82,6 @@ namespace cshort {
         const char* msg;
 
         static ErrorInfo ErrorInfoList[errorListSize];
-        static bool errorInfoInitialized; // to make sure error info list is initialized before use.
     };
 
     // C++-14 
@@ -114,8 +113,6 @@ namespace cshort {
 
     static int initErrorInfoList()
     {
-        ErrorInfo::errorInfoInitialized = true;
-
         static constexpr ErrorInfo errorInfoListData[] = {
             
             ErrorInfo{ ErrorIndex::first_keeper, 9912, "start"},

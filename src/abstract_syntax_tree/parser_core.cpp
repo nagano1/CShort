@@ -1,4 +1,4 @@
-
+﻿
 #include <stdio.h>
 #include <iostream>
 #include <string>
@@ -22,7 +22,6 @@
 namespace cshort
 {
     ErrorInfo ErrorInfo::ErrorInfoList[errorListSize]; // errorIndex -> ErrorInfo
-    bool ErrorInfo::errorInfoInitialized{false};
     struct InternalParsingData;
 
     
