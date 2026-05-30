@@ -82,10 +82,8 @@ struct ParseUtil {
 
     static inline bool isTerminatableChar(utf8byte ch)
     {
-        return ' ' == ch || ch == '\n' || '\t' == ch
-            || '/' == ch || '\r' == ch
-            || ')' == ch || '}' == ch || ']' == ch
-            || ',' == ch || '\0' == ch;// || '.' == ch;
+        // A keyword can terminate before any character that cannot appear in an identifier.
+        return ParseUtil::isNonIdentifierChar(ch);
     }
 
 
