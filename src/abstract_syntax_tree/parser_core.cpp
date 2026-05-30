@@ -144,8 +144,11 @@ namespace cshort
 
                 // endIndex is exclusive for the fragment text (it points to a line break, '\0', or commentEndIndex)
                 int commentLength = endIndex - currentIndex;
+                if (commentLength == 0 && !hasLineBreak) {
+                    // indexOfBreakOrEndWithInfo() can stop on an embedded '\0'; avoid an infinite loop.
+                    break;
+                }
                 Init::assignText_SimpleTextToken(commentFragment, context, currentIndex, commentLength);
-
                 if (hasLineBreak) {
                     // create a line break token for the line break after the comment fragment
                     LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(blockComment));
