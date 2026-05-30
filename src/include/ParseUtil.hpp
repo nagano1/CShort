@@ -50,9 +50,14 @@ struct ParseUtil {
 
     /// match target at startIndex, and ensure the char after target is terminatable 
     template<int SIZE>
+    template<int SIZE>
     static bool matchWordWithTerminatableEnd(const char *chars, int charsLength, int startIndex, const char(&target)[SIZE])
     {
-        if (matchWord(chars, charsLength, target, SIZE - 1, startIndex)) {
+        if (startIndex < 0 || startIndex > charsLength) {
+            return false;
+        }
+
+        if (matchWord(chars, charsLength, target, SIZE - 1, static_cast<st_uint>(startIndex))) {
             int terminatorIndex = startIndex + SIZE - 1; // SIZE includes null terminator
             if (terminatorIndex == charsLength) { // end-of-input is a valid terminator
                 return true;
