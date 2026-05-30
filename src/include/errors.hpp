@@ -241,9 +241,8 @@ namespace cshort {
         char reason[MAX_REASON_LENGTH + 1];
         int reasonLength = 0;
 
-        st_uint charPosition;
-        st_uint charPosition2;
-
+        st_int charPosition;
+        st_int charPosition2;
         st_uint linePos1;
         st_uint charPos1;
         st_uint linePos2;
