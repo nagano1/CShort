@@ -91,10 +91,10 @@ namespace cshort {
     #define  USE_STATIC_SORT
     #endif
     #ifdef USE_STATIC_SORT
-    // check if error list is sorted by error index in ascending order, and there is no duplicate error code.
+    // Validate that the error list is ordered by strictly increasing errorCode and that ErrorIndex values are continuous starting at 0.
     static constexpr bool is_sorted(const ErrorInfo tempList[])
     {
-        // check if error list is sorted by error index in ascending order, and there is no duplicate error code.
+        // 1) errorCode must be strictly increasing (no duplicates).
         for (std::size_t i = 0; i < errorListSize - 1; ++i) {
             if (tempList[i].errorCode >= tempList[i + 1].errorCode) {
                 return false;
