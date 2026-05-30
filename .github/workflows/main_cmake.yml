@@ -60,8 +60,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: "Set current date as env variable"
+        shell: bash
         run: |
-          echo "builddate=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "builddate=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
         id: version
 
       - name: cmake
