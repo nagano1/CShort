@@ -204,7 +204,6 @@ namespace cshort
                 targetToken->precedingCommentToken = commentToken;
                 commentToken = nullptr;
             }
-            }
         }
 
         void assignWhiteSpaces(TokenBase* commentToken, int endIndex)
