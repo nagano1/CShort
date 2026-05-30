@@ -205,11 +205,14 @@ namespace cshort {
         return nullptr;
     }
 
+    static void ensureErrorInfoInitialized() {
+        static const int initResult = initErrorInfoList();
+        (void)initResult;
+    }
+
     // for error code, we use a large number to avoid conflict with other error codes.
     static int getErrorCode(ErrorIndex errorIndex) {
-        if (!ErrorInfo::errorInfoInitialized) {
-            initErrorInfoList();
-        }
+        ensureErrorInfoInitialized();
 
         auto&& errorInfo = ErrorInfo::ErrorInfoList[static_cast<int>(errorIndex)];
         return errorInfo.errorCode;
@@ -217,9 +220,7 @@ namespace cshort {
 
     // for error message, we use the message in error info list, and we can also translate the message to other language if needed.
     static const char *getErrorMessage(ErrorIndex errorIndex) {
-        if (!ErrorInfo::errorInfoInitialized) {
-            initErrorInfoList();
-        }
+        ensureErrorInfoInitialized();
 
         const char *mes = nullptr;
         auto&& errorInfo = ErrorInfo::ErrorInfoList[static_cast<int>(errorIndex)];
