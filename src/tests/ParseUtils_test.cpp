@@ -58,6 +58,8 @@ int testParseUtil() {
     static constexpr char chars[] = "class A{}";
     assert(true == ParseUtil::matchWordWithTerminatableEnd(chars, sizeof(chars) - 1, 0, "class"));
 
+    static constexpr char chars_crlf[] = "class\r\n A{}";
+    assert(true == ParseUtil::matchWordWithTerminatableEnd(chars_crlf, sizeof(chars_crlf) - 1, 0, "class"));
     assert(false == ParseUtil::matchWordWithTerminatableEnd("", 0, 0, "class"));
     assert(true == ParseUtil::matchWordWithTerminatableEnd("", 0, 0, ""));
 
