@@ -5,8 +5,7 @@ CShort is a programming language.
 ## Building
 
 Currently only the parser is implemented.
-Building executable files is not available yet.
-
+The build currently produces test executables under `build/src/tests/*_run` (or `build/src/tests/Debug/*_run` on Windows multi-config generators).
 To build the project, you need CMake 3.12+ and a C++ compiler installed.
 
 ```bash
