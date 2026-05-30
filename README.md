@@ -33,7 +33,6 @@ To protect your host machine from file pollution , all build artifacts are store
 ```bash
 cmake -B /tmp/build
 cmake --build /tmp/build
-/tmp/build/hello
 ```
 
 ### Quick Build
