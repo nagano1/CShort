@@ -69,8 +69,13 @@ namespace cshort {
 
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
+        Init::initSimpleTextToken(&doc->endOfFile.eofToken, context, Cast::upcast(&doc->endOfFile), 0);
+                doc->firstRootNode = nullptr;
+        doc->lastRootNode = nullptr;
+        doc->nodeCount = 0;
+        doc->firstCodeLine = nullptr;
+        doc->lineCount = 0;
 
-        DocumentUtils::initDocument(doc);
         return doc;
     }
 
@@ -212,7 +217,7 @@ namespace cshort {
 
 
         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
-//        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
+        Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
         context->syntaxErrorInfo.hasError = false;
         context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
