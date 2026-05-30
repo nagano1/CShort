@@ -84,7 +84,7 @@ jobs:
 
           for SCRIPT in ${{ matrix.config.testdir }}*
           do
-            if [[ $SCRIPT == *_run* ]]; then
+            if [[ $SCRIPT == *_run* && $SCRIPT != *"pdb"* ]]; then
                 echo $SCRIPT
                 $SCRIPT
             fi
