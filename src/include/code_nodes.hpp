@@ -745,6 +745,7 @@ namespace cshort {
 
     struct DocumentUtils {
 
+        static void clearDocumentForReparse(DocumentStruct *docStruct);
 
         static void parseText(DocumentStruct *docStruct, const utf8byte *text, int length);
 
