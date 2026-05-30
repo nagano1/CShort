@@ -105,7 +105,7 @@ namespace cshort {
         }
 
         // malloc and copy text
-        auto *text = (char *) malloc(sizeof(char) * totalCount + 1);
+        auto *text = (char *) malloc(totalCount + 1);
         text[totalCount] = '\0';
         if (totalCount > 0) {
             CodeLine *line = doc->firstCodeLine;
