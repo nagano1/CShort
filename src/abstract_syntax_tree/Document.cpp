@@ -194,10 +194,13 @@ namespace cshort {
     void DocumentUtils::initDocument(DocumentStruct *docStruct) {
         auto *context = docStruct->context;
 
-        
+                // Reset previous parse state (parseText can be called multiple times on the same document)
+        docStruct->firstRootNode = nullptr;
+        docStruct->lastRootNode = nullptr;
+        docStruct->nodeCount = 0;
         docStruct->firstCodeLine = nullptr;
         docStruct->lineCount = 0;
-        
+
         // Clear previous CodeLine arena to avoid stale pointers when parsing fails.
         context->memBufferForCodeLines.freeAll();
         context->memBufferForCodeLines.init();
@@ -205,10 +208,7 @@ namespace cshort {
         context->memBuffer.freeAll();
         context->memBuffer.init();
 
-        // Reset previous parse state (parseText can be called multiple times on the same document)
-        docStruct->firstRootNode = nullptr;
-        docStruct->lastRootNode = nullptr;
-        docStruct->nodeCount = 0;
+
 
 
         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
