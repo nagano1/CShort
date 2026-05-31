@@ -46,10 +46,10 @@ namespace cshort
     }
 
     // Nested block comments are not supported, instead, we support named block comments which can be closed with the corresponding tag,
-    // for example: /*[A] ... [A]*/.
+    // for example: /*<[A] ... [A]>*/.
     // It's more explicit and easier to use than nested block comments, and it can also avoid the problem of accidentally
     // closing the wrong block comment when there are multiple block comments.
-    // It also allows block comments to be nested in a way, for example: /*[A] ... /*[B] ... [B]*/ ... [A]*/.
+    // It also allows block comments to be nested in a way, for example: /*<[A] ... /*<[B] ... [B]>*/ ... [A]>*/.
     static inline int detectBlockCommentEnd(int32_t i, ParseContext *context, int &tagLength, char *&tagText)
     {
         int textStartPos = i + 2;
@@ -58,8 +58,8 @@ namespace cshort
             // not enough chars for block comment start tag
             return context->length;
         }
-        if (context->chars[i + 2] == '[') { // /*[hoge] ... [hoge]*/
-            int nameStartPos = i + 3;
+        if (context->chars[i + 2] == '<' && context->chars[i + 3] == '[') { // /*<[hoge]> ... [hoge]>*/
+            int nameStartPos = i + 4;
             // find out the tag name: hoge
             int endOfStartTagPos = ParseUtil::indexOf(context->chars, context->length, nameStartPos, ']');
             int lineEndPos = ParseUtil::indexOfBreakOrEnd(context->chars, context->length, nameStartPos);
@@ -86,21 +86,19 @@ namespace cshort
 
             searchEndPos = endCommentPos + 2; // continue to search for next block comment if the current found block comment end doesn't match the tag
 
-            // [hoge]*/
-            if (context->chars[endCommentPos - 1] == ']') {
+            // [hoge]>*/
+            if (context->chars[endCommentPos - 2] == ']' && context->chars[endCommentPos - 1] == '>') {
                 if (tagLength > 0
-                    && (endCommentPos - tagLength - 2) >= 0
-                    && context->chars[endCommentPos - tagLength - 2] == '['
-                    && ParseUtil::matchWord(context->chars, context->length, tagText, tagLength, endCommentPos - tagLength - 1)
+                    && (endCommentPos - tagLength - 3) >= 0
+                    && context->chars[endCommentPos - tagLength - 3] == '['
+                    && context->chars[endCommentPos - tagLength - 2] == '<'
+                    && ParseUtil::matchWord(context->chars, context->length, tagText, tagLength, endCommentPos - tagLength - 2)
                 ) {
                     return endCommentPos + 2;
                 }
-                if (tagLength == 0) {
-                    // For non-named block comments, any "*/" closes the comment (even if preceded by ']').
-                    return endCommentPos + 2;
-                }
-
-                continue; // if the block comment has tag, it must be closed with the same tag, so skip if the tag doesn't match
+                // if the block comment has tag, it must be closed with the same tag, so skip if the tag doesn't match
+                // if the block comment doesn't have start tag,  */ can close it, but ]>*/ will not be treated as block comment end, so skip it as well
+                continue;
             }
             else {
                 if (tagLength == 0) { // comments of /* needs to be closed with */ (not named block comment)

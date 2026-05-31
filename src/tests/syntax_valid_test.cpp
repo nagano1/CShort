@@ -35,22 +35,19 @@ class TestClass { /*comment
 */
     // comment
 }
-/*comment
-
-*/)";
+/*<[comment]
+    test
+[comment]>*/)";
 
 constexpr const char *namedTagCommentText = u8R"(
-/*[tag1]
-class TestClass { /*comment
-
-    test
-*/
+/*
+/*<[tag1]
+class TestClass {
     // comment
 }
-/*comment
+[tag1]>*/
 
-*/
-[tag1]*/)";
+*/)";
 
 
 
