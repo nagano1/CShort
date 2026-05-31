@@ -80,28 +80,28 @@ Start with `/*` and end at the first `*/`.
    multi-line block comment */
 ```
 
-- `*/` always closes the comment, regardless of what appears inside it.
 - Nested block comments are **not** supported.
 
 #### Named block comments
 
-Start with `/*[tag]` (where `tag` is any label) and end only at the matching `[tag]*/`.
+Start with `/*<[tag]` (where `tag` is any label) and end only at the matching `[tag]>*/`.
 
 ```
-/*[outer]
+/*<[outer]
     This text is commented out.
-    /*[inner]
+    /*<[inner]
         This part is also commented out.
-    [inner]*/
+    [inner]>*/
     Back in the outer comment.
-[outer]*/
+[outer]>*/
 ```
 
 Rules:
-- The opening tag `/*[tag]` must appear on a single line; `[` immediately follows `/*`.
+- The opening delimiter is `/*<[tag]`; `<[` immediately follows `/*`.
 - The tag name is everything between `[` and `]` in the opening delimiter.
-- The comment is closed **only** by `[tag]*/` using the **same** tag name; a bare `*/` inside a named block comment does **not** close it.
+- The comment is closed **only** by `[tag]>*/` using the **same** tag name; a bare `*/` inside a named block comment does **not** close it.
 - Named block comments can be nested inside one another (each using a different tag name), allowing a form of comment nesting that ordinary `/* */` does not support.
+- A non-named block comment (`/* ... */`) can wrap named block comments, because `[tag]>*/` is **not** treated as a closing `*/` for non-named block comments — only a bare `*/` (not preceded by `]>`) closes them.
 
 ---
 
