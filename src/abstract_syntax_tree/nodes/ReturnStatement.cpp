@@ -134,13 +134,13 @@ namespace cshort {
             return Search::NOTFOUND;
         }
 
-        auto idx = ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, returnWord);
-        if (idx > -1) {
+        bool matched = ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, returnWord);
+        if (matched) {
             auto *parent = Cast::upcast(argNode);
             auto *returnNode = Alloc::newReturnStatement(context, parent);
             Init::assignText_SimpleTextToken(&returnNode->returnText, context, context->chars + start, returnTextSize);
 
-            int currentPos = idx + returnTextSize;
+            int currentPos = start + returnTextSize;
             int resultPos = Scanner::scanOnce(returnNode, tokenizeExpressionForReturnInternal, context, currentPos);
             if (Search::IsTokenized(resultPos)) {
                 context->mostLeftToken = Cast::upcastToken(&returnNode->returnText);

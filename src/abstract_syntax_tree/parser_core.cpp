@@ -362,8 +362,9 @@ namespace cshort
 
 
             int result = tokenizer(Cast::upcast(parentNode), ch, i, context);
-            parsingData.returnPos = result;
-
+            if (result != Search::DONE_WITH_PREVIOUS_POSITION) {
+                parsingData.returnPos = result;
+            }
             if (context->syntaxErrorInfo.hasError) {
                 parsingData.returnPos = Search::NOTFOUND;
                 return parsingData;

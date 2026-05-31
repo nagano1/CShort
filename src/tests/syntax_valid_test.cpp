@@ -54,8 +54,7 @@ class TestClass {
 
 constexpr const char *fnTestText = u8R"(
 
-fn cunctionName()
-{
+fn functionName(bool arg1) {
 }
 )";
 
@@ -71,6 +70,10 @@ void checkTextEquality(const char *name, const char* code)
     DocumentUtils::parseText(document, code, strlen(code));
     char *treeText = DocumentUtils::getTextFromTree(document);
 
+    if (document->context->syntaxErrorInfo.hasError) {
+        fprintf(stderr, "unexpected syntax error: %s at position %d\n", getErrorMessage(document->context->syntaxErrorInfo.errorItem.errorIndex), document->context->syntaxErrorInfo.errorItem.charPosition);
+        assert(false && "unexpected syntax error");
+    }
     assert(document->context->syntaxErrorInfo.hasError == false);
 
     if (strcmp(code, treeText) != 0) {
