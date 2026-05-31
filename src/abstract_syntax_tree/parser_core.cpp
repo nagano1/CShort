@@ -92,7 +92,7 @@ namespace cshort
                 if (tagLength > 0
                     && (endCommentPos - tagLength - 3) >= 0 
                     && context->chars[endCommentPos - tagLength - 3] == '['
-                    && ParseUtil::matchWord(context->chars, context->length, tagText, tagLength, endCommentPos - tagLength - 3)
+                    && ParseUtil::matchWord(context->chars, context->length, tagText, tagLength, endCommentPos - tagLength - 2)
                 ) {
                     return endCommentPos + 2;
                 }
