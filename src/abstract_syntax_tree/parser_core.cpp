@@ -58,7 +58,7 @@ namespace cshort
             // not enough chars for block comment start tag
             return context->length;
         }
-        if (context->chars[i + 2] == '<' && context->chars[i + 3] == '[') { // /*<[hoge]> ... [hoge]>*/
+        if (context->chars[i + 2] == '<' && i + 3 < context->length && context->chars[i + 3] == '[') { // /*<[hoge]> ... [hoge]>*/
             int nameStartPos = i + 4;
             // find out the tag name: hoge
             int endOfStartTagPos = ParseUtil::indexOf(context->chars, context->length, nameStartPos, ']');
@@ -89,9 +89,9 @@ namespace cshort
             // [hoge]>*/
             if (context->chars[endCommentPos - 2] == ']' && context->chars[endCommentPos - 1] == '>') {
                 if (tagLength > 0
-                    && (endCommentPos - tagLength - 3) >= 0
-                    && context->chars[endCommentPos - tagLength - 3] == '['
-                    && context->chars[endCommentPos - tagLength - 2] == '<'
+                    && (endCommentPos - tagLength - 3) >= 0 
+                    && context->chars[endCommentPos - tagLength - 3] == '<'
+                    && context->chars[endCommentPos - tagLength - 2] == '['
                     && ParseUtil::matchWord(context->chars, context->length, tagText, tagLength, endCommentPos - tagLength - 2)
                 ) {
                     return endCommentPos + 2;

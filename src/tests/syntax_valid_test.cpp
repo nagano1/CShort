@@ -36,7 +36,10 @@ class TestClass { /*comment
     // comment
 }
 /*<[comment]
+
+/*<[B]
     test
+[B]>*/
 [comment]>*/)";
 
 constexpr const char *namedTagCommentText = u8R"(
