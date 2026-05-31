@@ -77,15 +77,18 @@ namespace cshort {
     #define TEXT_MEMCPY(dst, src, len) \
         memcpy((dst), (src), (len))
 
-    using NodeBase = struct _NodeBase {
+    // #define STRUCT_ALIGN alignas(std::max_align_t)
+    #define STRUCT_ALIGN 
+    
+    using NodeBase = struct STRUCT_ALIGN _NodeBase {
         NODE_HEADER;
     };
 
-    using TokenBase = struct _TokenBase {
+    using TokenBase = struct STRUCT_ALIGN _TokenBase {
         TOKEN_HEADER;
     };
 
-    using SimpleTextTokenStruct = struct _SimpleTextTokenStruct {
+    using SimpleTextTokenStruct = struct STRUCT_ALIGN _SimpleTextTokenStruct {
         TOKEN_HEADER;
 
         SIMPLE_TEXT_CONTENT;
@@ -99,14 +102,14 @@ namespace cshort {
     using ConstLiteralTokenStruct = SimpleTextTokenStruct; // null, false, true
 
     // LineBreakTokenStruct is used for storing line break info for error reporting and code generation.
-    using LineBreakTokenStruct = struct _LineBreakTokenStruct {
+    using LineBreakTokenStruct = struct STRUCT_ALIGN _LineBreakTokenStruct {
         TOKEN_HEADER;
 
         utf8byte text[3]; // "\r\n", "\n", "\r" or "\0"
         _LineBreakTokenStruct *nextLineBreak;
     };
 
-    using BlockCommentTokenStruct = struct _BlockCommentTokenStruct {
+    using BlockCommentTokenStruct = struct STRUCT_ALIGN _BlockCommentTokenStruct {
         TOKEN_HEADER;
 
         BlockCommentFragmentStruct *firstCommentFragment;
@@ -115,14 +118,14 @@ namespace cshort {
     };
 
 
-    using EndOfFileNodeStruct = struct _EndOfFileNodeStruct {
+    using EndOfFileNodeStruct = struct STRUCT_ALIGN _EndOfFileNodeStruct {
         NODE_HEADER;
 
         SimpleTextTokenStruct eofToken;
     };
 
 
-    using IdentifierTokenStruct = struct _IdentifierNodeStruct {
+    using IdentifierTokenStruct = struct STRUCT_ALIGN _IdentifierNodeStruct {
         TOKEN_HEADER;
 
         int stackOffset;
@@ -130,14 +133,14 @@ namespace cshort {
         int_fast32_t nameLength;
     };
 
-    using SymbolTokenStruct = struct _SymbolTokenStruct {
+    using SymbolTokenStruct = struct STRUCT_ALIGN _SymbolTokenStruct {
         TOKEN_HEADER;
 
         bool isEnabled;
         utf8byte symbol[2];
     };
 
-    using BoolTokenStruct = struct _BoolTokenStruct {
+    using BoolTokenStruct = struct STRUCT_ALIGN _BoolTokenStruct {
         TOKEN_HEADER;
 
         SIMPLE_TEXT_CONTENT;
@@ -146,7 +149,7 @@ namespace cshort {
 
 
 
-    using ClassNodeStruct = struct _ClassNodeStruct {
+    using ClassNodeStruct = struct STRUCT_ALIGN _ClassNodeStruct {
         NODE_HEADER;
 
         KeywordTokenStruct classKeywordToken;
@@ -166,7 +169,7 @@ namespace cshort {
     };
 
     // ?string str
-    using TypeNodeStruct = struct _TypeNodeStruct {
+    using TypeNodeStruct = struct STRUCT_ALIGN _TypeNodeStruct {
         NODE_HEADER;
 
         SIMPLE_TEXT_CONTENT;
@@ -180,7 +183,7 @@ namespace cshort {
     };
 
     // true, false, null
-    using LiteralValueNodeStruct = struct _LiteralValueStruct {
+    using LiteralValueNodeStruct = struct STRUCT_ALIGN _LiteralValueStruct {
         NODE_HEADER;
 
         bool isTrue;
@@ -194,7 +197,7 @@ namespace cshort {
     // int a = 5
     // immutable: #int a = 5
     // nullable: ?let *ptr = "jfwio"
-    using AssignStatementNodeStruct = struct _AssignStatementNodeStruct {
+    using AssignStatementNodeStruct = struct STRUCT_ALIGN _AssignStatementNodeStruct {
         NODE_HEADER;
 
         TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
@@ -207,7 +210,7 @@ namespace cshort {
         NodeBase *expressionNode; // 32
     };
 
-    using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {
+    using KeywordAndExpressionStruct = struct STRUCT_ALIGN _KeywordAndExpressionStruct {
         NODE_HEADER;
 
         SimpleTextTokenStruct returnText;
@@ -218,7 +221,7 @@ namespace cshort {
 
 
 
-    using FuncBodyNodeStruct = struct _BodyNodeStruct {
+    using FuncBodyNodeStruct = struct STRUCT_ALIGN _BodyNodeStruct {
         NODE_HEADER;
 
         bool startFound;
@@ -235,14 +238,14 @@ namespace cshort {
 
 
     // (?int point = null)
-    using FuncParameterItemStruct = struct _FuncParameterItemStruct {
+    using FuncParameterItemStruct = struct STRUCT_ALIGN _FuncParameterItemStruct {
         NODE_HEADER;
         AssignStatementNodeStruct *assignStatementNodeStruct;
         SymbolTokenStruct  follwingComma;
         bool hasComma;
     };
 
-    using FuncNodeStruct = struct _FuncNodeStruct {
+    using FuncNodeStruct = struct STRUCT_ALIGN _FuncNodeStruct {
         NODE_HEADER;
 
         SimpleTextTokenStruct fnKeywordToken; // "fn"
@@ -287,7 +290,7 @@ namespace cshort {
         JsonDocument,// for LSP server
     };
 
-    using DocumentStruct = struct _documentStruct {
+    using DocumentStruct = struct STRUCT_ALIGN _documentStruct {
         NODE_HEADER;
 
         DocumentType documentType;
