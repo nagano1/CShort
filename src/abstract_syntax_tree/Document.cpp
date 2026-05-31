@@ -245,6 +245,7 @@ namespace cshort {
         context->isAfterLineBreak = false;
 
         context->unusedClassNode = nullptr;
+        context->unusedAssignment = nullptr;
 
 
         if (docStruct->documentType == DocumentType::CodeDocument) {

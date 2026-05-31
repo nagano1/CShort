@@ -27,7 +27,7 @@ namespace cshort
 
     static CodeLine *appendToLine(TypeNodeStruct *self, CodeLine *currentCodeLine)
     {
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->typeTextNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->typeTextToken, currentCodeLine);
         return currentCodeLine;
     }
 
@@ -42,13 +42,13 @@ namespace cshort
             buf[0] = nullableMarkChar;
         }
         */
-        VTableCall::copySelfText(&self->typeTextNode, buf);
+        VTableCall::copySelfText(&self->typeTextToken, buf);
         //VTableCall::copySelfText(&self->nameNode, buf + (hasImmutableOrNullableMark ? 1 : 0));
     }
 
     static int selfTextLength(TypeNodeStruct *self)
     {
-        return self->typeTextNode.textLength;
+        return self->typeTextToken.textLength;
         //bool hasImmutableOrNullableMark = self->hasImmutableMark || self->hasNullableMark;
         //return (hasImmutableOrNullableMark ? 1 : 0) + VTableCall::selfTextLength(Cast::upcast(&self->nameNode));
     }
@@ -86,11 +86,11 @@ namespace cshort
         int result = Tokenizers::identifierTokenizer(Cast::upcast(&typeNode->nameNode), context->chars[currentPos], currentPos, context);
 
         if (Search::IsTokenized(result)) {
-            typeNode->isLet = ParseUtil::equals(typeNode->typeTextNode.text, typeNode->typeTextNode.textLength, let_chars, size_of_let);
+            typeNode->isLet = ParseUtil::equals(typeNode->typeTextToken.text, typeNode->typeTextToken.textLength, let_chars, size_of_let);
 
-            Init::assignText_SimpleTextToken(&typeNode->typeTextNode, context, context->chars + start, result - start);
+            Init::assignText_SimpleTextToken(&typeNode->typeTextToken, context, context->chars + start, result - start);
 
-            context->mostLeftToken = Cast::upcastToken(&typeNode->typeTextNode);
+            context->mostLeftToken = Cast::upcastToken(&typeNode->typeTextToken);
             return result;
         }
 
@@ -131,7 +131,7 @@ namespace cshort
         node->isLet = false;
 
         Init::initIdentifierToken(&node->nameNode, context, node);
-        Init::initSimpleTextToken(&node->typeTextNode, context, node, 0);
+        Init::initSimpleTextToken(&node->typeTextToken, context, node, 0);
     }
 
 }

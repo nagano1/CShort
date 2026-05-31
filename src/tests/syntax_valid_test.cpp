@@ -54,7 +54,8 @@ class TestClass {
 
 constexpr const char *fnTestText = u8R"(
 
-fn functionName() {
+fn functionName(bool a) {
+    bool b = true
 }
 )";
 

@@ -100,6 +100,7 @@ namespace cshort {
 
     using LineCommentTokenStruct = SimpleTextTokenStruct;
     using BlockCommentFragmentStruct = SimpleTextTokenStruct;
+    using ConstLiteralTokenStruct = SimpleTextTokenStruct; // null, false, true
 
     // LineBreakTokenStruct is used for storing line break info for error reporting and code generation.
     // This token is not part of main AST, they are attached to tokens as precedingLineBreakToken.
@@ -181,7 +182,18 @@ namespace cshort {
         bool isLet; // or has type
 
         IdentifierTokenStruct nameNode; // type name like int, string, etc..
-        SimpleTextTokenStruct typeTextNode; // including ? or #
+        SimpleTextTokenStruct typeTextToken; // including ? or #
+    };
+
+    // true, false, null
+    using LiteralValueNodeStruct = struct _LiteralValueStruct {
+        NODE_HEADER;
+
+        bool isTrue;
+        bool isFalse;
+        bool isNull;
+
+        ConstLiteralTokenStruct *textToken; // including ? or #
     };
 
 
@@ -460,6 +472,7 @@ namespace cshort {
         FuncParameter = 29,
         BinaryOperation = 30,
         Variable = 25,
+        FixedLiteral = 31,
         
 
     };
@@ -474,6 +487,7 @@ namespace cshort {
         Number = 9,
         LineBreak = 10,
         Bool = 11,
+        ConstLiteral = 12,
         
         NULLId = 16,
         
@@ -654,10 +668,12 @@ namespace cshort {
                 *FuncParameterVTable,
                 *AssignStatementVTable,
                 *ReturnStatementVTable,
-                *TypeVTable
+                *TypeVTable,
+                *FixedLiteralVTable
                 ;
 
         static const token_vtable
+                *ConstLiteralVTable,     
                 *BoolVTable,
                 *LineBreakVTable,
                 *LineCommentVTable,
@@ -907,11 +923,13 @@ namespace cshort {
         static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, NodeBase *parentNode);
         static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, NodeBase *parentNode);
         static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, NodeBase *parentNode);
+        static ConstLiteralTokenStruct *newConstLiteralToken(ParseContext *context, NodeBase *parentNode);
 
-        static BoolTokenStruct* newBoolNode(ParseContext *context, NodeBase *parentNode);
+        // static BoolTokenStruct* newBoolNode(ParseContext *context, NodeBase *parentNode);
 
         // Nodes
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
+        static LiteralValueNodeStruct *newLiteralValueNode(ParseContext *context, NodeBase *parentNode);
 
         static DocumentStruct *newDocument(DocumentType docType);
         static void deleteDocument(DocumentStruct *doc);
@@ -950,7 +968,8 @@ namespace cshort {
         static int tokenizeExpression(TokenizerParams_argNode_ch_start_context);
         static int typeTokenizer(TokenizerParams_argNode_ch_start_context);
 
-        static int boolTokenizer(TokenizerParams_argNode_ch_start_context);
+        //static int boolTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int fixedLiteralNodeTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);
         static int fnTokenizer(TokenizerParams_argNode_ch_start_context);
@@ -970,15 +989,15 @@ namespace cshort {
             if (capitalLetter == ch) {
                 int length = st_size_of(word) - 1;
                 if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, word)) {
-                    auto *boolNode = (SimpleTextTokenStruct*)(generator(context, Cast::downcast<NodeBase*>(argNode)));
+                    auto *token = (SimpleTextTokenStruct*)(generator(context, Cast::downcast<NodeBase*>(argNode)));
 
-                    boolNode->text = context->memBuffer.newText(length);
-                    boolNode->textLength = length;
+                    token->text = context->memBuffer.newText(length);
+                    token->textLength = length;
 
-                    TEXT_MEMCPY(boolNode->text, context->chars + start, length);
-                    boolNode->text[length] = '\0';
+                    TEXT_MEMCPY(token->text, context->chars + start, length);
+                    token->text[length] = '\0';
 
-                    context->mostLeftToken = Cast::upcastToken(boolNode);
+                    context->mostLeftToken = Cast::upcastToken(token);
                     //context->generatedPrimaryNode = Cast::upcast(boolNode);
                     return start + length;
                 }

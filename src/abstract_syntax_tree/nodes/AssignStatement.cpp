@@ -40,7 +40,7 @@ namespace cshort {
     static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
     {
         if (self->hasTypeDecl) {
-            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->typeOrLet, currentCodeLine);
+            currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
         }
         
         if (self->pointerAsterisk.foundPos > -1) {
@@ -51,6 +51,7 @@ namespace cshort {
 
         if (self->equalSymbol.foundPos > -1) {
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->equalSymbol, currentCodeLine);
+
 
             assert(self->expressionNode); // if equal symbol exists, expression node must exist, otherwise tokenizer throws syntax errors.
             currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
@@ -106,6 +107,7 @@ namespace cshort {
         assignStatement->hasTypeDecl = false;
         assignStatement->expressionNode = nullptr;
         assignStatement->stackOffset = 0;
+
 
         Init::initSymbolToken(&assignStatement->pointerAsterisk, context, assignStatement, '*');
 
@@ -233,7 +235,7 @@ namespace cshort {
             int resultPos;
             if (Search::IsTokenized(resultPos = Scanner::scanLoop(assignStatement, tokenizeAssignStatementLoop, context, result)))
             {
-                context->mostLeftToken = Cast::upcastToken(&assignStatement->typeOrLet);
+                context->mostLeftToken = Cast::upcastToken(&assignStatement->typeOrLet.typeTextToken);
                 context->generatedPrimaryNode = Cast::upcast(assignStatement);
 
                 return resultPos;

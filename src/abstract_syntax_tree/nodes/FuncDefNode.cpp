@@ -255,6 +255,7 @@ namespace cshort {
 
         if (ch == ')') {
             context->scanEnd = true;
+            funcNode->parameterEndNode.foundPos = start;
             context->mostLeftToken = Cast::upcastToken(&funcNode->parameterEndNode);
             return start + 1;
         }
