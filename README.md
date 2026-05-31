@@ -80,7 +80,6 @@ Start with `/*` and end at the first `*/`.
    multi-line block comment */
 ```
 
-- `*/` always closes the comment, regardless of what appears inside it.
 - Nested block comments are **not** supported.
 
 #### Named block comments
