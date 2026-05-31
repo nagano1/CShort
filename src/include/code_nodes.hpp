@@ -674,21 +674,16 @@ namespace cshort {
 
         static const token_vtable
                 *ConstLiteralVTable,     
-                *BoolVTable,
                 *LineBreakVTable,
                 *LineCommentVTable,
                 *BlockCommentFragmentVTable,
-                *SymbolVTable,
                 *SimpleTextVTable,
                 *BlockCommentVTable,
                 *IdentifierTokenVTable,
-                *NumberTokenVTable,
                 *StringLiteralTokenVTable,
                 *SymbolTokenVTable,
                 *LineBreakTokenVTable,
-                *WhiteSpaceTokenVTable,
                 *CommentTokenVTable,
-                *EndOfFileTokenVTable;
     };
 
 
