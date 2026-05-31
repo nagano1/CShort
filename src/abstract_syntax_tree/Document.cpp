@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <cstdio>
 #include <string>
 #include <array>
@@ -154,6 +154,9 @@ namespace cshort {
         if (Search::IsTokenized(result = Tokenizers::classTokenizer(TokenizerParams_pass))) {
             appendRootNode(doc, context->generatedPrimaryNode);
             return result;
+        } else if (Search::IsTokenized(result = Tokenizers::fnTokenizer(TokenizerParams_pass))) {
+            appendRootNode(doc, context->generatedPrimaryNode);
+            return result;
         }
 
         if (ch != '\0') {
@@ -263,6 +266,7 @@ namespace cshort {
             DocumentUtils::regenerateCodeLines(docStruct);
 
             callAllLineEvent(docStruct, docStruct->firstCodeLine, context);
+
         }
     }
 }

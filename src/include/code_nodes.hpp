@@ -142,6 +142,14 @@ namespace cshort {
         utf8byte symbol[2];
     };
 
+    using BoolTokenStruct = struct _BoolTokenStruct {
+        TOKEN_HEADER;
+
+        SIMPLE_TEXT_CONTENT;
+        bool boolValue;
+    };
+
+
 
     using ClassNodeStruct = struct _ClassNodeStruct {
         NODE_HEADER;
@@ -161,6 +169,111 @@ namespace cshort {
         NodeBase *lastChildNode;
         int childCount;
     };
+
+    // ?string str
+    using TypeNodeStruct = struct _TypeNodeStruct {
+        NODE_HEADER;
+
+        SIMPLE_TEXT_CONTENT;
+
+        bool hasImmutableMark; // # immutable
+        bool hasNullableMark; // ? nullable
+        bool isLet; // or has type
+
+        IdentifierTokenStruct nameNode; // type name like int, string, etc..
+        SimpleTextTokenStruct typeTextNode; // including ? or #
+    };
+
+
+    // int a = 5
+    // immutable: #int a = 5
+    // nullable: ?let *ptr = "jfwio"
+    using AssignStatementNodeStruct = struct _AssignStatementNodeStruct {
+        NODE_HEADER;
+
+        TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
+        bool hasTypeDecl; // only assignment: a = 3
+        SymbolTokenStruct pointerAsterisk; // *
+
+        int stackOffset;
+        IdentifierTokenStruct nameNode; // variable name
+        SymbolTokenStruct equalSymbol; // =
+        NodeBase *expressionNode; // 32
+    };
+
+    using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {
+        NODE_HEADER;
+
+        SimpleTextTokenStruct returnText;
+        NodeBase *expressionNode;
+    };
+
+    using ReturnStatementNodeStruct = KeywordAndExpressionStruct;
+
+
+
+    using FuncBodyNodeStruct = struct _BodyNodeStruct {
+        NODE_HEADER;
+
+        bool startFound;
+        bool firstStatementFound;
+
+        SymbolTokenStruct bodyStartNode;
+        SymbolTokenStruct endBodyNode;
+
+        NodeBase *firstChildNode;
+        NodeBase *lastChildNode;
+        int childCount;
+    };
+
+
+
+    // (?int point = null)
+    using FuncParameterItemStruct = struct _FuncParameterItemStruct {
+        NODE_HEADER;
+        AssignStatementNodeStruct *assignStatementNodeStruct;
+        SymbolTokenStruct  follwingComma;
+        bool hasComma;
+    };
+
+    using FuncNodeStruct = struct _FuncNodeStruct {
+        NODE_HEADER;
+
+        SimpleTextTokenStruct fnKeywordToken; // "fn"
+        IdentifierTokenStruct nameNode;
+        int stackSize;
+
+        SymbolTokenStruct parameterStartNode; // (
+        SymbolTokenStruct parameterEndNode; // )
+
+        FuncBodyNodeStruct bodyNode;
+
+        int parameterParsePhase;
+        FuncParameterItemStruct *firstChildParameterNode;
+        FuncParameterItemStruct *lastChildParameterNode;
+        int parameterChildCount;
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     enum DocumentType {
@@ -204,6 +317,7 @@ namespace cshort {
         const utf8byte *chars;
 
         ClassNodeStruct *unusedClassNode;
+        AssignStatementNodeStruct *unusedAssignment;
 
         LineBreakTokenStruct *remainedLineBreakToken;
         void *remainedCommentToken;
@@ -534,9 +648,17 @@ namespace cshort {
         static const node_vtable
                 *DocumentVTable,
                 *ClassVTable,
-                *EndOfFileVTable;
+                *FuncDefVTable,
+                *FuncBodyVTable,
+                *EndOfFileVTable,
+                *FuncParameterVTable,
+                *AssignStatementVTable,
+                *ReturnStatementVTable,
+                *TypeVTable
+                ;
 
         static const token_vtable
+                *BoolVTable,
                 *LineBreakVTable,
                 *LineCommentVTable,
                 *BlockCommentFragmentVTable,
@@ -742,9 +864,6 @@ namespace cshort {
     };
 
     struct DocumentUtils {
-
-        static void initDocument(DocumentStruct *docStruct);
-
         static void parseText(DocumentStruct *docStruct, const utf8byte *text, int length);
 
         static void regenerateCodeLines(DocumentStruct *docStruct);
@@ -754,30 +873,57 @@ namespace cshort {
 
 
     struct Init {
+        // Nodes
+        static void initFuncBodyNode(FuncBodyNodeStruct *node, ParseContext *context, void *parentNode);
+        static void initTypeNode(TypeNodeStruct *self, ParseContext *context, void *parent);
+
+        // Tokens
         static void initIdentifierToken(IdentifierTokenStruct *name, ParseContext *context, void *parentNode);
 
         static void initSymbolToken(SymbolTokenStruct *self, ParseContext *context, void *parent, utf8byte letter);
 
         static void initSimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, void *parentNode, int charLen);
-        static void assignText_SimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, int pos, int charLen);
+        static void assignText_SimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, const utf8byte *text, int charLen);
+
+
+
+
+        static void initAssignStatement(ParseContext *context, NodeBase *parentNode,
+                                       AssignStatementNodeStruct *assignStatement
+        );
+
+        static void initReturnStatement(ParseContext *context, NodeBase *parentNode,
+                                        ReturnStatementNodeStruct *returnStatement
+        );
     };
 
 
     struct Alloc {
 
+        // Tokens
         static LineBreakTokenStruct *newLineBreakToken(ParseContext *context, NodeBase *parentNode);
         static SimpleTextTokenStruct *newSimpleTextToken(ParseContext *context, NodeBase *parentNode);
 
-        // comment
         static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, NodeBase *parentNode);
         static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, NodeBase *parentNode);
         static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, NodeBase *parentNode);
 
+        static BoolTokenStruct* newBoolNode(ParseContext *context, NodeBase *parentNode);
+
+        // Nodes
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
 
         static DocumentStruct *newDocument(DocumentType docType);
-
         static void deleteDocument(DocumentStruct *doc);
+
+        static TypeNodeStruct *newTypeNode(ParseContext *context, NodeBase *parentNode);
+
+        static AssignStatementNodeStruct *newAssignStatement(ParseContext *context, NodeBase *parentNode);
+        static ReturnStatementNodeStruct *newReturnStatement(ParseContext *context, NodeBase *parentNode);
+
+        static FuncNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
+
+        static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
     };
 
 
@@ -796,10 +942,22 @@ namespace cshort {
     using TokenizerFunction = int (*)(TokenizerParams_argNode_ch_start_context);
 
     struct Tokenizers {
+        // Tokens
         static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
 
+        // Nodes
         static int classTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int tokenizeExpression(TokenizerParams_argNode_ch_start_context);
+        static int typeTokenizer(TokenizerParams_argNode_ch_start_context);
 
+        static int boolTokenizer(TokenizerParams_argNode_ch_start_context);
+
+        static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int fnTokenizer(TokenizerParams_argNode_ch_start_context);
+
+        static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
         // generator is a function pointer for generating corresponding token, it will be called when the word is matched, and the generated token will be returned by the tokenizer.

@@ -14,7 +14,7 @@ void testParsing();
 
 int main()
 {
-    printf("cshort");
+    printf("cshort test\n");
     fflush(stdout);
 
     testParsing();
@@ -52,6 +52,13 @@ class TestClass {
 
 */)";
 
+constexpr const char *fnTestText = u8R"(
+
+fn cunctionName()
+{
+}
+)";
+
 
 
 const char classCommentText[] = u8"class A \r\n // comment \r\n {}";
@@ -80,6 +87,7 @@ void checkTextEquality(const char *name, const char* code)
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void testParsing()
 {
+    CheckTextEq(fnTestText);
     CheckTextEq(classOnlyText);
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);

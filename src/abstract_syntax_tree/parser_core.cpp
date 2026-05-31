@@ -145,7 +145,7 @@ namespace cshort
                     // indexOfBreakOrEndWithInfo() can stop on an embedded '\0'; avoid an infinite loop.
                     break;
                 }
-                Init::assignText_SimpleTextToken(commentFragment, context, currentIndex, commentLength);
+                Init::assignText_SimpleTextToken(commentFragment, context, context->chars + currentIndex, commentLength);
                 if (hasLineBreak) {
                     // create a line break token for the line break after the comment fragment
                     LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(blockComment));
@@ -260,7 +260,7 @@ namespace cshort
         TokenBase *newCommentToken;
         if (isLineComment) {
             auto* comment = Alloc::newLineCommentToken(context, Cast::upcast(parentNode));
-            Init::assignText_SimpleTextToken(comment, context, i, commentEndIndex - i);
+            Init::assignText_SimpleTextToken(comment, context, context->chars +  i, commentEndIndex - i);
 
             newCommentToken = Cast::upcastToken(comment);
         }
@@ -416,4 +416,7 @@ namespace cshort
 
         return parsingData.returnPos;
     }
+
+
+
 }
