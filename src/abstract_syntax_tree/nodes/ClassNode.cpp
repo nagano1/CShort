@@ -187,7 +187,7 @@ namespace cshort {
 
                 {
                     resultPos = Scanner::scanOnce(&classNode->identifierToken,
-                                              Tokenizers::nameTokenizer,
+                                              Tokenizers::identifierTokenizer,
                                               context, currentPos);
 
                     if (!Search::IsTokenized(resultPos)) {
