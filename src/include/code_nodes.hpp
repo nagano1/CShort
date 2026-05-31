@@ -29,10 +29,8 @@ namespace cshort {
         const struct node_vtable *vtable; /* virtual table */ \
         _NodeBase *parentNode; \
         _NodeBase *nextNode; \
-        _NodeBase *nextNodeInLine; \
         CodeLine *codeLine; \
         ParseContext *context; \
-        int foundPos; \
 
     #define TOKEN_HEADER \
         const struct token_vtable *vtable; /* virtual table */ \
@@ -60,9 +58,7 @@ namespace cshort {
         (node)->context = (context); \
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
-        (node)->foundPos = -1; \
         (node)->nextNode = nullptr; \
-        (node)->nextNodeInLine = nullptr; \
         (0)
 
     #define INIT_TOKEN(token, context, parent, argvtable) \
@@ -103,8 +99,6 @@ namespace cshort {
     using ConstLiteralTokenStruct = SimpleTextTokenStruct; // null, false, true
 
     // LineBreakTokenStruct is used for storing line break info for error reporting and code generation.
-    // This token is not part of main AST, they are attached to tokens as precedingLineBreakToken.
-    // this token also inherits TOKEN_HEADER because it can be added to CodeLine and have another comments and spaces before it.
     using LineBreakTokenStruct = struct _LineBreakTokenStruct {
         TOKEN_HEADER;
 
@@ -252,7 +246,7 @@ namespace cshort {
         NODE_HEADER;
 
         SimpleTextTokenStruct fnKeywordToken; // "fn"
-        IdentifierTokenStruct nameNode;
+        IdentifierTokenStruct funcNameToken;
         int stackSize;
 
         SymbolTokenStruct parameterStartNode; // (
@@ -683,7 +677,8 @@ namespace cshort {
                 *StringLiteralTokenVTable,
                 *SymbolTokenVTable,
                 *LineBreakTokenVTable,
-                *CommentTokenVTable,
+                *CommentTokenVTable
+                ;
     };
 
 

@@ -354,7 +354,7 @@ namespace cshort {
 
         auto formerParentDepth = self->context->parentDepth;
         self->context->parentDepth += 1;
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->nameNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->funcNameToken, currentCodeLine);
         self->context->parentDepth = formerParentDepth;
 
 
@@ -425,7 +425,7 @@ namespace cshort {
         Init::initSimpleTextToken(&funcNode->fnKeywordToken, context, funcNode, size_of_fn);
         Init::assignText_SimpleTextToken(&funcNode->fnKeywordToken, context, fn_chars, size_of_fn);
 
-        Init::initIdentifierToken(&funcNode->nameNode, context, funcNode);
+        Init::initIdentifierToken(&funcNode->funcNameToken, context, funcNode);
 
         Init::initSymbolToken(&funcNode->parameterStartNode, context, funcNode, '(');
         Init::initSymbolToken(&funcNode->parameterEndNode, context, funcNode, ')');
@@ -487,7 +487,7 @@ namespace cshort {
         // now after "fn "
         auto *fnNode = Alloc::newFuncNode(context, parent);
 
-        resultPos = Scanner::scanOnce(&fnNode->nameNode, Tokenizers::identifierTokenizer, context, currentPos);
+        resultPos = Scanner::scanOnce(&fnNode->funcNameToken, Tokenizers::identifierTokenizer, context, currentPos);
         // nameNode should have spaces/comments/lineBreaks before between "fn" and function name,
         if (!Search::IsTokenized(resultPos)) {
             // fn should have a function name
