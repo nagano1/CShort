@@ -19,22 +19,22 @@
 
 namespace cshort {
 
-    static CodeLine *appendToLine(NameTokenStruct *self, CodeLine *currentCodeLine) {
+    static CodeLine *appendToLine(IdentifierTokenStruct *self, CodeLine *currentCodeLine) {
         currentCodeLine = currentCodeLine->AddAttachedFormatTokens(self);
         currentCodeLine->appendToken(self);
 
         return currentCodeLine;
     }
 
-    static void copySelfText(NameTokenStruct *self, utf8byte *buf) {
+    static void copySelfText(IdentifierTokenStruct *self, utf8byte *buf) {
         TEXT_MEMCPY(buf, self->name, self->nameLength);
     }
 
-    static int selfTextLength(NameTokenStruct *self) {
+    static int selfTextLength(IdentifierTokenStruct *self) {
         return self->nameLength;
     }
 
-    int Tokenizers::nameTokenizer(TokenizerParams_argNode_ch_start_context) {
+    int Tokenizers::identifierTokenizer(TokenizerParams_argNode_ch_start_context) {
         // First character cannot be a digit (but allow '_' and non-ASCII bytes).
         if (!(('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z') || ch == '_' || ((static_cast<unsigned char>(ch) & 0x80u) != 0))) {
             return Search::NOTFOUND;
@@ -55,7 +55,7 @@ namespace cshort {
             if (ParseUtil::IsKeyword(context->chars + start, found_count)) {
                 return Search::NOTFOUND;
             }
-            auto *identifierToken = Cast::downcast<NameTokenStruct *>(argNode);
+            auto *identifierToken = Cast::downcast<IdentifierTokenStruct *>(argNode);
 
             context->mostLeftToken = Cast::upcastToken(identifierToken);
             identifierToken->name = context->memBuffer.newText(found_count);
@@ -72,7 +72,7 @@ namespace cshort {
     }
 
 
-    static int IdentifierTokenStruct_applyFuncToDescendants(NameTokenStruct *token, TokenApplyFunc_params3)
+    static int IdentifierTokenStruct_applyFuncToDescendants(IdentifierTokenStruct *token, TokenApplyFunc_params3)
     {
         if (targetVTable == nullptr || token->vtable == targetVTable) {
             func(Cast::upcastToken(token), ApplyFunc_pass);
@@ -82,19 +82,19 @@ namespace cshort {
     }
 
 
-    static constexpr const char nameTypeText[] = "<Name>";
+    static constexpr const char nameTypeText[] = "<Identifier>";
 
-    static token_vtable _nameVTable = CREATE_TOKEN_VTABLE(NameTokenStruct, selfTextLength,
+    static token_vtable _identifierVTable = CREATE_TOKEN_VTABLE(IdentifierTokenStruct, selfTextLength,
                                                          copySelfText, appendToLine,
                                                    IdentifierTokenStruct_applyFuncToDescendants,
-                                                         nameTypeText, TokenTypeId::Name);
-    const token_vtable *VTables::NameVTable = &_nameVTable;
+                                                         nameTypeText, TokenTypeId::Identifier);
+    const token_vtable *VTables::IdentifierTokenVTable = &_identifierVTable;
 
 
 
-    void Init::initIdentifierToken(NameTokenStruct *name, ParseContext *context, void *parentNode) {
-        INIT_TOKEN(name, context, parentNode, VTables::NameVTable);
-        name->name = nullptr;
-        name->nameLength = 0;
+    void Init::initIdentifierToken(IdentifierTokenStruct *identifier, ParseContext *context, void *parentNode) {
+        INIT_TOKEN(identifier, context, parentNode, VTables::IdentifierTokenVTable);
+        identifier->name = nullptr;
+        identifier->nameLength = 0;
     }
 }

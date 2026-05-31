@@ -127,7 +127,7 @@ namespace cshort {
     };
 
 
-    using NameTokenStruct = struct _NameNodeStruct {
+    using IdentifierTokenStruct = struct _IdentifierNodeStruct {
         TOKEN_HEADER;
 
         int stackOffset;
@@ -147,13 +147,12 @@ namespace cshort {
         NODE_HEADER;
 
         KeywordTokenStruct classKeywordToken;
-        NameTokenStruct identifierToken;
+        IdentifierTokenStruct identifierToken;
 
         struct Impl;
         struct Impl *sub;
 
         bool startFound;
-        // utf8byte body[2];
 
         SymbolTokenStruct bodyStartSymbolToken;
         SymbolTokenStruct endBodySymbolToken;
@@ -355,7 +354,7 @@ namespace cshort {
 
         StringLiteral = 2,
         Symbol = 3,
-        Name = 5,
+        Identifier = 5,
         SimpleText = 6,
 
         Number = 9,
@@ -541,7 +540,6 @@ namespace cshort {
                 *LineBreakVTable,
                 *LineCommentVTable,
                 *BlockCommentFragmentVTable,
-                *NameVTable,
                 *SymbolVTable,
                 *SimpleTextVTable,
                 *BlockCommentVTable,
@@ -756,7 +754,7 @@ namespace cshort {
 
 
     struct Init {
-        static void initIdentifierToken(NameTokenStruct *name, ParseContext *context, void *parentNode);
+        static void initIdentifierToken(IdentifierTokenStruct *name, ParseContext *context, void *parentNode);
 
         static void initSymbolToken(SymbolTokenStruct *self, ParseContext *context, void *parent, utf8byte letter);
 
@@ -798,7 +796,7 @@ namespace cshort {
     using TokenizerFunction = int (*)(TokenizerParams_argNode_ch_start_context);
 
     struct Tokenizers {
-        static int nameTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int classTokenizer(TokenizerParams_argNode_ch_start_context);
 
