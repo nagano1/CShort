@@ -82,19 +82,19 @@ namespace cshort {
     }
 
 
-    static constexpr const char nameTypeText[] = "<Name>";
+    static constexpr const char nameTypeText[] = "<Identifier>";
 
-    static token_vtable _nameVTable = CREATE_TOKEN_VTABLE(IdentifierTokenStruct, selfTextLength,
+    static token_vtable _identifierVTable = CREATE_TOKEN_VTABLE(IdentifierTokenStruct, selfTextLength,
                                                          copySelfText, appendToLine,
                                                    IdentifierTokenStruct_applyFuncToDescendants,
-                                                         nameTypeText, TokenTypeId::Name);
-    const token_vtable *VTables::NameVTable = &_nameVTable;
+                                                         nameTypeText, TokenTypeId::Identifier);
+    const token_vtable *VTables::IdentifierTokenVTable = &_identifierVTable;
 
 
 
-    void Init::initIdentifierToken(IdentifierTokenStruct *name, ParseContext *context, void *parentNode) {
-        INIT_TOKEN(name, context, parentNode, VTables::NameVTable);
-        name->name = nullptr;
-        name->nameLength = 0;
+    void Init::initIdentifierToken(IdentifierTokenStruct *identifier, ParseContext *context, void *parentNode) {
+        INIT_TOKEN(identifier, context, parentNode, VTables::IdentifierTokenVTable);
+        identifier->name = nullptr;
+        identifier->nameLength = 0;
     }
 }

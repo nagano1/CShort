@@ -354,7 +354,7 @@ namespace cshort {
 
         StringLiteral = 2,
         Symbol = 3,
-        Name = 5,
+        Identifier = 5,
         SimpleText = 6,
 
         Number = 9,
@@ -540,7 +540,6 @@ namespace cshort {
                 *LineBreakVTable,
                 *LineCommentVTable,
                 *BlockCommentFragmentVTable,
-                *NameVTable,
                 *SymbolVTable,
                 *SimpleTextVTable,
                 *BlockCommentVTable,
