@@ -60,7 +60,7 @@ fn functionName(bool a) {
     b = false/*comment*/
 }
 
-class A {
+class A { // comment
     fn method1() {
         #bool immutableBool = true
         ?bool *nullableBool = false
