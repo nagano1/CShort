@@ -106,7 +106,7 @@ struct MemBuffer {
 
             // can delete & free
             auto *prev = memBufferBlock->prev;
-            if (prev == nullptr) { // memBufferBlock is the first block
+            if (prev == nullptr) {
                 assert(memBufferBlock == this->firstBufferBlock);
 
                 this->firstBufferBlock = memBufferBlock->next;
@@ -137,19 +137,20 @@ struct MemBuffer {
     }
 
     void *newBytesMem(unsigned int bytes) {
-        constexpr std::size_t alignment = alignof(std::max_align_t);
-        auto sizeOfPointerToBlock = st_size_of(MemBufferBlock*);
-        auto alignOffset = [alignment](st_uint offset) {
-            return static_cast<st_uint>(((offset + (alignment - 1)) / alignment) * alignment);
-        };
-        auto calcLength = [sizeOfPointerToBlock, bytes, &alignOffset](st_uint offset) {
-            st_uint alignedDataOffset = alignOffset(offset + sizeOfPointerToBlock);
-            return (alignedDataOffset - offset) + static_cast<st_uint>(bytes);
-        };
-        st_uint length = calcLength(currentMemOffset);
+        // Align header so that the returned pointer is aligned to max_align_t.
+        // The back-pointer (MemBufferBlock*) is stored immediately before the
+        // returned address, and the header is padded to the platform alignment
+        // so the data region starts on a proper boundary.
+        static constexpr size_t ALIGN = alignof(std::max_align_t);
+        static constexpr size_t HEADER =
+            (sizeof(MemBufferBlock*) + ALIGN - 1) & ~(ALIGN - 1);
 
-        if (currentMemOffset + length <= DEFAULT_BUFFER_SIZE) {
-            // Enough space in the current buffer block.
+        // Round total length up to ALIGN so successive allocations stay aligned.
+        auto length = (st_size)((bytes + HEADER + ALIGN - 1) & ~(ALIGN - 1));
+
+
+        if (currentMemOffset + length < DEFAULT_BUFFER_SIZE) {
+
         }
         else {
             MemBufferBlock* tryDeleteBlock = nullptr;
@@ -183,19 +184,16 @@ struct MemBuffer {
             if (tryDeleteBlock) {
                 this->tryFreeMemoryBlock(tryDeleteBlock);
             }
-
-            length = calcLength(currentMemOffset);
         }
         currentBufferBlock->itemCount++;
-        st_uint alignedDataOffset = alignOffset(currentMemOffset + sizeOfPointerToBlock);
-        st_uint headerOffset = alignedDataOffset - sizeOfPointerToBlock;
-        void *node = (void*)((st_byte*)(currentBufferBlock->chunk) + headerOffset);
+        void *node = (void*)((st_byte*)(currentBufferBlock->chunk) + currentMemOffset);
 
-        auto **address = (MemBufferBlock **)node;
+        // Store back-pointer right before the data region.
+        auto **address = (MemBufferBlock **)((st_byte*)node + HEADER - sizeof(MemBufferBlock*));
         *address = currentBufferBlock;
 
         this->currentMemOffset += length;
 
-        return (void*)((st_byte*)(currentBufferBlock->chunk) + alignedDataOffset);
+        return (void*)((st_byte*)node + HEADER);
     }
 };
