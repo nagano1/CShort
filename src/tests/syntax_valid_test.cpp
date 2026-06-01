@@ -56,6 +56,15 @@ constexpr const char *fnTestText = u8R"(
 
 fn functionName(bool a) {
     bool b = true
+    TypeName *value // comment
+    b = false/*comment*/
+}
+
+class A {
+    fn method1() {
+        #bool immutableBool = true
+        ?bool *nullableBool = false
+    }
 }
 )";
 

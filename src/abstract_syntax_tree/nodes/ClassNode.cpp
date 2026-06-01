@@ -155,6 +155,10 @@ namespace cshort {
                 appendChildNode(classNode, context->generatedPrimaryNode);
                 return result;
             }
+            else if (Search::IsTokenized(result = Tokenizers::fnTokenizer(parent, ch, start, context))) {
+                appendChildNode(classNode, context->generatedPrimaryNode);
+                return result;
+            }
 
             context->scanEnd = true;
             if (ch == '\0') {
