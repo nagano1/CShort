@@ -120,7 +120,7 @@ namespace cshort {
 
                     size_t len = TokenVTableCall::selfTextLength(token);
                     TokenVTableCall::copySelfText(token, text + currentOffset);
-
+                    assert(token->foundPos >= 0);
                     currentOffset += len;
                     token = token->nextTokenInLine;
                 }
@@ -259,6 +259,7 @@ namespace cshort {
             else {
                 docStruct->firstRootNode = Cast::upcast(&docStruct->endOfFile);
             }
+            docStruct->endOfFile.eofToken.foundPos = length;
             docStruct->lastRootNode = Cast::upcast(&docStruct->endOfFile);
             docStruct->endOfFile.eofToken.precedingSpaceCount = context->remainedSpaceCount;
             docStruct->endOfFile.eofToken.precedingLineBreakToken = context->remainedLineBreakToken;

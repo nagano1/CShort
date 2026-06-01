@@ -118,19 +118,16 @@ namespace cshort {
     LineCommentTokenStruct *Alloc::newLineCommentToken(ParseContext *context, NodeBase *parentNode)
     {
         auto *lineComment = context->newMemForNode<LineCommentTokenStruct>();
-        auto *token = Cast::upcastToken(lineComment);
-
-        INIT_TOKEN(token, context, parentNode, VTables::LineCommentVTable);
+        INIT_TOKEN(lineComment, context, parentNode, VTables::LineCommentVTable);
         return lineComment;
     }
 
 
-    BlockCommentFragmentStruct *Alloc::newBlockCommentFragmentToken(ParseContext *context, NodeBase *parentNode)
+    BlockCommentFragmentStruct *Alloc::newBlockCommentFragmentToken(ParseContext *context,BlockCommentTokenStruct *parentNode)
     {
         auto *comment = context->newMemForNode<BlockCommentFragmentStruct>();
-        auto *token = Cast::upcastToken(comment);
 
-        INIT_TOKEN(token, context, parentNode, VTables::BlockCommentFragmentVTable);
+        INIT_TOKEN(comment, context, parentNode, VTables::BlockCommentFragmentVTable);
         return comment;
     }
 

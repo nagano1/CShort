@@ -137,7 +137,7 @@ namespace cshort {
     {
         auto *body = Cast::downcast<FuncBodyNodeStruct *>(argNode);
         if (ch == '}') {
-
+            body->endBodyNode.foundPos = start;
             context->scanEnd = true;
             context->mostLeftToken = Cast::upcastToken(&body->endBodyNode);
             return start + 1;
@@ -483,6 +483,7 @@ namespace cshort {
         auto *parent  = Cast::upcast(argNode);
         // now after "fn "
         auto *fnNode = Alloc::newFuncNode(context, parent);
+        fnNode->fnKeywordToken.foundPos = start;
 
         resultPos = Scanner::scanOnce(&fnNode->funcNameToken, Tokenizers::identifierTokenizer, context, currentPos);
         if (!Search::IsTokenized(resultPos)) {

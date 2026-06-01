@@ -418,12 +418,22 @@ namespace cshort {
 
         template<typename T>
         static inline NodeBase *upcast(T *node) {
-            return (NodeBase *) node;
+            auto *n =  (NodeBase *) node;
+            if (n->node_proof != 0x123) {
+                printf("Node proof failed for node with vtable %d\n", n->node_proof);
+            }
+            assert(n->node_proof == 0x123);
+            return n;
         }
 
         template<typename T>
         static inline TokenBase *upcastToken(T *token) {
-            return (TokenBase *) token;
+            auto *t = (TokenBase *) token;
+            if (t->token_proof != 0x456) {
+                printf("Token proof failed for token with text %d, foundPos \n", t->token_proof);
+            }
+            assert(t->token_proof == 0x456);
+            return t;
         }
     };
 
@@ -751,6 +761,10 @@ namespace cshort {
 
             auto *tokenBase = Cast::upcastToken(token);
             assert(tokenBase->token_proof == 0x456);
+            if (tokenBase->foundPos < 0) {
+                printf("no foundPos > -1: %s\n", typeText(tokenBase));
+            }
+            assert(tokenBase->foundPos >= 0);
 
             // if the token has precedingLineBreakToken, append the precedingLineBreakToken before appending the token itself,
             // so that the line break will be before the token in the code line,
@@ -818,6 +832,7 @@ namespace cshort {
             }
 
             lastToken = (TokenBase *) token;
+            assert(lastToken->token_proof == 0x456);
             if (this->context->appendLineMode == AppendLineMode::Normal) {
                 ((TokenBase *) token)->codeLine = this;
             }
@@ -907,7 +922,7 @@ namespace cshort {
 
         static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, NodeBase *parentNode);
         static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, NodeBase *parentNode);
-        static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, NodeBase *parentNode);
+        static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, BlockCommentTokenStruct *parentNode);
         static ConstLiteralTokenStruct *newConstLiteralToken(ParseContext *context, NodeBase *parentNode);
 
         // Nodes

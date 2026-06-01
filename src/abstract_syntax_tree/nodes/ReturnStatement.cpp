@@ -138,6 +138,7 @@ namespace cshort {
             auto *parent = Cast::upcast(argNode);
             auto *returnNode = Alloc::newReturnStatement(context, parent);
             Init::assignText_SimpleTextToken(&returnNode->returnText, context, context->chars + start, returnTextSize);
+            returnNode->returnText.foundPos = start;
 
             int currentPos = start + returnTextSize;
             int resultPos = Scanner::scanOnce(returnNode, tokenizeExpressionForReturnInternal, context, currentPos);

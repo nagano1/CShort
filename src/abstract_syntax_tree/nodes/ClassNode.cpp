@@ -137,6 +137,7 @@ namespace cshort {
         if (!classNode->startFound) {
             if (ch == '{') {
                 classNode->startFound = true;
+                classNode->bodyStartSymbolToken.foundPos = start;
                 context->mostLeftToken = Cast::upcastToken(&classNode->bodyStartSymbolToken);
                 return start + 1;
             }
@@ -146,6 +147,7 @@ namespace cshort {
         }
         else if (ch == '}') {
             context->scanEnd = true;
+            classNode->endBodySymbolToken.foundPos = start;
             context->mostLeftToken = Cast::upcastToken(&classNode->endBodySymbolToken);
             return start + 1;
         }

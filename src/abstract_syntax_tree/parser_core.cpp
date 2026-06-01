@@ -95,6 +95,7 @@ namespace cshort
         auto *blockComment = Alloc::newBlockCommentToken(context, Cast::upcast(parentNode));
         blockComment->tagText = tagText;
         blockComment->tagTextLength = tagLength;
+        blockComment->foundPos = i;
 
         // i is the position of '/'
         int currentIndex = i;
@@ -113,10 +114,11 @@ namespace cshort
             }
 
             if (endIndex > -1 && currentIndex <= endIndex) {
-                auto *commentFragment = Alloc::newBlockCommentFragmentToken(context, Cast::upcast(blockComment));
+                auto *commentFragment = Alloc::newBlockCommentFragmentToken(context, blockComment);
 
                 // link with previous line break token
                 commentFragment->precedingLineBreakToken = lastBreakLine;
+                commentFragment->foundPos = currentIndex;
 
                 // endIndex is exclusive for the fragment text (it points to a line break, '\0', or commentEndIndex)
                 int commentLength = endIndex - currentIndex;
@@ -127,7 +129,8 @@ namespace cshort
                 Init::assignText_SimpleTextToken(commentFragment, context, context->chars + currentIndex, commentLength);
                 if (hasLineBreak) {
                     // create a line break token for the line break after the comment fragment
-                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(blockComment));
+                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(parentNode));
+                    newLineBreak->foundPos = endIndex;
                     bool rn = (endIndex + 1) < context->length && context->chars[endIndex] == '\r' && context->chars[endIndex + 1] == '\n';
                     if (rn) { // \r\n
                         newLineBreak->text[0] = '\r';
@@ -238,10 +241,11 @@ namespace cshort
 
         TokenBase *newCommentToken;
         if (isLineComment) {
-            auto* comment = Alloc::newLineCommentToken(context, Cast::upcast(parentNode));
-            Init::assignText_SimpleTextToken(comment, context, context->chars +  i, commentEndIndex - i);
+            auto* lineComment = Alloc::newLineCommentToken(context, Cast::upcast(parentNode));
+            lineComment->foundPos = i;
+            Init::assignText_SimpleTextToken(lineComment, context, context->chars +  i, commentEndIndex - i);
 
-            newCommentToken = Cast::upcastToken(comment);
+            newCommentToken = Cast::upcastToken(lineComment);
         }
         else {
             newCommentToken = generateBlockCommentFragments(parentNode, context, i, commentEndIndex, tagText, tagLength);
@@ -265,6 +269,7 @@ namespace cshort
                                           int32_t& position, utf8byte ch, InternalParsingData* parsingData)
     {
         auto* newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(parentNode));
+        newLineBreak->foundPos = position;
 
         if (parsingData->firstLineBreak == nullptr) { // the first line break
             parsingData->lastLineBreak = parsingData->firstLineBreak = newLineBreak;
