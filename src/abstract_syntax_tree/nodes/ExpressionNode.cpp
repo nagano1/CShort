@@ -97,17 +97,15 @@ namespace cshort {
                                                          NodeTypeId::FixedLiteral);
     const node_vtable *VTables::FixedLiteralVTable = &_literalVTable;
 
-LiteralValueNodeStruct *Alloc::newLiteralValueNode(ParseContext *context, NodeBase *parentNode) {
-     auto *node = context->newMem<LiteralValueNodeStruct>();
-     INIT_NODE(node, context, parentNode, VTables::FixedLiteralVTable);
+    LiteralValueNodeStruct *Alloc::newLiteralValueNode(ParseContext *context, NodeBase *parentNode) {
+        auto *node = context->newMem<LiteralValueNodeStruct>();
+        INIT_NODE(node, context, parentNode, VTables::FixedLiteralVTable);
 
-     node->isTrue = false;
-     node->isFalse = false;
-     node->isNull = false;
-     node->textToken = nullptr;
+        node->isTrue = false;
+        node->isFalse = false;
+        node->isNull = false;
+        node->textToken = nullptr;
 
-     return node;
-}
+        return node;
     }
-
 }
