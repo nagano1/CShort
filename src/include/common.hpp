@@ -137,8 +137,16 @@ struct MemBuffer {
     }
 
     void *newBytesMem(unsigned int bytes) {
-        auto sizeOfPointerToBlock = st_size_of(MemBufferBlock*);
-        auto length = bytes + sizeOfPointerToBlock;
+        // Align header so that the returned pointer is aligned to max_align_t.
+        // The back-pointer (MemBufferBlock*) is stored immediately before the
+        // returned address, and the header is padded to the platform alignment
+        // so the data region starts on a proper boundary.
+        static constexpr size_t ALIGN = alignof(std::max_align_t);
+        static constexpr size_t HEADER =
+            (sizeof(MemBufferBlock*) + ALIGN - 1) & ~(ALIGN - 1);
+
+        // Round total length up to ALIGN so successive allocations stay aligned.
+        auto length = (st_size)((bytes + HEADER + ALIGN - 1) & ~(ALIGN - 1));
 
 
         if (currentMemOffset + length < DEFAULT_BUFFER_SIZE) {
@@ -180,11 +188,12 @@ struct MemBuffer {
         currentBufferBlock->itemCount++;
         void *node = (void*)((st_byte*)(currentBufferBlock->chunk) + currentMemOffset);
 
-        auto **address = (MemBufferBlock **)node;
+        // Store back-pointer right before the data region.
+        auto **address = (MemBufferBlock **)((st_byte*)node + HEADER - sizeof(MemBufferBlock*));
         *address = currentBufferBlock;
 
         this->currentMemOffset += length;
 
-        return (void*)((st_byte*)node + sizeOfPointerToBlock);
+        return (void*)((st_byte*)node + HEADER);
     }
 };

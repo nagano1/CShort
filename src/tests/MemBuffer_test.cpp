@@ -83,7 +83,7 @@ void testLastBlockStaysAvailableAfterDelete()
     auto *nextValue = buffer.newMem<std::max_align_t>(1);
     assert(nextValue != nullptr);
     assert(buffer.currentBufferBlock == block);
-    //assert(reinterpret_cast<std::uintptr_t>(nextValue) % alignof(std::max_align_t) == 0);
+    assert(reinterpret_cast<std::uintptr_t>(nextValue) % alignof(std::max_align_t) == 0);
 
     buffer.freeAll();
 }
