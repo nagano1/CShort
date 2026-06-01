@@ -229,7 +229,7 @@ namespace cshort {
     using FuncParameterItemStruct = struct _FuncParameterItemStruct {
         NODE_HEADER;
         AssignStatementNodeStruct *assignStatementNodeStruct;
-        SymbolTokenStruct  follwingComma;
+        SymbolTokenStruct  followingComma;
         bool hasComma;
     };
 

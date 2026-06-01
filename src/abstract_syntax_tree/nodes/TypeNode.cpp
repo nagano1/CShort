@@ -74,7 +74,7 @@ namespace cshort
         int result = Tokenizers::identifierTokenizer(Cast::upcast(&typeNode->nameNode), context->chars[currentPos], currentPos, context);
 
         if (Search::IsTokenized(result)) {
-            typeNode->isLet = ParseUtil::equals(typeNode->typeTextToken.text, typeNode->typeTextToken.textLength, let_chars, size_of_let);
+             typeNode->isLet = ParseUtil::equals(typeNode->nameNode.name, typeNode->nameNode.nameLength, let_chars, size_of_let);
 
             Init::assignText_SimpleTextToken(&typeNode->typeTextToken, context, context->chars + start, result - start);
 

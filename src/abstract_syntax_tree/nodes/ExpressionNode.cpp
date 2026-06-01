@@ -49,6 +49,7 @@ namespace cshort {
         newLiteralValueNode->isNull = isNull;
 
         newLiteralValueNode->textToken = Cast::downcast<ConstLiteralTokenStruct*>(context->mostLeftToken);
+        newLiteralValueNode->textToken->parentNode = Cast::upcast(newLiteralValueNode);
         context->generatedPrimaryNode = Cast::upcast(newLiteralValueNode);
         return result;
     }
@@ -67,7 +68,7 @@ namespace cshort {
 
     static void copySelfText(LiteralValueNodeStruct *self, utf8byte *buf)
     {
-        VTableCall::copySelfText(&self->textToken, buf);
+        TokenVTableCall::copySelfText(self->textToken, buf);
     }
 
     static int selfTextLength(LiteralValueNodeStruct *self)

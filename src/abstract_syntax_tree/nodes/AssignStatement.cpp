@@ -133,7 +133,6 @@ namespace cshort {
             // if type is declared, it can be just declaration without assignment. e.g. int a 
             int result = Tokenizers::identifierTokenizer(Cast::upcast(&assignment->nameNode), ch, start, context);
             if (Search::IsTokenized(result)) {
-                assignment->nameNode.foundPos = result;
                 context->mostLeftToken = Cast::upcastToken(&assignment->nameNode);
                 return result;
             }
