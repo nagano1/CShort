@@ -79,14 +79,14 @@ namespace cshort {
         textToken->text[charLen] = '\0';
     }
 
-    void Init::assignText_SimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, const utf8byte *text, int charLen)
+    void Init::assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, const utf8byte *text, int charLen)
     {
-        name->text = context->memBuffer.newText(charLen);
-        name->textLength = charLen;
+        textToken->text = context->memBuffer.newText(charLen);
+        textToken->textLength = charLen;
 
         if (charLen > 0) {
-            TEXT_MEMCPY(name->text, text, charLen);
+            TEXT_MEMCPY(textToken->text, text, charLen);
         }
-        name->text[charLen] = '\0';
+        textToken->text[charLen] = '\0';
     }
 }

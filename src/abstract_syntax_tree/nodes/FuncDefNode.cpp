@@ -283,7 +283,6 @@ namespace cshort {
         return Search::NOTFOUND;
     }
 
-    // virtual node does not have self text. underlying nodes will be appended to code line.
     static void copySelfText_FuncParameterItemStruct(FuncParameterItemStruct *self, utf8byte *buf) {
         return;
     }
@@ -340,12 +339,11 @@ namespace cshort {
     //
     //=======================================================================================
     static int selfTextLength(FuncNodeStruct *) {
-        return 0;//size_of_fn;
+        return 0;
     }
 
-    // FuncNode itself has "fn" as self text
-    static void copySelfText(FuncNodeStruct *self, utf8byte *buf) {
-        //TEXT_MEMCPY(buf, fn_chars, size_of_fn);
+    static void copySelfText(FuncNodeStruct *self, utf8byte *buf)
+    {
     }
 
     static CodeLine *appendToLine(FuncNodeStruct *self, CodeLine *currentCodeLine) {
@@ -356,8 +354,6 @@ namespace cshort {
         self->context->parentDepth += 1;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->funcNameToken, currentCodeLine);
         self->context->parentDepth = formerParentDepth;
-
-
 
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterStartNode, currentCodeLine);
@@ -437,13 +433,13 @@ namespace cshort {
 
 
 
-    // tokenizer for function declaration, function name is already parsed by the caller, this tokenizer is responsible for parsing function parameters and function body.
+    // tokenizer for function declaration, function name is already parsed by the caller,
+    // this tokenizer is responsible for parsing function parameters and function body.
     static int inner_fnParamsAndBodyTokenizer(TokenizerParams_argNode_ch_start_context) {
         auto *fnNode = Cast::downcast<FuncNodeStruct *>(argNode);
 
         if (fnNode->parameterStartNode.foundPos == -1) {
             if (ch == '(') {
-
                 fnNode->parameterStartNode.foundPos = start;
                 int nextPos =  start + 1;
                 // parse parameters
@@ -488,7 +484,6 @@ namespace cshort {
         auto *fnNode = Alloc::newFuncNode(context, parent);
 
         resultPos = Scanner::scanOnce(&fnNode->funcNameToken, Tokenizers::identifierTokenizer, context, currentPos);
-        // nameNode should have spaces/comments/lineBreaks before between "fn" and function name,
         if (!Search::IsTokenized(resultPos)) {
             // fn should have a function name
             context->setError(ErrorIndex::invalid_fn_name, start);

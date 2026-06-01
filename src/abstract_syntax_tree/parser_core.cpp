@@ -417,7 +417,4 @@ namespace cshort
 
         return parsingData.returnPos;
     }
-
-
-
 }

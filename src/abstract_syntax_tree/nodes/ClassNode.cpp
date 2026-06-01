@@ -181,7 +181,7 @@ namespace cshort {
                 int currentPos = start + size_of_class;
                 int resultPos;
 
-                // "class " came here
+                // "class " matched
                 auto *classNode = Alloc::newClassNode(context, parent);
                 classNode->classKeywordToken.foundPos = start;
 

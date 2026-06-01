@@ -137,15 +137,6 @@ namespace cshort {
         utf8byte symbol[2];
     };
 
-    using BoolTokenStruct = struct _BoolTokenStruct {
-        TOKEN_HEADER;
-
-        SIMPLE_TEXT_CONTENT;
-        bool boolValue;
-    };
-
-
-
     using ClassNodeStruct = struct _ClassNodeStruct {
         NODE_HEADER;
 
@@ -876,8 +867,8 @@ namespace cshort {
 
         static void initSymbolToken(SymbolTokenStruct *self, ParseContext *context, void *parent, utf8byte letter);
 
-        static void initSimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, void *parentNode, int charLen);
-        static void assignText_SimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, const utf8byte *text, int charLen);
+        static void initSimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, void *parentNode, int charLen);
+        static void assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, const utf8byte *text, int charLen);
 
 
     };
@@ -935,7 +926,6 @@ namespace cshort {
         static int tokenizeExpression(TokenizerParams_argNode_ch_start_context);
         static int typeTokenizer(TokenizerParams_argNode_ch_start_context);
 
-        //static int boolTokenizer(TokenizerParams_argNode_ch_start_context);
         static int fixedLiteralNodeTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);

@@ -21,7 +21,6 @@ namespace cshort {
 
     // --------------------- Defines ReturnStatement VTable ---------------------- /
 
-    // virtual node does not have self text. underlying nodes will be appended to code line.
     static int selfTextLength(ReturnStatementNodeStruct *)
     {
         return 0;

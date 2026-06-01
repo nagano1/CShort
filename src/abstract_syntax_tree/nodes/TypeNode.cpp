@@ -33,24 +33,12 @@ namespace cshort
 
     static void copySelfText(TypeNodeStruct *self, utf8byte *buf)
     {
-        /*
-        bool hasImmutableOrNullableMark = self->hasImmutableMark || self->hasNullableMark;
-
-        if (self->hasImmutableMark) {
-            buf[0] = immutableMarkChar;
-        } else if (self->hasNullableMark) {
-            buf[0] = nullableMarkChar;
-        }
-        */
         VTableCall::copySelfText(&self->typeTextToken, buf);
-        //VTableCall::copySelfText(&self->nameNode, buf + (hasImmutableOrNullableMark ? 1 : 0));
     }
 
     static int selfTextLength(TypeNodeStruct *self)
     {
         return self->typeTextToken.textLength;
-        //bool hasImmutableOrNullableMark = self->hasImmutableMark || self->hasNullableMark;
-        //return (hasImmutableOrNullableMark ? 1 : 0) + VTableCall::selfTextLength(Cast::upcast(&self->nameNode));
     }
 
 
@@ -133,5 +121,4 @@ namespace cshort
         Init::initIdentifierToken(&node->nameNode, context, node);
         Init::initSimpleTextToken(&node->typeTextToken, context, node, 0);
     }
-
 }
