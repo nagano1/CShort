@@ -9,6 +9,6 @@ echo "[1/2] Configuring CMake..."
 cmake -B "$BUILD_DIR" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 # Build the project
 echo "[2/2] Building project..."
-cmake --build "$BUILD_DIR"
+cmake --build "$BUILD_DIR" -j$(nproc)
 echo "SUCCESS! Build artifacts are located in $BUILD_DIR"
 echo "-------------------------------------------------------"
