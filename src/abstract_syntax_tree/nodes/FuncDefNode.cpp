@@ -269,6 +269,7 @@ namespace cshort {
         if (funcNode->parameterParsePhase == FuncParamParsePhase::EXPECT_COMMA2) {
             if (ch == ',') { // try to find ',' which leads to next key-value
                 currentKeyValueItem->hasComma = true;
+                currentKeyValueItem->followingComma.foundPos = start;
                 context->mostLeftToken = Cast::upcastToken(&currentKeyValueItem->followingComma);
                 funcNode->parameterParsePhase = FuncParamParsePhase::EXPECT_Type;
                 return start + 1;
@@ -370,7 +371,7 @@ namespace cshort {
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterEndNode, currentCodeLine);
 
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->bodyNode, currentCodeLine);
+        currentCodeLine = VTableCall::callAppendNodeToLine(&self->bodyNode, currentCodeLine);
 
         return currentCodeLine;
     }

@@ -114,6 +114,9 @@ static void copySelfText(TypeNodeStruct *self, utf8byte *buf)
     void Init::initTypeNode(TypeNodeStruct *node, ParseContext *context, void *parentNode) {
         INIT_NODE(node, context, parentNode, VTables::TypeVTable);
 
+        node->text = nullptr;
+        node->textLength = 0;
+
         node->hasImmutableMark = false;
         node->hasNullableMark = false;
         node->isLet = false;

@@ -24,27 +24,6 @@ namespace cshort
     ErrorInfo ErrorInfo::ErrorInfoList[errorListSize]; // errorIndex -> ErrorInfo
     struct InternalParsingData;
 
-    
-    // forward declaration of functions in parser_core.cpp to avoid circular dependency 
-    CodeLine *VTableCall::callAppendNodeToLine(void *node, CodeLine *currentCodeLine) {
-        if (node == nullptr) {
-            return currentCodeLine;
-        }
-        auto *nodeBase = Cast::upcast(node);
-        return nodeBase->vtable->appendToLine(nodeBase, currentCodeLine);
-    }
-
-    CodeLine *TokenVTableCall::callAppendTokenToLine(void *token, CodeLine *currentCodeLine) {
-        if (token == nullptr) {
-            return currentCodeLine;
-        }
-        auto *tokenBase = Cast::upcastToken(token);
-        // if the token has precedingLineBreakToken, append the precedingLineBreakToken before appending the token itself,
-        // so that the line break will be before the token in the code line,
-        // which is more intuitive and easier to handle when generating code later
-        return tokenBase->vtable->appendToLine(tokenBase, currentCodeLine);
-    }
-
     // Nested block comments are not supported, instead, we support named block comments which can be closed with the corresponding tag,
     // for example: /*<[A] ... [A]>*/.
     // It's more explicit and easier to use than nested block comments, and it can also avoid the problem of accidentally

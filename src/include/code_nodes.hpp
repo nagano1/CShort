@@ -27,6 +27,7 @@ namespace cshort {
 
     #define NODE_HEADER \
         const struct node_vtable *vtable; /* virtual table */ \
+        int node_proof; \
         _NodeBase *parentNode; \
         _NodeBase *nextNode; \
         CodeLine *codeLine; \
@@ -34,6 +35,7 @@ namespace cshort {
 
     #define TOKEN_HEADER \
         const struct token_vtable *vtable; /* virtual table */ \
+        int token_proof; \
         _NodeBase *parentNode; \
         _TokenBase *nextToken; \
         _TokenBase *nextTokenInLine; \
@@ -55,6 +57,7 @@ namespace cshort {
 
     #define INIT_NODE(node, context, parent, argvtable) \
         (node)->vtable = (argvtable); \
+        (node)->node_proof = 0x123; \
         (node)->context = (context); \
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
@@ -63,6 +66,7 @@ namespace cshort {
 
     #define INIT_TOKEN(token, context, parent, argvtable) \
         (token)->vtable = (argvtable); \
+        (token)->token_proof = 0x456; \
         (token)->precedingSpaceCount = 0; \
         (token)->context = (context); \
         (token)->parentNode = (NodeBase*)(parent); \
@@ -693,8 +697,16 @@ namespace cshort {
         }
 
 
-        static CodeLine *callAppendNodeToLine(void *node, CodeLine *currentCodeLine);
+        // forward declaration of functions in parser_core.cpp to avoid circular dependency 
+        static inline CodeLine *callAppendNodeToLine(void *node, CodeLine *currentCodeLine) {
+            if (node == nullptr) { // BreakLineToken can be null
+                return currentCodeLine;
+            }
+            auto *nodeBase = Cast::upcast(node);
+            assert(nodeBase->node_proof == 0x123);
 
+            return nodeBase->vtable->appendToLine(nodeBase, currentCodeLine);
+        }
     };
 
     struct TokenVTableCall {
@@ -731,7 +743,20 @@ namespace cshort {
             }
         }
 
-        static CodeLine *callAppendTokenToLine(void *token, CodeLine *currentCodeLine);
+        // forward declaration of functions in parser_core.cpp to avoid circular dependency 
+        static inline CodeLine *callAppendTokenToLine(void *token, CodeLine *currentCodeLine) {
+            if (token == nullptr) { // BreakLineToken can be null
+                return currentCodeLine;
+            }
+
+            auto *tokenBase = Cast::upcastToken(token);
+            assert(tokenBase->token_proof == 0x456);
+
+            // if the token has precedingLineBreakToken, append the precedingLineBreakToken before appending the token itself,
+            // so that the line break will be before the token in the code line,
+            // which is more intuitive and easier to handle when generating code later
+            return tokenBase->vtable->appendToLine(tokenBase, currentCodeLine);
+        }
     };
 
     struct CodeLine {
@@ -948,6 +973,7 @@ namespace cshort {
                 if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, word)) {
                     auto *token = (SimpleTextTokenStruct*)(generator(context, Cast::downcast<NodeBase*>(argNode)));
 
+                    token->foundPos = start;
                     token->text = context->memBuffer.newText(length);
                     token->textLength = length;
 
