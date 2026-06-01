@@ -104,7 +104,7 @@ namespace cshort {
         node->isTrue = false;
         node->isFalse = false;
         node->isNull = false;
-        node->textToken = nullptr;
+        node->textToken = nullptr; // it will be assigned in tokenizer after the token is generated
 
         return node;
     }
