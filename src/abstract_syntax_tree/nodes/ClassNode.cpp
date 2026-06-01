@@ -141,7 +141,7 @@ namespace cshort {
                 return start + 1;
             }
             else {
-                context->setError(ErrorIndex::no_brace_for_class, classNode->foundPos);
+                context->setError(ErrorIndex::no_brace_for_class, classNode->classKeywordToken.foundPos);
             }
         }
         else if (ch == '}') {
@@ -158,7 +158,7 @@ namespace cshort {
 
             context->scanEnd = true;
             if (ch == '\0') {
-                context->setError(ErrorIndex::no_brace_of_end_for_class, classNode->foundPos);
+                context->setError(ErrorIndex::no_brace_of_end_for_class, classNode->classKeywordToken.foundPos);
             } else {
                 context->setError(ErrorIndex::syntax_error, start);
             }
@@ -183,7 +183,7 @@ namespace cshort {
 
                 // "class " came here
                 auto *classNode = Alloc::newClassNode(context, parent);
-                classNode->foundPos = start;
+                classNode->classKeywordToken.foundPos = start;
 
                 {
                     resultPos = Scanner::scanOnce(&classNode->identifierToken,

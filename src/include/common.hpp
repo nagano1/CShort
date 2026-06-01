@@ -106,7 +106,7 @@ struct MemBuffer {
 
             // can delete & free
             auto *prev = memBufferBlock->prev;
-            if (prev == nullptr) { // memBufferBlock is the first block
+            if (prev == nullptr) {
                 assert(memBufferBlock == this->firstBufferBlock);
 
                 this->firstBufferBlock = memBufferBlock->next;
@@ -137,19 +137,12 @@ struct MemBuffer {
     }
 
     void *newBytesMem(unsigned int bytes) {
-        constexpr std::size_t alignment = alignof(std::max_align_t);
         auto sizeOfPointerToBlock = st_size_of(MemBufferBlock*);
-        auto alignOffset = [alignment](st_uint offset) {
-            return static_cast<st_uint>(((offset + (alignment - 1)) / alignment) * alignment);
-        };
-        auto calcLength = [sizeOfPointerToBlock, bytes, &alignOffset](st_uint offset) {
-            st_uint alignedDataOffset = alignOffset(offset + sizeOfPointerToBlock);
-            return (alignedDataOffset - offset) + static_cast<st_uint>(bytes);
-        };
-        st_uint length = calcLength(currentMemOffset);
+        auto length = bytes + sizeOfPointerToBlock;
 
-        if (currentMemOffset + length <= DEFAULT_BUFFER_SIZE) {
-            // Enough space in the current buffer block.
+
+        if (currentMemOffset + length < DEFAULT_BUFFER_SIZE) {
+
         }
         else {
             MemBufferBlock* tryDeleteBlock = nullptr;
@@ -183,19 +176,15 @@ struct MemBuffer {
             if (tryDeleteBlock) {
                 this->tryFreeMemoryBlock(tryDeleteBlock);
             }
-
-            length = calcLength(currentMemOffset);
         }
         currentBufferBlock->itemCount++;
-        st_uint alignedDataOffset = alignOffset(currentMemOffset + sizeOfPointerToBlock);
-        st_uint headerOffset = alignedDataOffset - sizeOfPointerToBlock;
-        void *node = (void*)((st_byte*)(currentBufferBlock->chunk) + headerOffset);
+        void *node = (void*)((st_byte*)(currentBufferBlock->chunk) + currentMemOffset);
 
         auto **address = (MemBufferBlock **)node;
         *address = currentBufferBlock;
 
         this->currentMemOffset += length;
 
-        return (void*)((st_byte*)(currentBufferBlock->chunk) + alignedDataOffset);
+        return (void*)((st_byte*)node + sizeOfPointerToBlock);
     }
 };
