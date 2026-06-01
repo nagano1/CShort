@@ -25,7 +25,6 @@ namespace cshort {
         bool isFalse = false;
         bool isNull = false;
 
-
         int result;
         if (Search::IsTokenized(result = Tokenizers::tokenizeWord(TokenizerParams_pass,
                                                                   Alloc::newConstLiteralToken,'t', "true"))) {
@@ -51,46 +50,12 @@ namespace cshort {
 
         newLiteralValueNode->textToken = Cast::downcast<ConstLiteralTokenStruct*>(context->mostLeftToken);
         context->generatedPrimaryNode = Cast::upcast(newLiteralValueNode);
-        /*
-        SimpleTextTokenStruct *constLiteralToken = Cast::downcast<SimpleTextTokenStruct*>(&context->mostLeftToken);
-        Init::assignText_SimpleTextToken(constLiteralToken, context, context->chars + start, result - start);
-        */
-            
-        //auto *boolNode = Cast::downcast<ConstLiteralTokenStruct*>(context->mostLeftToken);
-        //boolNode->foundPos = start;
         return result;
     }
 
 
     int Tokenizers::tokenizeExpression(TokenizerParams_argNode_ch_start_context) {
         return Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass);
-        /*
-        int result = numberTokenizer(TokenizerParams_pass);
-
-        if (!Search::IsTokenized(result)) { result = boolTokenizer(TokenizerParams_pass); }
-        if (!Search::IsTokenized(result)) { result = nullTokenizer(TokenizerParams_pass); }
-        if (!Search::IsTokenized(result)) { result = parenthesesTokenizer(TokenizerParams_pass); }
-        if (!Search::IsTokenized(result)) { result = variableTokenizer(TokenizerParams_pass); }
-        if (!Search::IsTokenized(result)) { result = stringLiteralTokenizer(TokenizerParams_pass); }
-
-        if (!Search::IsTokenized(result)) { return Search::NOTFOUND; }
-
-        // call func expression: func()
-        int extraPos;
-        if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, context->chars[result],
-                                                            result, context))) {
-            result = extraPos;
-        }
-
-        //  binary operator expression: calc() + 421431
-        if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, context->chars[result],
-                                                                    result, context))) {
-            result = extraPos;
-        }
-
-
-        return result;
-        */
     }
 
 
@@ -135,14 +100,11 @@ namespace cshort {
          auto *node = context->newMem<LiteralValueNodeStruct>();
          INIT_NODE(node, context, parentNode, VTables::FixedLiteralVTable);
 
-         //Init::initSimpleTextToken(node->textToken, context, parentNode, 0);
          node->isTrue = false;
             node->isFalse = false;
             node->isNull = false;
          node->textToken = Alloc::newConstLiteralToken(context, Cast::upcast(node));
          Init::initSimpleTextToken(node->textToken, context, Cast::upcast(node), 0);
-         //node->text = nullptr;
-         //node->textLength = 0;
 
          return node;
     }
