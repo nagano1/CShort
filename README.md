@@ -59,6 +59,20 @@ class ClassName {
 - The body may contain nested declarations (more classes, future constructs, etc.).
 - The opening `{` and closing `}` are required.
 
+### Functions
+
+A function is declared with the `fn` keyword, followed by an identifier, parameters in parentheses, and a body enclosed in `{ }`.
+Functions can be declared at the top level of a file or inside a class.
+
+```
+fn functionName(int a, bool b) {
+    return false
+}
+```
+
+- Parameters are written as `type name` pairs separated by commas.
+- The body may contain statements such as declarations, assignments, and `return`.
+
 ### Comments
 
 CShort has three kinds of comments.
