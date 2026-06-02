@@ -115,29 +115,26 @@ namespace cshort {
 
 
 
-    LineCommentTokenStruct *Alloc::newLineCommentToken(ParseContext *context, NodeBase *parentNode)
+    LineCommentTokenStruct *Alloc::newLineCommentToken(ParseContext *context, void *parent)
     {
         auto *lineComment = context->newMemForNode<LineCommentTokenStruct>();
-        auto *token = Cast::upcastToken(lineComment);
-
-        INIT_TOKEN(token, context, parentNode, VTables::LineCommentVTable);
+        INIT_TOKEN(lineComment, context, parent, VTables::LineCommentVTable);
         return lineComment;
     }
 
 
-    BlockCommentFragmentStruct *Alloc::newBlockCommentFragmentToken(ParseContext *context, NodeBase *parentNode)
+    BlockCommentFragmentStruct *Alloc::newBlockCommentFragmentToken(ParseContext *context,BlockCommentTokenStruct *parentNode)
     {
         auto *comment = context->newMemForNode<BlockCommentFragmentStruct>();
-        auto *token = Cast::upcastToken(comment);
 
-        INIT_TOKEN(token, context, parentNode, VTables::BlockCommentFragmentVTable);
+        INIT_TOKEN(comment, context, parentNode, VTables::BlockCommentFragmentVTable);
         return comment;
     }
 
-    BlockCommentTokenStruct *Alloc::newBlockCommentToken(ParseContext *context, NodeBase *parentNode)
+    BlockCommentTokenStruct *Alloc::newBlockCommentToken(ParseContext *context, void *parent)
     {
         auto *token = context->newMem<BlockCommentTokenStruct>();
-        INIT_TOKEN(token, context, parentNode, VTables::BlockCommentVTable);
+        INIT_TOKEN(token, context, parent, VTables::BlockCommentVTable);
 
         token->firstCommentFragment = nullptr;
         token->tagText = nullptr;

@@ -137,6 +137,7 @@ namespace cshort {
         if (!classNode->startFound) {
             if (ch == '{') {
                 classNode->startFound = true;
+                classNode->bodyStartSymbolToken.foundPos = start;
                 context->mostLeftToken = Cast::upcastToken(&classNode->bodyStartSymbolToken);
                 return start + 1;
             }
@@ -146,12 +147,17 @@ namespace cshort {
         }
         else if (ch == '}') {
             context->scanEnd = true;
+            classNode->endBodySymbolToken.foundPos = start;
             context->mostLeftToken = Cast::upcastToken(&classNode->endBodySymbolToken);
             return start + 1;
         }
         else {
             int result;
             if (Search::IsTokenized(result = Tokenizers::classTokenizer(parent, ch, start, context))) {
+                appendChildNode(classNode, context->generatedPrimaryNode);
+                return result;
+            }
+            else if (Search::IsTokenized(result = Tokenizers::fnTokenizer(parent, ch, start, context))) {
                 appendChildNode(classNode, context->generatedPrimaryNode);
                 return result;
             }
@@ -181,7 +187,7 @@ namespace cshort {
                 int currentPos = start + size_of_class;
                 int resultPos;
 
-                // "class " came here
+                // "class " matched
                 auto *classNode = Alloc::newClassNode(context, parent);
                 classNode->classKeywordToken.foundPos = start;
 

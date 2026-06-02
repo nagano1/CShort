@@ -120,7 +120,7 @@ namespace cshort {
 
                     size_t len = TokenVTableCall::selfTextLength(token);
                     TokenVTableCall::copySelfText(token, text + currentOffset);
-
+                    assert(token->foundPos >= 0);
                     currentOffset += len;
                     token = token->nextTokenInLine;
                 }
@@ -152,6 +152,9 @@ namespace cshort {
         int result;
 
         if (Search::IsTokenized(result = Tokenizers::classTokenizer(TokenizerParams_pass))) {
+            appendRootNode(doc, context->generatedPrimaryNode);
+            return result;
+        } else if (Search::IsTokenized(result = Tokenizers::fnTokenizer(TokenizerParams_pass))) {
             appendRootNode(doc, context->generatedPrimaryNode);
             return result;
         }
@@ -242,6 +245,7 @@ namespace cshort {
         context->isAfterLineBreak = false;
 
         context->unusedClassNode = nullptr;
+        context->unusedAssignment = nullptr;
 
 
         if (docStruct->documentType == DocumentType::CodeDocument) {
@@ -255,6 +259,7 @@ namespace cshort {
             else {
                 docStruct->firstRootNode = Cast::upcast(&docStruct->endOfFile);
             }
+            docStruct->endOfFile.eofToken.foundPos = length;
             docStruct->lastRootNode = Cast::upcast(&docStruct->endOfFile);
             docStruct->endOfFile.eofToken.precedingSpaceCount = context->remainedSpaceCount;
             docStruct->endOfFile.eofToken.precedingLineBreakToken = context->remainedLineBreakToken;
@@ -263,6 +268,7 @@ namespace cshort {
             DocumentUtils::regenerateCodeLines(docStruct);
 
             callAllLineEvent(docStruct, docStruct->firstCodeLine, context);
+
         }
     }
 }

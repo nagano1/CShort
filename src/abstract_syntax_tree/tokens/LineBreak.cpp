@@ -77,10 +77,10 @@ namespace cshort
 
     const token_vtable *VTables::LineBreakVTable = &_lineBreakVTable;
 
-    LineBreakTokenStruct *Alloc::newLineBreakToken(ParseContext *context, NodeBase *parentNode) {
+    LineBreakTokenStruct *Alloc::newLineBreakToken(ParseContext *context, void *parentNode) {
         auto *lineBreakToken = context->newLineBreakToken();
 
-        INIT_TOKEN(Cast::upcastToken(lineBreakToken), context, parentNode, VTables::LineBreakVTable);
+        INIT_TOKEN(lineBreakToken, context, parentNode, VTables::LineBreakVTable);
         lineBreakToken->nextLineBreak = nullptr;
         lineBreakToken->text[0] = '\n';
         lineBreakToken->text[1] = '\0';

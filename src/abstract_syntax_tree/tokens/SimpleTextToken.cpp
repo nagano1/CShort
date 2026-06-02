@@ -79,13 +79,13 @@ namespace cshort {
         textToken->text[charLen] = '\0';
     }
 
-    void Init::assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, int pos, int charLen)
+    void Init::assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, const utf8byte *text, int charLen)
     {
         textToken->text = context->memBuffer.newText(charLen);
         textToken->textLength = charLen;
 
         if (charLen > 0) {
-            TEXT_MEMCPY(textToken->text, context->chars + pos, charLen);
+            TEXT_MEMCPY(textToken->text, text, charLen);
         }
         textToken->text[charLen] = '\0';
     }

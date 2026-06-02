@@ -27,15 +27,15 @@ namespace cshort {
 
     #define NODE_HEADER \
         const struct node_vtable *vtable; /* virtual table */ \
+        int node_proof; \
         _NodeBase *parentNode; \
         _NodeBase *nextNode; \
-        _NodeBase *nextNodeInLine; \
         CodeLine *codeLine; \
         ParseContext *context; \
-        int foundPos; \
 
     #define TOKEN_HEADER \
         const struct token_vtable *vtable; /* virtual table */ \
+        int token_proof; \
         _NodeBase *parentNode; \
         _TokenBase *nextToken; \
         _TokenBase *nextTokenInLine; \
@@ -57,16 +57,16 @@ namespace cshort {
 
     #define INIT_NODE(node, context, parent, argvtable) \
         (node)->vtable = (argvtable); \
+        (node)->node_proof = 0x123; \
         (node)->context = (context); \
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
-        (node)->foundPos = -1; \
         (node)->nextNode = nullptr; \
-        (node)->nextNodeInLine = nullptr; \
         (0)
 
     #define INIT_TOKEN(token, context, parent, argvtable) \
         (token)->vtable = (argvtable); \
+        (token)->token_proof = 0x456; \
         (token)->precedingSpaceCount = 0; \
         (token)->context = (context); \
         (token)->parentNode = (NodeBase*)(parent); \
@@ -100,10 +100,9 @@ namespace cshort {
 
     using LineCommentTokenStruct = SimpleTextTokenStruct;
     using BlockCommentFragmentStruct = SimpleTextTokenStruct;
+    using ConstLiteralTokenStruct = SimpleTextTokenStruct; // null, false, true
 
     // LineBreakTokenStruct is used for storing line break info for error reporting and code generation.
-    // This token is not part of main AST, they are attached to tokens as precedingLineBreakToken.
-    // this token also inherits TOKEN_HEADER because it can be added to CodeLine and have another comments and spaces before it.
     using LineBreakTokenStruct = struct _LineBreakTokenStruct {
         TOKEN_HEADER;
 
@@ -142,7 +141,6 @@ namespace cshort {
         utf8byte symbol[2];
     };
 
-
     using ClassNodeStruct = struct _ClassNodeStruct {
         NODE_HEADER;
 
@@ -161,6 +159,103 @@ namespace cshort {
         NodeBase *lastChildNode;
         int childCount;
     };
+
+    // ?string str
+    using TypeNodeStruct = struct _TypeNodeStruct {
+        NODE_HEADER;
+
+        SIMPLE_TEXT_CONTENT;
+
+        bool hasImmutableMark; // # immutable
+        bool hasNullableMark; // ? nullable
+        bool isLet; // or has type
+
+        IdentifierTokenStruct nameNode; // type name like int, string, etc..
+        SimpleTextTokenStruct typeTextToken; // including ? or #
+    };
+
+    // true, false, null
+    using LiteralValueNodeStruct = struct _LiteralValueStruct {
+        NODE_HEADER;
+
+        bool isTrue;
+        bool isFalse;
+        bool isNull;
+
+        ConstLiteralTokenStruct *textToken; // including ? or #
+    };
+
+
+    // int a = 5
+    // immutable: #int a = 5
+    // nullable: ?let *ptr = "jfwio"
+    using AssignStatementNodeStruct = struct _AssignStatementNodeStruct {
+        NODE_HEADER;
+
+        TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
+        bool hasTypeDecl; // only assignment: a = 3
+        SymbolTokenStruct pointerAsterisk; // *
+
+        int stackOffset;
+        IdentifierTokenStruct nameNode; // variable name
+        SymbolTokenStruct equalSymbol; // =
+        NodeBase *expressionNode; // 32
+    };
+
+    using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {
+        NODE_HEADER;
+
+        SimpleTextTokenStruct returnText;
+        NodeBase *expressionNode;
+    };
+
+    using ReturnStatementNodeStruct = KeywordAndExpressionStruct;
+
+
+
+    using FuncBodyNodeStruct = struct _BodyNodeStruct {
+        NODE_HEADER;
+
+        bool startFound;
+        bool firstStatementFound;
+
+        SymbolTokenStruct bodyStartNode;
+        SymbolTokenStruct endBodyNode;
+
+        NodeBase *firstChildNode;
+        NodeBase *lastChildNode;
+        int childCount;
+    };
+
+
+
+    // (?int point = null)
+    using FuncParameterItemStruct = struct _FuncParameterItemStruct {
+        NODE_HEADER;
+        AssignStatementNodeStruct *assignStatementNodeStruct;
+        SymbolTokenStruct  followingComma;
+        bool hasComma;
+    };
+
+    using FuncNodeStruct = struct _FuncNodeStruct {
+        NODE_HEADER;
+
+        SimpleTextTokenStruct fnKeywordToken; // "fn"
+        IdentifierTokenStruct funcNameToken;
+        int stackSize;
+
+        SymbolTokenStruct parameterStartNode; // (
+        SymbolTokenStruct parameterEndNode; // )
+
+        FuncBodyNodeStruct bodyNode;
+
+        int parameterParsePhase;
+        FuncParameterItemStruct *firstChildParameterNode;
+        FuncParameterItemStruct *lastChildParameterNode;
+        int parameterChildCount;
+    };
+
+
 
 
     enum DocumentType {
@@ -204,6 +299,7 @@ namespace cshort {
         const utf8byte *chars;
 
         ClassNodeStruct *unusedClassNode;
+        AssignStatementNodeStruct *unusedAssignment;
 
         LineBreakTokenStruct *remainedLineBreakToken;
         void *remainedCommentToken;
@@ -322,12 +418,16 @@ namespace cshort {
 
         template<typename T>
         static inline NodeBase *upcast(T *node) {
-            return (NodeBase *) node;
+            auto *n =  (NodeBase *) node;
+            assert(n->node_proof == 0x123);
+            return n;
         }
 
         template<typename T>
         static inline TokenBase *upcastToken(T *token) {
-            return (TokenBase *) token;
+            auto *t = (TokenBase *) token;
+            assert(t->token_proof == 0x456);
+            return t;
         }
     };
 
@@ -346,6 +446,7 @@ namespace cshort {
         FuncParameter = 29,
         BinaryOperation = 30,
         Variable = 25,
+        FixedLiteral = 31,
         
 
     };
@@ -360,6 +461,7 @@ namespace cshort {
         Number = 9,
         LineBreak = 10,
         Bool = 11,
+        ConstLiteral = 12,
         
         NULLId = 16,
         
@@ -534,23 +636,29 @@ namespace cshort {
         static const node_vtable
                 *DocumentVTable,
                 *ClassVTable,
-                *EndOfFileVTable;
+                *FuncDefVTable,
+                *FuncBodyVTable,
+                *EndOfFileVTable,
+                *FuncParameterVTable,
+                *AssignStatementVTable,
+                *ReturnStatementVTable,
+                *TypeVTable,
+                *FixedLiteralVTable
+                ;
 
         static const token_vtable
+                *ConstLiteralVTable,     
                 *LineBreakVTable,
                 *LineCommentVTable,
                 *BlockCommentFragmentVTable,
-                *SymbolVTable,
                 *SimpleTextVTable,
                 *BlockCommentVTable,
                 *IdentifierTokenVTable,
-                *NumberTokenVTable,
                 *StringLiteralTokenVTable,
                 *SymbolTokenVTable,
                 *LineBreakTokenVTable,
-                *WhiteSpaceTokenVTable,
-                *CommentTokenVTable,
-                *EndOfFileTokenVTable;
+                *CommentTokenVTable
+                ;
     };
 
 
@@ -593,8 +701,16 @@ namespace cshort {
         }
 
 
-        static CodeLine *callAppendNodeToLine(void *node, CodeLine *currentCodeLine);
+        // forward declaration of functions in parser_core.cpp to avoid circular dependency 
+        static inline CodeLine *callAppendNodeToLine(void *node, CodeLine *currentCodeLine) {
+            if (node == nullptr) { // BreakLineToken can be null
+                return currentCodeLine;
+            }
+            auto *nodeBase = Cast::upcast(node);
+            assert(nodeBase->node_proof == 0x123);
 
+            return nodeBase->vtable->appendToLine(nodeBase, currentCodeLine);
+        }
     };
 
     struct TokenVTableCall {
@@ -631,7 +747,24 @@ namespace cshort {
             }
         }
 
-        static CodeLine *callAppendTokenToLine(void *token, CodeLine *currentCodeLine);
+        // forward declaration of functions in parser_core.cpp to avoid circular dependency 
+        static inline CodeLine *callAppendTokenToLine(void *token, CodeLine *currentCodeLine) {
+            if (token == nullptr) { // BreakLineToken can be null
+                return currentCodeLine;
+            }
+
+            auto *tokenBase = Cast::upcastToken(token);
+            assert(tokenBase->token_proof == 0x456);
+            if (tokenBase->foundPos < 0) {
+                printf("no foundPos > -1: %s\n", typeText(tokenBase));
+            }
+            assert(tokenBase->foundPos >= 0);
+
+            // if the token has precedingLineBreakToken, append the precedingLineBreakToken before appending the token itself,
+            // so that the line break will be before the token in the code line,
+            // which is more intuitive and easier to handle when generating code later
+            return tokenBase->vtable->appendToLine(tokenBase, currentCodeLine);
+        }
     };
 
     struct CodeLine {
@@ -693,6 +826,7 @@ namespace cshort {
             }
 
             lastToken = (TokenBase *) token;
+            assert(lastToken->token_proof == 0x456);
             if (this->context->appendLineMode == AppendLineMode::Normal) {
                 ((TokenBase *) token)->codeLine = this;
             }
@@ -742,9 +876,6 @@ namespace cshort {
     };
 
     struct DocumentUtils {
-
-        static void initDocument(DocumentStruct *docStruct);
-
         static void parseText(DocumentStruct *docStruct, const utf8byte *text, int length);
 
         static void regenerateCodeLines(DocumentStruct *docStruct);
@@ -754,30 +885,55 @@ namespace cshort {
 
 
     struct Init {
+        // Nodes
+        static void initFuncBodyNode(FuncBodyNodeStruct *node, ParseContext *context, void *parentNode);
+        static void initTypeNode(TypeNodeStruct *self, ParseContext *context, void *parent);
+
+        static void initAssignStatement(ParseContext *context, NodeBase *parentNode,
+                                       AssignStatementNodeStruct *assignStatement
+        );
+
+        static void initReturnStatement(ParseContext *context, NodeBase *parentNode,
+                                        ReturnStatementNodeStruct *returnStatement
+        );
+        // Tokens
         static void initIdentifierToken(IdentifierTokenStruct *name, ParseContext *context, void *parentNode);
 
         static void initSymbolToken(SymbolTokenStruct *self, ParseContext *context, void *parent, utf8byte letter);
 
-        static void initSimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, void *parentNode, int charLen);
-        static void assignText_SimpleTextToken(SimpleTextTokenStruct *name, ParseContext *context, int pos, int charLen);
+        static void initSimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, void *parentNode, int charLen);
+        static void assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, const utf8byte *text, int charLen);
+
+
     };
 
 
     struct Alloc {
 
-        static LineBreakTokenStruct *newLineBreakToken(ParseContext *context, NodeBase *parentNode);
+        // Tokens
+        static LineBreakTokenStruct *newLineBreakToken(ParseContext *context, void *parentNode);
         static SimpleTextTokenStruct *newSimpleTextToken(ParseContext *context, NodeBase *parentNode);
 
-        // comment
-        static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, NodeBase *parentNode);
-        static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, NodeBase *parentNode);
-        static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, NodeBase *parentNode);
+        static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, void *parentNode);
+        static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, void *parentNode);
+        static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, BlockCommentTokenStruct *parentNode);
+        static ConstLiteralTokenStruct *newConstLiteralToken(ParseContext *context, NodeBase *parentNode);
 
+        // Nodes
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
+        static LiteralValueNodeStruct *newLiteralValueNode(ParseContext *context, NodeBase *parentNode);
 
         static DocumentStruct *newDocument(DocumentType docType);
-
         static void deleteDocument(DocumentStruct *doc);
+
+        static TypeNodeStruct *newTypeNode(ParseContext *context, NodeBase *parentNode);
+
+        static AssignStatementNodeStruct *newAssignStatement(ParseContext *context, NodeBase *parentNode);
+        static ReturnStatementNodeStruct *newReturnStatement(ParseContext *context, NodeBase *parentNode);
+
+        static FuncNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
+
+        static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
     };
 
 
@@ -796,10 +952,22 @@ namespace cshort {
     using TokenizerFunction = int (*)(TokenizerParams_argNode_ch_start_context);
 
     struct Tokenizers {
+        // Tokens
         static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
 
+        // Nodes
         static int classTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int tokenizeExpression(TokenizerParams_argNode_ch_start_context);
+        static int typeTokenizer(TokenizerParams_argNode_ch_start_context);
 
+        static int fixedLiteralNodeTokenizer(TokenizerParams_argNode_ch_start_context);
+
+        static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int fnTokenizer(TokenizerParams_argNode_ch_start_context);
+
+        static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
         // generator is a function pointer for generating corresponding token, it will be called when the word is matched, and the generated token will be returned by the tokenizer.
@@ -812,16 +980,16 @@ namespace cshort {
             if (capitalLetter == ch) {
                 int length = st_size_of(word) - 1;
                 if (ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, start, word)) {
-                    auto *boolNode = (SimpleTextTokenStruct*)(generator(context, Cast::downcast<NodeBase*>(argNode)));
+                    auto *token = (SimpleTextTokenStruct*)(generator(context, Cast::downcast<NodeBase*>(argNode)));
 
-                    boolNode->text = context->memBuffer.newText(length);
-                    boolNode->textLength = length;
+                    token->foundPos = start;
+                    token->text = context->memBuffer.newText(length);
+                    token->textLength = length;
 
-                    TEXT_MEMCPY(boolNode->text, context->chars + start, length);
-                    boolNode->text[length] = '\0';
+                    TEXT_MEMCPY(token->text, context->chars + start, length);
+                    token->text[length] = '\0';
 
-                    context->mostLeftToken = Cast::upcastToken(boolNode);
-                    //context->generatedPrimaryNode = Cast::upcast(boolNode);
+                    context->mostLeftToken = Cast::upcastToken(token);
                     return start + length;
                 }
             }

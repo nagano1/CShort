@@ -46,11 +46,11 @@ namespace cshort {
 
     static token_vtable _symbolVTable = CREATE_TOKEN_VTABLE(SymbolTokenStruct, selfTextLength, copySelfText,
                                                    appendToLine, SymbolTokenStruct_applyFuncToDescendants, SymbolTypeText, TokenTypeId::Symbol);
-    const token_vtable *VTables::SymbolVTable = &_symbolVTable;
+    const token_vtable *VTables::SymbolTokenVTable = &_symbolVTable;
 
 
     void Init::initSymbolToken(SymbolTokenStruct *token, ParseContext *context, void *parentNode, utf8byte letter) {
-        INIT_TOKEN(token, context, parentNode, VTables::SymbolVTable);
+        INIT_TOKEN(token, context, parentNode, VTables::SymbolTokenVTable);
         token->isEnabled = false;
         token->symbol[0] = letter;
         token->symbol[1] = '\0';

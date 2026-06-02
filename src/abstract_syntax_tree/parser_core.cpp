@@ -24,27 +24,6 @@ namespace cshort
     ErrorInfo ErrorInfo::ErrorInfoList[errorListSize]; // errorIndex -> ErrorInfo
     struct InternalParsingData;
 
-    
-    // forward declaration of functions in parser_core.cpp to avoid circular dependency 
-    CodeLine *VTableCall::callAppendNodeToLine(void *node, CodeLine *currentCodeLine) {
-        if (node == nullptr) {
-            return currentCodeLine;
-        }
-        auto *nodeBase = Cast::upcast(node);
-        return nodeBase->vtable->appendToLine(nodeBase, currentCodeLine);
-    }
-
-    CodeLine *TokenVTableCall::callAppendTokenToLine(void *token, CodeLine *currentCodeLine) {
-        if (token == nullptr) {
-            return currentCodeLine;
-        }
-        auto *tokenBase = Cast::upcastToken(token);
-        // if the token has precedingLineBreakToken, append the precedingLineBreakToken before appending the token itself,
-        // so that the line break will be before the token in the code line,
-        // which is more intuitive and easier to handle when generating code later
-        return tokenBase->vtable->appendToLine(tokenBase, currentCodeLine);
-    }
-
     // Nested block comments are not supported, instead, we support named block comments which can be closed with the corresponding tag,
     // for example: /*<[A] ... [A]>*/.
     // It's more explicit and easier to use than nested block comments, and it can also avoid the problem of accidentally
@@ -113,9 +92,10 @@ namespace cshort
 
     inline TokenBase* generateBlockCommentFragments(void *parentNode, ParseContext *context,
                                            const int32_t &i, int commentEndIndex, char* tagText, int tagLength) {
-        auto *blockComment = Alloc::newBlockCommentToken(context, Cast::upcast(parentNode));
+        auto *blockComment = Alloc::newBlockCommentToken(context, parentNode);
         blockComment->tagText = tagText;
         blockComment->tagTextLength = tagLength;
+        blockComment->foundPos = i;
 
         // i is the position of '/'
         int currentIndex = i;
@@ -134,10 +114,11 @@ namespace cshort
             }
 
             if (endIndex > -1 && currentIndex <= endIndex) {
-                auto *commentFragment = Alloc::newBlockCommentFragmentToken(context, Cast::upcast(blockComment));
+                auto *commentFragment = Alloc::newBlockCommentFragmentToken(context, blockComment);
 
                 // link with previous line break token
                 commentFragment->precedingLineBreakToken = lastBreakLine;
+                commentFragment->foundPos = currentIndex;
 
                 // endIndex is exclusive for the fragment text (it points to a line break, '\0', or commentEndIndex)
                 int commentLength = endIndex - currentIndex;
@@ -145,10 +126,11 @@ namespace cshort
                     // indexOfBreakOrEndWithInfo() can stop on an embedded '\0'; avoid an infinite loop.
                     break;
                 }
-                Init::assignText_SimpleTextToken(commentFragment, context, currentIndex, commentLength);
+                Init::assignText_SimpleTextToken(commentFragment, context, context->chars + currentIndex, commentLength);
                 if (hasLineBreak) {
                     // create a line break token for the line break after the comment fragment
-                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(blockComment));
+                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, blockComment);
+                    newLineBreak->foundPos = endIndex;
                     bool rn = (endIndex + 1) < context->length && context->chars[endIndex] == '\r' && context->chars[endIndex + 1] == '\n';
                     if (rn) { // \r\n
                         newLineBreak->text[0] = '\r';
@@ -259,10 +241,11 @@ namespace cshort
 
         TokenBase *newCommentToken;
         if (isLineComment) {
-            auto* comment = Alloc::newLineCommentToken(context, Cast::upcast(parentNode));
-            Init::assignText_SimpleTextToken(comment, context, i, commentEndIndex - i);
+            auto* lineComment = Alloc::newLineCommentToken(context, parentNode);
+            lineComment->foundPos = i;
+            Init::assignText_SimpleTextToken(lineComment, context, context->chars +  i, commentEndIndex - i);
 
-            newCommentToken = Cast::upcastToken(comment);
+            newCommentToken = Cast::upcastToken(lineComment);
         }
         else {
             newCommentToken = generateBlockCommentFragments(parentNode, context, i, commentEndIndex, tagText, tagLength);
@@ -285,7 +268,8 @@ namespace cshort
     static inline int createLineBreakToken(void* parentNode, ParseContext* context, 
                                           int32_t& position, utf8byte ch, InternalParsingData* parsingData)
     {
-        auto* newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(parentNode));
+        auto* newLineBreak = Alloc::newLineBreakToken(context, parentNode);
+        newLineBreak->foundPos = position;
 
         if (parsingData->firstLineBreak == nullptr) { // the first line break
             parsingData->lastLineBreak = parsingData->firstLineBreak = newLineBreak;
@@ -360,10 +344,10 @@ namespace cshort
                 continue;
             }
 
-
-            int result = tokenizer(Cast::upcast(parentNode), ch, i, context);
-            parsingData.returnPos = result;
-
+            int result = tokenizer(parentNode, ch, i, context);
+            if (result != Search::DONE_WITH_PREVIOUS_POSITION) {
+                parsingData.returnPos = result;
+            }
             if (context->syntaxErrorInfo.hasError) {
                 parsingData.returnPos = Search::NOTFOUND;
                 return parsingData;
