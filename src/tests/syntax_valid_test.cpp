@@ -64,7 +64,8 @@ class A { // comment
     fn method1() {
         #bool immutableBool = true
         ?bool *nullableBool = false
-        int a = 3214
+        int a = -3214
+        int b = 102024L
         return true
     }
 }
