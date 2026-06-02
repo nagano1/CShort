@@ -20,7 +20,7 @@
 
 namespace cshort {
     //    +--------------------------+
-    //    | NumberValueNodd          |
+    //    | NumberValueNode          |
     //    +--------------------------+
 
     static CodeLine *appendToLine_NumberNode(NumberNodeStruct *self, CodeLine *currentCodeLine)
@@ -48,9 +48,7 @@ namespace cshort {
     int Tokenizers::numberNodeTokenizer(TokenizerParams_argNode_ch_start_context)
     {
         bool hasNegative = false;
-        
         int numberStart;
-        int digitCount = 0;
         int charCount;
 
         if (context->chars[start] == '-') {
@@ -62,6 +60,7 @@ namespace cshort {
             charCount = 0;
         }
 
+        int digitCount = 0;
         for (int_fast32_t i = numberStart; i < context->length; i++) {
             if (!ParseUtil::isNumberLetter(context->chars[i])) {
                 break;
@@ -71,14 +70,13 @@ namespace cshort {
             digitCount++;
         }
 
-        NodeBase *parent = Cast::upcast(argNode);
         bool hasDigit = hasNegative ? charCount > 1 : charCount > 0;
         if (!hasDigit) {
             return Search::NOTFOUND;
         }
 
-        bool hasSuffix = start + charCount < context->length && context->chars[start + charCount] == 'L';
-        if (hasSuffix) {
+        bool hasSuffixLetter = start + charCount < context->length && context->chars[start + charCount] == 'L';
+        if (hasSuffixLetter) {
             charCount++;
         }
 
@@ -87,15 +85,15 @@ namespace cshort {
             return Search::NOTFOUND; // invalid suffix character for numbers
         }
 
-        auto *numberNode = Alloc::newNumberNode(context, parent);
-
-        context->generatedPrimaryNode = Cast::upcast(numberNode);
+        // create Number node and token
+        auto *numberNode = Alloc::newNumberNode(context, Cast::upcast(argNode));
+        numberNode->originalNumberTextToken.foundPos = start;
+        numberNode->num = ConvertStringToInt64(context->chars + start, (hasNegative ? 1 : 0) + digitCount);
+        numberNode->unit = hasSuffixLetter ? 64 : 32;
         Init::assignText_SimpleTextToken(&numberNode->originalNumberTextToken, context, context->chars + start, charCount);
 
-        numberNode->num = ConvertStringToInt64(context->chars + start, digitCount + (hasNegative ? 1 : 0));
-
-        numberNode->unit = hasSuffix ? 64 : 32;
-
+        context->generatedPrimaryNode = Cast::upcast(numberNode);
+        context->mostLeftToken = Cast::upcastToken(&numberNode->originalNumberTextToken);
         return start + charCount;
     }
 
