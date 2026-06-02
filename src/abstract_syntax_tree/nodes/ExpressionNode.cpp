@@ -17,8 +17,8 @@
 
 #include "code_nodes.hpp"
 namespace cshort {
+        // There's no "ExpressionNodeStruct" defined.ExpressionNode is just a general term for nodes that can be used as expressions, including LiteralValueNode, NumberValueNode, VariableNode, FuncCallNode, BinaryOperationNode, etc. we can just use NodeBase or define an interface for expression nodes if needed.
 
-    
     int Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_argNode_ch_start_context)
     {
         bool isTrue = false;
@@ -56,7 +56,30 @@ namespace cshort {
 
 
     int Tokenizers::tokenizeExpression(TokenizerParams_argNode_ch_start_context) {
-        return Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass);
+        int result = Tokenizers::numberNodeTokenizer(TokenizerParams_pass);
+        if (!Search::IsTokenized(result)) {
+            result = Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass);
+        }
+
+        //if (!Search::IsTokenized(result)) { result = parenthesesTokenizer(TokenizerParams_pass); }
+        //if (!Search::IsTokenized(result)) { result = variableTokenizer(TokenizerParams_pass); }
+        //if (!Search::IsTokenized(result)) { result = stringLiteralTokenizer(TokenizerParams_pass); }
+
+        //if (!Search::IsTokenized(result)) { return Search::NOTFOUND; }
+
+        // call func expression: func()
+        //int extraPos;
+        //if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, context->chars[result],
+                                                           //result, context))) {
+            //result = extraPos;
+        //}
+
+        //  binary operator expression: calc() + 421431
+        //if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, context->chars[result],
+                                                                  //result, context))) {
+            //result = extraPos;
+        //}
+        return result;
     }
 
 
