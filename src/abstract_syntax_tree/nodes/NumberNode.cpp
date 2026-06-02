@@ -75,6 +75,7 @@ namespace cshort {
             return Search::NOTFOUND;
         }
 
+        // Supported suffixes: L for long (64-bit), no suffix for int (32-bit). Suffixes are case-sensitive.
         bool hasSuffixLetter = start + charCount < context->length && context->chars[start + charCount] == 'L';
         if (hasSuffixLetter) {
             charCount++;
@@ -82,7 +83,7 @@ namespace cshort {
 
         int end = start + charCount;
         if (end < context->length && !ParseUtil::isTerminatableChar(context->chars[end])) {
-            return Search::NOTFOUND; // invalid suffix character for numbers
+            return Search::NOTFOUND; // invalid character after number literal
         }
 
         // create Number node and token
