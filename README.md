@@ -117,6 +117,30 @@ Rules:
 - Named block comments can be nested inside one another (each using a different tag name), allowing a form of comment nesting that ordinary `/* */` does not support.
 - A non-named block comment (`/* ... */`) can wrap named block comments, because `[tag]>*/` is **not** treated as a closing `*/` for non-named block comments — only a bare `*/` (not preceded by `]>`) closes them.
 
+### Numbers
+
+Numeric literals are written as a sequence of digits, optionally preceded by a negative sign.
+
+```
+42
+-100
+1234L
+-9876L
+```
+
+Rules:
+- A number is a sequence of one or more digits (0-9).
+- Numbers can be preceded by a negative sign (`-`).
+- Numbers can optionally end with the suffix `L` to denote a 64-bit integer; without this suffix, numbers are 32-bit integers.
+- The suffix `L` is case-sensitive; only uppercase `L` is supported.
+- Numbers must be followed by a space, operator, closing parenthesis, or other terminable character; they cannot be followed by arbitrary characters.
+
+Examples:
+- `int x = 42` — a 32-bit integer literal
+- `long y = 100L` — a 64-bit integer literal
+- `int z = -21` — a negative 32-bit integer literal
+- `long w = -500L` — a negative 64-bit integer literal
+
 ---
 
 ### Planned language syntax
