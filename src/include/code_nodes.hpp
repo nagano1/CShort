@@ -419,9 +419,6 @@ namespace cshort {
         template<typename T>
         static inline NodeBase *upcast(T *node) {
             auto *n =  (NodeBase *) node;
-            if (n->node_proof != 0x123) {
-                printf("Node proof failed for node with vtable %d\n", n->node_proof);
-            }
             assert(n->node_proof == 0x123);
             return n;
         }
@@ -429,9 +426,6 @@ namespace cshort {
         template<typename T>
         static inline TokenBase *upcastToken(T *token) {
             auto *t = (TokenBase *) token;
-            if (t->token_proof != 0x456) {
-                printf("Token proof failed for token with text %d, foundPos \n", t->token_proof);
-            }
             assert(t->token_proof == 0x456);
             return t;
         }
@@ -917,11 +911,11 @@ namespace cshort {
     struct Alloc {
 
         // Tokens
-        static LineBreakTokenStruct *newLineBreakToken(ParseContext *context, NodeBase *parentNode);
+        static LineBreakTokenStruct *newLineBreakToken(ParseContext *context, void *parentNode);
         static SimpleTextTokenStruct *newSimpleTextToken(ParseContext *context, NodeBase *parentNode);
 
-        static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, NodeBase *parentNode);
-        static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, NodeBase *parentNode);
+        static LineCommentTokenStruct *newLineCommentToken(ParseContext *context, void *parentNode);
+        static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, void *parentNode);
         static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, BlockCommentTokenStruct *parentNode);
         static ConstLiteralTokenStruct *newConstLiteralToken(ParseContext *context, NodeBase *parentNode);
 

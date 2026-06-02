@@ -92,7 +92,7 @@ namespace cshort
 
     inline TokenBase* generateBlockCommentFragments(void *parentNode, ParseContext *context,
                                            const int32_t &i, int commentEndIndex, char* tagText, int tagLength) {
-        auto *blockComment = Alloc::newBlockCommentToken(context, Cast::upcast(parentNode));
+        auto *blockComment = Alloc::newBlockCommentToken(context, parentNode);
         blockComment->tagText = tagText;
         blockComment->tagTextLength = tagLength;
         blockComment->foundPos = i;
@@ -129,7 +129,7 @@ namespace cshort
                 Init::assignText_SimpleTextToken(commentFragment, context, context->chars + currentIndex, commentLength);
                 if (hasLineBreak) {
                     // create a line break token for the line break after the comment fragment
-                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(parentNode));
+                    LineBreakTokenStruct *newLineBreak = Alloc::newLineBreakToken(context, blockComment);
                     newLineBreak->foundPos = endIndex;
                     bool rn = (endIndex + 1) < context->length && context->chars[endIndex] == '\r' && context->chars[endIndex + 1] == '\n';
                     if (rn) { // \r\n
@@ -241,7 +241,7 @@ namespace cshort
 
         TokenBase *newCommentToken;
         if (isLineComment) {
-            auto* lineComment = Alloc::newLineCommentToken(context, Cast::upcast(parentNode));
+            auto* lineComment = Alloc::newLineCommentToken(context, parentNode);
             lineComment->foundPos = i;
             Init::assignText_SimpleTextToken(lineComment, context, context->chars +  i, commentEndIndex - i);
 
@@ -268,7 +268,7 @@ namespace cshort
     static inline int createLineBreakToken(void* parentNode, ParseContext* context, 
                                           int32_t& position, utf8byte ch, InternalParsingData* parsingData)
     {
-        auto* newLineBreak = Alloc::newLineBreakToken(context, Cast::upcast(parentNode));
+        auto* newLineBreak = Alloc::newLineBreakToken(context, parentNode);
         newLineBreak->foundPos = position;
 
         if (parsingData->firstLineBreak == nullptr) { // the first line break
@@ -344,8 +344,7 @@ namespace cshort
                 continue;
             }
 
-
-            int result = tokenizer(Cast::upcast(parentNode), ch, i, context);
+            int result = tokenizer(parentNode, ch, i, context);
             if (result != Search::DONE_WITH_PREVIOUS_POSITION) {
                 parsingData.returnPos = result;
             }
