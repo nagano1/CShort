@@ -322,6 +322,7 @@ namespace cshort
         InternalParsingData parsingData;
         context->isAfterLineBreak = false;
         int lastTokenizedPos = context->lastTokenizedPos;
+        context->mostLeftToken = nullptr;
 
         for (int32_t i = start; i <= context->length;) { // iterate until the end of chars
             ch = (i < context->length) ? context->chars[i] : 0;

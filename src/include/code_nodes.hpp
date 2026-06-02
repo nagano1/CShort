@@ -141,6 +141,16 @@ namespace cshort {
         utf8byte symbol[2];
     };
 
+    
+    using NumberNodeStruct = struct _NumberNodeStruct {
+        NODE_HEADER;
+
+        SimpleTextTokenStruct originalNumberTextToken;
+
+        int64_t num;
+        int unit;
+    };
+
     using ClassNodeStruct = struct _ClassNodeStruct {
         NODE_HEADER;
 
@@ -447,6 +457,7 @@ namespace cshort {
         BinaryOperation = 30,
         Variable = 25,
         FixedLiteral = 31,
+        Number = 32,
         
 
     };
@@ -643,7 +654,8 @@ namespace cshort {
                 *AssignStatementVTable,
                 *ReturnStatementVTable,
                 *TypeVTable,
-                *FixedLiteralVTable
+                *FixedLiteralVTable,
+                *NumberVTable
                 ;
 
         static const token_vtable
@@ -922,6 +934,7 @@ namespace cshort {
         // Nodes
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
         static LiteralValueNodeStruct *newLiteralValueNode(ParseContext *context, NodeBase *parentNode);
+        static NumberNodeStruct *newNumberNode(ParseContext *context, NodeBase *parentNode);
 
         static DocumentStruct *newDocument(DocumentType docType);
         static void deleteDocument(DocumentStruct *doc);
@@ -961,6 +974,7 @@ namespace cshort {
         static int typeTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int fixedLiteralNodeTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int numberNodeTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);
         static int fnTokenizer(TokenizerParams_argNode_ch_start_context);

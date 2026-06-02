@@ -17,8 +17,8 @@
 
 #include "code_nodes.hpp"
 namespace cshort {
+        // There's no "ExpressionNodeStruct" defined.ExpressionNode is just a general term for nodes that can be used as expressions, including LiteralValueNode, NumberValueNode, VariableNode, FuncCallNode, BinaryOperationNode, etc. we can just use NodeBase or define an interface for expression nodes if needed.
 
-    
     int Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_argNode_ch_start_context)
     {
         bool isTrue = false;
@@ -56,7 +56,12 @@ namespace cshort {
 
 
     int Tokenizers::tokenizeExpression(TokenizerParams_argNode_ch_start_context) {
-        return Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass);
+        int result = Tokenizers::numberNodeTokenizer(TokenizerParams_pass);
+        if (!Search::IsTokenized(result)) {
+            result = Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass);
+        }
+
+        return result;
     }
 
 
