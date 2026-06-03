@@ -17,7 +17,7 @@
 
 #include "code_nodes.hpp"
 namespace cshort {
-        /// There's no "ExpressionNodeStruct" defined. ExpressionNode is just a general term for nodes that can be used as expressions, including LiteralValueNode, NumberValueNode, IdentifierAccessNode, FuncCallNode, BinaryOperationNode, etc. we can just use NodeBase or define an interface for expression nodes if needed.
+        /// There's no "ExpressionNodeStruct" defined. Expression node is just a general term for nodes that can be used as expressions, including LiteralValueNode, NumberValueNode, IdentifiersAccessNode, FuncCallNode, BinaryOperationNode, etc. we can just use NodeBase or define an interface for expression nodes if needed.
 
         
     int Tokenizers::tokenizeExpression(TokenizerParams_argNode_ch_start_context) {
