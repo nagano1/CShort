@@ -63,7 +63,7 @@ namespace cshort {
         }
         else if (Search::IsTokenized(result = Tokenizers::parenthesesTokenizer(TokenizerParams_pass))) {
         }
-        else if (Search::IsTokenized(result = Tokenizers::variableTokenizer(TokenizerParams_pass))) {
+        else if (Search::IsTokenized(result = Tokenizers::identifierAccessTokenizer(TokenizerParams_pass))) {
         }
         else {
             return Search::NOTFOUND;
