@@ -154,7 +154,7 @@ namespace cshort {
     // namespace::ClassName.Property
     // namespace::Method() // () excluded, Expression tokenizer will deal with it.
     // localVariable
-    using IdentifierAccessNodeStruct = struct _IdentifierAccessNodeStruct {
+    using IdentifiersAccessNodeStruct = struct _IdentifiersAccessNodeStruct {
         NODE_HEADER;
         int stackOffset;
 
@@ -474,7 +474,7 @@ namespace cshort {
         FuncArgument = 28,
         FuncParameter = 29,
         BinaryOperation = 30,
-        IdentifierAccess = 25,
+        IdentifiersAccess = 25,
         FixedLiteral = 31,
         Number = 32,
     };
@@ -664,7 +664,7 @@ namespace cshort {
                 *FixedLiteralVTable,
                 *NumberVTable,
                 *ParenthesesVTable,
-                *IdentifierAccessVTable
+                *IdentifiersAccessVTable
                 ;
 
         static const token_vtable
@@ -958,7 +958,7 @@ namespace cshort {
         static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
 
         static ParenthesesNodeStruct *newParenthesesNode(ParseContext *context, NodeBase *parentNode);
-        static IdentifierAccessNodeStruct *newIdentifierAccessNode(ParseContext *context, NodeBase *parentNode);
+        static IdentifiersAccessNodeStruct *newIdentifiersAccessNode(ParseContext *context, NodeBase *parentNode);
     };
 
 
@@ -1003,7 +1003,7 @@ namespace cshort {
         static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int identifierAccessTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context);
 
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.

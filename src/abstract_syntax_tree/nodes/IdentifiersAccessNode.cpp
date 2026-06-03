@@ -21,23 +21,23 @@ namespace cshort {
     // Identifier Access node is an expression node which has list of IdentifierToken inside.
     // - namespace::className.property
     // - localVariable
-    static CodeLine *appendToLine(IdentifierAccessNodeStruct *self, CodeLine *currentCodeLine) {
+    static CodeLine *appendToLine(IdentifiersAccessNodeStruct *self, CodeLine *currentCodeLine) {
         return TokenVTableCall::callAppendTokenToLine(&self->identifierToken, currentCodeLine);
     }
 
     // not used for nodes currently, but we can use it for error reporting or code generation later if needed.
-    static void copySelfText(IdentifierAccessNodeStruct *self, utf8byte *buf) {
+    static void copySelfText(IdentifiersAccessNodeStruct *self, utf8byte *buf) {
     }
 
     // not used for nodes currently, but we can use it for error reporting or code generation later if needed.
-    static int selfTextLength(IdentifierAccessNodeStruct *self) {
+    static int selfTextLength(IdentifiersAccessNodeStruct *self) {
         return 0;
     }
 
-    IdentifierAccessNodeStruct *Alloc::newIdentifierAccessNode(ParseContext *context, NodeBase *parentNode)
+    IdentifiersAccessNodeStruct *Alloc::newIdentifiersAccessNode(ParseContext *context, NodeBase *parentNode)
     {
-        auto *node = context->newMem<IdentifierAccessNodeStruct>();
-        INIT_NODE(node, context, parentNode, VTables::IdentifierAccessVTable);
+        auto *node = context->newMem<IdentifiersAccessNodeStruct>();
+        INIT_NODE(node, context, parentNode, VTables::IdentifiersAccessVTable);
 
         node->stackOffset = 0;
         auto *identifierToken = &node->identifierToken;
@@ -45,18 +45,18 @@ namespace cshort {
         return node;
     }
 
-    int Tokenizers::identifierAccessTokenizer(TokenizerParams_argNode_ch_start_context)
+    int Tokenizers::identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context)
     {
-        auto *variableNode = Alloc::newIdentifierAccessNode(context, Cast::upcast(argNode));
-        auto result = Tokenizers::identifierTokenizer(&variableNode->identifierToken, ch, start, context);
+        auto *identifiersAccess = Alloc::newIdentifiersAccessNode(context, Cast::upcast(argNode));
+        auto result = Tokenizers::identifierTokenizer(&identifiersAccess->identifierToken, ch, start, context);
         if (Search::IsTokenized(result)) {
-            context->generatedPrimaryNode = Cast::upcast(variableNode);
+            context->generatedPrimaryNode = Cast::upcast(identifiersAccess);
         }
 
         return result;
     }
 
-    static int applyFuncToDescendants(IdentifierAccessNodeStruct *node, ApplyFunc_params3)
+    static int applyFuncToDescendants(IdentifiersAccessNodeStruct *node, ApplyFunc_params3)
     {
         if (targetVTable == nullptr || node->vtable == targetVTable) {
             func(Cast::upcast(node), ApplyFunc_pass);
@@ -65,12 +65,12 @@ namespace cshort {
         return 0;
     }
 
-    static constexpr const char identifierAccessTypeText[] = "<IdentifierAccess>";
-    static node_vtable _identifierAccessVTable = CREATE_VTABLE(IdentifierAccessNodeStruct,
+    static constexpr const char identifiersAccessTypeText[] = "<IdentifiersAccess>";
+    static node_vtable _identifiersAccessVTable = CREATE_VTABLE(IdentifiersAccessNodeStruct,
                                                                selfTextLength, copySelfText,
                                                                appendToLine,
                                                                applyFuncToDescendants,
-                                                               identifierAccessTypeText,
-                                                               NodeTypeId::IdentifierAccess);
-    const node_vtable *VTables::IdentifierAccessVTable = &_identifierAccessVTable;
+                                                               identifiersAccessTypeText,
+                                                               NodeTypeId::IdentifiersAccess);
+    const node_vtable *VTables::IdentifiersAccessVTable = &_identifiersAccessVTable;
 }
