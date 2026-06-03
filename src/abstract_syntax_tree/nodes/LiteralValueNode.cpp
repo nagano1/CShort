@@ -104,3 +104,4 @@ namespace cshort {
 
         return node;
     }
+}
