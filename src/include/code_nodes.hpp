@@ -126,7 +126,7 @@ namespace cshort {
     };
 
 
-    using IdentifierTokenStruct = struct _IdentifierNodeStruct {
+    using IdentifierTokenStruct = struct _IdentifierTokenStruct {
         TOKEN_HEADER;
 
         int stackOffset;
@@ -149,6 +149,13 @@ namespace cshort {
 
         int64_t num;
         int unit;
+    };
+
+    using VariableNodeStruct = struct _VariableNodeStruct {
+        NODE_HEADER;
+        int stackOffset;
+
+        IdentifierTokenStruct identifierToken;
     };
 
     using ParenthesesNodeStruct = struct _ParenthesesNodeStruct {
@@ -665,8 +672,8 @@ namespace cshort {
                 *TypeVTable,
                 *FixedLiteralVTable,
                 *NumberVTable,
-                *ParenthesesVTable;
-
+                *ParenthesesVTable,
+                *VariableVTable
                 ;
 
         static const token_vtable
@@ -960,6 +967,7 @@ namespace cshort {
         static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
 
         static ParenthesesNodeStruct *newParenthesesNode(ParseContext *context, NodeBase *parentNode);
+        static VariableNodeStruct *newVariableNode(ParseContext *context, NodeBase *parentNode);
     };
 
 
@@ -1004,6 +1012,7 @@ namespace cshort {
         static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int variableTokenizer(TokenizerParams_argNode_ch_start_context);
 
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
