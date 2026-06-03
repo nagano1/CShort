@@ -1004,6 +1004,7 @@ namespace cshort {
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
         static int identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int stringLiteralTokenizer(TokenizerParams_argNode_ch_start_context);
 
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
