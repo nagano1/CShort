@@ -18,9 +18,13 @@
 #include "code_nodes.hpp"
 
 namespace cshort {
-    // Identifier Access node is an expression node which has list of IdentifierToken inside.
+    // --------------------------------- IdentifiersAccessNode ------------------------------- /
+    // IdentifiersAccessNode is an expression node which consists of a list of IdentifierToken.
+    // syntax:
     // - namespace::className.property
+    // - jp.co.company::className.property
     // - localVariable
+    // ----------------------------------------------------------------------------------------/
     static CodeLine *appendToLine(IdentifiersAccessNodeStruct *self, CodeLine *currentCodeLine) {
         return TokenVTableCall::callAppendTokenToLine(&self->identifierToken, currentCodeLine);
     }
@@ -40,8 +44,7 @@ namespace cshort {
         INIT_NODE(node, context, parentNode, VTables::IdentifiersAccessVTable);
 
         node->stackOffset = 0;
-        auto *identifierToken = &node->identifierToken;
-        Init::initIdentifierToken(identifierToken, context, parentNode);
+        Init::initIdentifierToken(&node->identifierToken, context, parentNode);
         return node;
     }
 

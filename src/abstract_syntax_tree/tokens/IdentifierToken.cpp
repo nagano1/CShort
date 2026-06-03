@@ -19,6 +19,12 @@
 
 namespace cshort {
 
+    // --------------------- IdentifierToken ---------------------- /
+    // used for identifiers in code, including variable names, function names, class names, etc.
+    // IdentifierToken has additional check for valid identifier characters,
+    // and it cannot be keywords, while SimpleTextToken can be any text.
+    // -------------------------------------------------------------/
+
     static CodeLine *appendToLine(IdentifierTokenStruct *self, CodeLine *currentCodeLine) {
         currentCodeLine = currentCodeLine->AddAttachedFormatTokens(self);
         currentCodeLine->appendToken(self);
