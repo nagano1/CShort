@@ -35,7 +35,7 @@ namespace cshort {
     }
 
 
-    /// @param argNode an IdentifierTokenStruct pointer
+    /// @param argNode: an IdentifierTokenStruct pointer
     /// @return the position after the tokenized identifier, or NOTFOUND if tokenization failed.
     int Tokenizers::identifierTokenizer(TokenizerParams_argNode_ch_start_context) {
         // First character cannot be a digit (but allow '_' and non-ASCII bytes).
