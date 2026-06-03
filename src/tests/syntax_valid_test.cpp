@@ -62,6 +62,7 @@ fn functionName(bool a) {
 
 class A { // comment
     fn method1() {
+        let a = variableName
         #bool immutableBool = (true)
         ?bool *nullableBool = false
         int a = -3214

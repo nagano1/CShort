@@ -19,6 +19,12 @@
 
 namespace cshort {
 
+    // --------------------- IdentifierToken ---------------------- /
+    // used for identifiers in code, including variable names, function names, class names, etc.
+    // IdentifierToken has additional check for valid identifier characters,
+    // and it cannot be keywords, while SimpleTextToken can be any text.
+    // -------------------------------------------------------------/
+
     static CodeLine *appendToLine(IdentifierTokenStruct *self, CodeLine *currentCodeLine) {
         currentCodeLine = currentCodeLine->AddAttachedFormatTokens(self);
         currentCodeLine->appendToken(self);
@@ -34,6 +40,9 @@ namespace cshort {
         return self->nameLength;
     }
 
+
+    /// @param argNode: an IdentifierTokenStruct pointer
+    /// @return the position after the tokenized identifier, or NOTFOUND if tokenization failed.
     int Tokenizers::identifierTokenizer(TokenizerParams_argNode_ch_start_context) {
         // First character cannot be a digit (but allow '_' and non-ASCII bytes).
         if (!(('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z') || ch == '_' || ((static_cast<unsigned char>(ch) & 0x80u) != 0))) {
