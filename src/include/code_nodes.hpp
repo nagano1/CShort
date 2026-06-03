@@ -477,8 +477,6 @@ namespace cshort {
         IdentifierAccess = 25,
         FixedLiteral = 31,
         Number = 32,
-        
-
     };
 
     enum class TokenTypeId {
@@ -498,16 +496,6 @@ namespace cshort {
         LineComment = 21,
         BlockComment = 22,
         BlockCommentFragment = 23,
-/*
-        Identifier = 0,
-        Number = 1,
-        StringLiteral = 2,
-        Symbol = 3,
-        LineBreak = 4,
-        WhiteSpace = 5,
-        Comment = 6,
-        EndOfFile = 7
-        */
     };
 
 

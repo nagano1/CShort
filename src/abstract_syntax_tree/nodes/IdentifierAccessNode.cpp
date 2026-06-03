@@ -19,8 +19,8 @@
 
 namespace cshort {
     // Identifier Access node is an expression node which has list of IdentifierToken inside.
-    // namespace::className.property
-    // localVariable
+    // - namespace::className.property
+    // - localVariable
     static CodeLine *appendToLine(IdentifierAccessNodeStruct *self, CodeLine *currentCodeLine) {
         return TokenVTableCall::callAppendTokenToLine(&self->identifierToken, currentCodeLine);
     }
@@ -56,7 +56,7 @@ namespace cshort {
         return result;
     }
 
-    static int IdentifierAccessNodeStruct_applyFuncToDescendants(IdentifierAccessNodeStruct *node, ApplyFunc_params3)
+    static int applyFuncToDescendants(IdentifierAccessNodeStruct *node, ApplyFunc_params3)
     {
         if (targetVTable == nullptr || node->vtable == targetVTable) {
             func(Cast::upcast(node), ApplyFunc_pass);
@@ -66,11 +66,11 @@ namespace cshort {
     }
 
     static constexpr const char identifierAccessTypeText[] = "<IdentifierAccess>";
-
-    static node_vtable _identifierAccessVTable = CREATE_VTABLE(IdentifierAccessNodeStruct, selfTextLength,
-                                                       copySelfText, appendToLine,
-                                                       IdentifierAccessNodeStruct_applyFuncToDescendants,
-                                                       identifierAccessTypeText,
-                                                         NodeTypeId::IdentifierAccess);
+    static node_vtable _identifierAccessVTable = CREATE_VTABLE(IdentifierAccessNodeStruct,
+                                                               selfTextLength, copySelfText,
+                                                               appendToLine,
+                                                               applyFuncToDescendants,
+                                                               identifierAccessTypeText,
+                                                               NodeTypeId::IdentifierAccess);
     const node_vtable *VTables::IdentifierAccessVTable = &_identifierAccessVTable;
 }

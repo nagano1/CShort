@@ -31,10 +31,10 @@ namespace cshort
         return currentCodeLine;
     }
 
-static void copySelfText(TypeNodeStruct *self, utf8byte *buf)
-{
-    TokenVTableCall::copySelfText(&self->typeTextToken, buf);
-}
+    static void copySelfText(TypeNodeStruct *self, utf8byte *buf)
+    {
+        TokenVTableCall::copySelfText(&self->typeTextToken, buf);
+    }
 
     static int selfTextLength(TypeNodeStruct *self)
     {
