@@ -151,6 +151,15 @@ namespace cshort {
         int unit;
     };
 
+    using ParenthesesNodeStruct = struct _ParenthesesNodeStruct {
+        NODE_HEADER;
+
+        SymbolTokenStruct openNode;
+        SymbolTokenStruct closeNode;
+
+        NodeBase *valueNode;
+    };
+
     using ClassNodeStruct = struct _ClassNodeStruct {
         NODE_HEADER;
 
@@ -655,7 +664,9 @@ namespace cshort {
                 *ReturnStatementVTable,
                 *TypeVTable,
                 *FixedLiteralVTable,
-                *NumberVTable
+                *NumberVTable,
+                *ParenthesesVTable;
+
                 ;
 
         static const token_vtable
@@ -947,6 +958,8 @@ namespace cshort {
         static FuncNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
 
         static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
+
+        static ParenthesesNodeStruct *newParenthesesNode(ParseContext *context, NodeBase *parentNode);
     };
 
 
@@ -964,6 +977,14 @@ namespace cshort {
 
     using TokenizerFunction = int (*)(TokenizerParams_argNode_ch_start_context);
 
+    struct NodeUtil {
+        static inline bool isEndOfFileToken(TokenBase *token) {
+            return token != nullptr
+                   && token->parentNode != nullptr
+                   && ((NodeBase*)(token->parentNode))->vtable->nodeTypeId == NodeTypeId::EndOfDoc;
+
+        }
+    };
     struct Tokenizers {
         // Tokens
         static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
@@ -982,6 +1003,8 @@ namespace cshort {
         static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
+
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
         // generator is a function pointer for generating corresponding token, it will be called when the word is matched, and the generated token will be returned by the tokenizer.

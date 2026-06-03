@@ -62,7 +62,7 @@ fn functionName(bool a) {
 
 class A { // comment
     fn method1() {
-        #bool immutableBool = true
+        #bool immutableBool = (true)
         ?bool *nullableBool = false
         int a = -3214
         int b = 102024L
@@ -77,7 +77,7 @@ const char classCommentText[] = u8"class A \r\n // comment \r\n {}";
 
 void checkTextEquality(const char *name, const char* code)
 {
-    fprintf(stderr, "checking: %s\n", name);
+    printf("checking: %s\n", name);
 
     auto *document = Alloc::newDocument(DocumentType::CodeDocument);
     DocumentUtils::parseText(document, code, strlen(code));

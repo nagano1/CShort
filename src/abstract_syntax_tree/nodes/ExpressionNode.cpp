@@ -56,9 +56,15 @@ namespace cshort {
 
 
     int Tokenizers::tokenizeExpression(TokenizerParams_argNode_ch_start_context) {
-        int result = Tokenizers::numberNodeTokenizer(TokenizerParams_pass);
-        if (!Search::IsTokenized(result)) {
-            result = Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass);
+        int result;
+        if (Search::IsTokenized(result = Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass))) {
+        }
+        else if (Search::IsTokenized(result = Tokenizers::numberNodeTokenizer(TokenizerParams_pass))) {
+        }
+        else if (Search::IsTokenized(result = Tokenizers::parenthesesTokenizer(TokenizerParams_pass))) {
+        }
+        else {
+            return Search::NOTFOUND;
         }
 
         return result;
