@@ -69,6 +69,7 @@ class A { // comment
         int b = 102024L
         str s = "string literal with escape char \n and \"quote\""
         str *s2 = `raw string literal with \n no escape and "quote"`
+        let g = func(123, "2342", true)
         return true
     }
 }
