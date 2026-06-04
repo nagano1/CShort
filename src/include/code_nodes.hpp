@@ -304,7 +304,7 @@ namespace cshort {
     };
 
 
-    using FuncCallArgumentItemStruct = struct _FuncArgumentItemStruct {
+    using FuncCallArgItemStruct = struct _FuncArgumentItemStruct {
         NODE_HEADER;
 
         NodeBase *exprNode; // expression Node
@@ -322,8 +322,8 @@ namespace cshort {
         SymbolTokenStruct openParenthesisToken;
         SymbolTokenStruct closeParenthesisToken;
 
-        FuncCallArgumentItemStruct *firstArgumentItem;
-        FuncCallArgumentItemStruct *lastArgumentItem;
+        FuncCallArgItemStruct *firstArgumentItem;
+        FuncCallArgItemStruct *lastArgumentItem;
     };
 
 
@@ -707,7 +707,7 @@ namespace cshort {
                 *NumberVTable,
                 *ParenthesesVTable,
                 *IdentifiersAccessVTable,
-                *FuncCallArgumentVTable,
+                *FuncCallArgVTable,
                 *FuncCallVTable;
 
                 ;
@@ -1008,7 +1008,7 @@ namespace cshort {
         static ParenthesesNodeStruct *newParenthesesNode(ParseContext *context, NodeBase *parentNode);
         static IdentifiersAccessNodeStruct *newIdentifiersAccessNode(ParseContext *context, NodeBase *parentNode);
 
-        static FuncCallArgumentItemStruct *newFuncCallArgumentItem(ParseContext *context, NodeBase *parentNode);
+        static FuncCallArgItemStruct *newFuncCallArgItem(ParseContext *context, NodeBase *parentNode);
         static FuncCallNodeStruct *newFuncCallNode(ParseContext *context, NodeBase *parentNode);
 
     };

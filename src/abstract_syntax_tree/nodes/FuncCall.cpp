@@ -24,7 +24,7 @@ namespace cshort {
     //                              FuncCallArgumentItemStruct
     //
     // -----------------------------------------------------------------------------------
-    static CodeLine *FuncArgument_appendToLine2(FuncCallArgumentItemStruct *self, CodeLine *currentCodeLine) {
+    static CodeLine *FuncCallArg_appendToLine(FuncCallArgItemStruct *self, CodeLine *currentCodeLine) {
 
         if (self->exprNode) {
             currentCodeLine = VTableCall::callAppendNodeToLine(self->exprNode, currentCodeLine);
@@ -37,17 +37,17 @@ namespace cshort {
         return currentCodeLine;
     };
 
-    static void copySelfText_FuncArgument(FuncCallArgumentItemStruct *self, utf8byte *buf) {
+    static void copySelfText_FuncCallArgItem(FuncCallArgItemStruct *self, utf8byte *buf) {
         return;
     }
 
-    static int FuncArgument_selfTextLength2(FuncCallArgumentItemStruct *) {
+    static int FuncCallArg_selfTextLength(FuncCallArgItemStruct *) {
         return 0;
     }
 
 
-    static int FuncArgumentItemStruct_applyFuncToDescendants(
-            FuncCallArgumentItemStruct *node, ApplyFunc_params3)
+    static int FuncCallArgItemStruct_applyFuncToDescendants(
+            FuncCallArgItemStruct *node, ApplyFunc_params3)
     {
 
         if (parentIsFirst) {
@@ -67,20 +67,20 @@ namespace cshort {
     }
 
 
-    static node_vtable _funcArgumentItemVTable = CREATE_VTABLE(FuncCallArgumentItemStruct,
-                                                               FuncArgument_selfTextLength2,
-                                                               copySelfText_FuncArgument,
-                                                               FuncArgument_appendToLine2,
-                                                               FuncArgumentItemStruct_applyFuncToDescendants,
-                                                               "<FuncArgument>",
+    static node_vtable _funcArgItemVTable = CREATE_VTABLE(FuncCallArgItemStruct,
+                                                               FuncCallArg_selfTextLength,
+                                                               copySelfText_FuncCallArgItem,
+                                                               FuncCallArg_appendToLine,
+                                                               FuncCallArgItemStruct_applyFuncToDescendants,
+                                                               "<FuncCallArgItem>",
                                                                NodeTypeId::FuncArgument);
 
-    const struct node_vtable *VTables::FuncCallArgumentVTable  = &_funcArgumentItemVTable;
+    const struct node_vtable *VTables::FuncCallArgVTable  = &_funcArgItemVTable;
 
-    FuncCallArgumentItemStruct *Alloc::newFuncCallArgumentItem(ParseContext *context, NodeBase *parentNode) {
-        auto *keyValueItem = context->newMem<FuncCallArgumentItemStruct>();
+    FuncCallArgItemStruct *Alloc::newFuncCallArgItem(ParseContext *context, NodeBase *parentNode) {
+        auto *keyValueItem = context->newMem<FuncCallArgItemStruct>();
 
-        INIT_NODE(keyValueItem, context, parentNode, &_funcArgumentItemVTable);
+        INIT_NODE(keyValueItem, context, parentNode, &_funcArgItemVTable);
 
         Init::initSymbolToken(&keyValueItem->follwingComma, context, keyValueItem, ',');
 
@@ -104,20 +104,18 @@ namespace cshort {
             currentCodeLine = VTableCall::callAppendNodeToLine(self->callerExprNode, currentCodeLine);
         }
 
-
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->openParenthesisToken, currentCodeLine);
 
         int formerParentDepth = self->context->parentDepth;
         self->context->parentDepth += 1;
 
-        auto *item = self->firstArgumentItem;
-        while (item != nullptr) {
-            currentCodeLine = VTableCall::callAppendNodeToLine(item, currentCodeLine);
-            item = Cast::downcast<FuncCallArgumentItemStruct *>(item->nextNode);
+        auto *argItem = self->firstArgumentItem;
+        while (argItem != nullptr) {
+            currentCodeLine = VTableCall::callAppendNodeToLine(argItem, currentCodeLine);
+            argItem = Cast::downcast<FuncCallArgItemStruct *>(argItem->nextNode);
         }
 
         self->context->parentDepth = formerParentDepth;
-
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->closeParenthesisToken, currentCodeLine);
 
@@ -139,7 +137,7 @@ namespace cshort {
     static constexpr const char funcCallNodeTypeText[] = "<FuncCall>";
 
 
-    static inline void appendRootNode(FuncCallNodeStruct *arr, FuncCallArgumentItemStruct *arrayItem) {
+    static inline void appendRootNode(FuncCallNodeStruct *arr, FuncCallArgItemStruct *arrayItem) {
         assert(arr != nullptr && arrayItem != nullptr);
 
         if (arr->firstArgumentItem == nullptr) {
@@ -163,7 +161,7 @@ namespace cshort {
     {
         int result;
         if (Search::IsTokenized(result = Tokenizers::tokenizeExpression(TokenizerParams_pass))) {
-            auto *nextItem = Alloc::newFuncCallArgumentItem(context, Cast::upcast(argNode));
+            auto *nextItem = Alloc::newFuncCallArgItem(context, Cast::upcast(argNode));
 
             nextItem->exprNode = context->generatedPrimaryNode;
             appendRootNode(funcCallNode, nextItem);
@@ -257,7 +255,7 @@ namespace cshort {
         while (item != nullptr) {
             item->vtable->applyFuncToDescendants(
                     Cast::upcast(item), ApplyFunc_pass2);
-            item = Cast::downcast<FuncCallArgumentItemStruct *>(item->nextNode);
+            item = Cast::downcast<FuncCallArgItemStruct *>(item->nextNode);
         }
 
         if (!parentIsFirst) {
