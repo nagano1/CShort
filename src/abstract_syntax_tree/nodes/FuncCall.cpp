@@ -127,7 +127,6 @@ namespace cshort {
     }
 
 
-    // virtual node does not have self text. underlying nodes will be appended to code line.
     static void copySelfText_FuncCall(FuncCallNodeStruct *self, utf8byte *buf)
     {
         return;
