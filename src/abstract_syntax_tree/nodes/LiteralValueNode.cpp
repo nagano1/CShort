@@ -23,6 +23,7 @@ namespace cshort {
         bool isTrue = false;
         bool isFalse = false;
         bool isNull = false;
+        bool isStringLiteral = false;
 
         int result;
         if (Search::IsTokenized(result = Tokenizers::tokenizeWord(TokenizerParams_pass,
@@ -37,39 +38,68 @@ namespace cshort {
                                                                   Alloc::newConstLiteralToken, 'n', "null"))) {
             isNull = true;
         }
+        else if (Search::IsTokenized(result = Tokenizers::stringLiteralTokenizer(TokenizerParams_pass))) {
+            // string literal is also a kind of fixed literal,
+            // we can use the same node for them, and distinguish them by a flag in the node.
+            // this can simplify the AST and make it easier for code generation,
+            // because string literals also need to store the original text for code generation,
+            // and we can just use the textToken field
+            // in LiteralValueNodeStruct to store the string literal token.
+            isStringLiteral = true;
+            
+        }
         else {
             return Search::NOTFOUND;
         }
+
 
         auto newLiteralValueNode = Alloc::newLiteralValueNode(context, Cast::downcast<NodeBase*>(argNode));
 
         newLiteralValueNode->isTrue = isTrue;
         newLiteralValueNode->isFalse = isFalse;
         newLiteralValueNode->isNull = isNull;
-
-        newLiteralValueNode->textToken = Cast::downcast<ConstLiteralTokenStruct*>(context->mostLeftToken);
-        newLiteralValueNode->textToken->parentNode = Cast::upcast(newLiteralValueNode);
+        newLiteralValueNode->isStringLiteral = isStringLiteral;
         context->generatedPrimaryNode = Cast::upcast(newLiteralValueNode);
+
+        if (isStringLiteral) {
+            newLiteralValueNode->stringLiteralToken = Cast::downcast<StringLiteralTokenStruct*>(context->mostLeftToken);
+            newLiteralValueNode->stringLiteralToken->parentNode = Cast::upcast(newLiteralValueNode);
+        }
+        else {
+            newLiteralValueNode->textToken = Cast::downcast<ConstLiteralTokenStruct*>(context->mostLeftToken);
+            newLiteralValueNode->textToken->parentNode = Cast::upcast(newLiteralValueNode);
+        }
+        
         return result;
     }
 
 
 
+    static TokenBase *getLiteralToken(LiteralValueNodeStruct *self) {
+        if (self->isStringLiteral) {
+            assert(self->stringLiteralToken != nullptr);
+            return Cast::upcastToken(self->stringLiteralToken);
+        }
+        else {
+            assert(self->textToken != nullptr);
+            return Cast::upcastToken(self->textToken);
+        }
+    }
 
     static CodeLine *appendToLine(LiteralValueNodeStruct *self, CodeLine *currentCodeLine)
     {
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(self->textToken, currentCodeLine);
-        return currentCodeLine;
+        return TokenVTableCall::callAppendTokenToLine(getLiteralToken(self), currentCodeLine);
     }
+
 
     static void copySelfText(LiteralValueNodeStruct *self, utf8byte *buf)
     {
-        TokenVTableCall::copySelfText(self->textToken, buf);
+
     }
 
     static int selfTextLength(LiteralValueNodeStruct *self)
     {
-        return self->textToken->textLength;
+        return 0;
     }
 
 
@@ -101,6 +131,7 @@ namespace cshort {
         node->isFalse = false;
         node->isNull = false;
         node->textToken = nullptr; // it will be assigned in tokenizer after the token is generated
+        node->stringLiteralToken = nullptr;
 
         return node;
     }

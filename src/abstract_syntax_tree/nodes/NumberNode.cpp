@@ -17,9 +17,10 @@
 #include "code_nodes.hpp"
 
 namespace cshort {
-    //    +--------------------------+
-    //    | NumberValueNode          |
-    //    +--------------------------+
+    //    +------------------------------------------------------------
+    //    | NumberValueNode 
+    //    | NumberValue looks like it can be Literal but it can have negative sign, so we put it in a separate node type.
+    //    +------------------------------------------------------------
 
     static CodeLine *appendToLine_NumberNode(NumberNodeStruct *self, CodeLine *currentCodeLine)
     {

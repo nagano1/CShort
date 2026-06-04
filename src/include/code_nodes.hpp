@@ -25,22 +25,25 @@ namespace cshort {
     struct ParseContext;
     struct CodeLine;
 
-    #define NODE_HEADER \
-        const struct node_vtable *vtable; /* virtual table */ \
-        int node_proof; \
+    #define NODE_TYPE_ID 0x123
+    #define TOKEN_TYPE_ID 0x456
+
+    #define COMMON_HEADER \
+        int type_id; \
         _NodeBase *parentNode; \
-        _NodeBase *nextNode; \
         CodeLine *codeLine; \
         ParseContext *context; \
 
+    #define NODE_HEADER \
+        COMMON_HEADER \
+        const struct node_vtable *vtable; /* virtual table */ \
+        _NodeBase *nextNode; \
+
     #define TOKEN_HEADER \
+        COMMON_HEADER \
         const struct token_vtable *vtable; /* virtual table */ \
-        int token_proof; \
-        _NodeBase *parentNode; \
         _TokenBase *nextToken; \
         _TokenBase *nextTokenInLine; \
-        CodeLine *codeLine; \
-        ParseContext *context; \
         int foundPos; \
         /* precedingSpaceCount holds number of chars before this node, used for error reporting and code generation. */ \
         /* this reduces memory usage and keeps AST simple by avoid creating additional nodes for all spaces. */ \
@@ -57,7 +60,7 @@ namespace cshort {
 
     #define INIT_NODE(node, context, parent, argvtable) \
         (node)->vtable = (argvtable); \
-        (node)->node_proof = 0x123; \
+        (node)->type_id = NODE_TYPE_ID; \
         (node)->context = (context); \
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
@@ -66,7 +69,7 @@ namespace cshort {
 
     #define INIT_TOKEN(token, context, parent, argvtable) \
         (token)->vtable = (argvtable); \
-        (token)->token_proof = 0x456; \
+        (token)->type_id = TOKEN_TYPE_ID; \
         (token)->precedingSpaceCount = 0; \
         (token)->context = (context); \
         (token)->parentNode = (NodeBase*)(parent); \
@@ -114,7 +117,7 @@ namespace cshort {
         TOKEN_HEADER;
 
         BlockCommentFragmentStruct *firstCommentFragment;
-        char* tagText; // for named block comment /*[hoge] ... [hoge]*/
+        char* tagText; // for named block comment /*<[hoge] ... [hoge]>*/
         int tagTextLength;
     };
 
@@ -203,6 +206,19 @@ namespace cshort {
         SimpleTextTokenStruct typeTextToken; // including ? or #
     };
 
+    
+    using StringLiteralTokenStruct = struct _StringLiteralTokenStruct {
+        TOKEN_HEADER;
+        char *text; // unparsed text including ""
+        int_fast32_t textLength;
+
+        char *str;
+        int strLength;
+
+        int literalType; // 0: "text", 1: `text`
+    };
+
+
     // true, false, null
     using LiteralValueNodeStruct = struct _LiteralValueStruct {
         NODE_HEADER;
@@ -210,10 +226,13 @@ namespace cshort {
         bool isTrue;
         bool isFalse;
         bool isNull;
+        bool isStringLiteral;
 
-        ConstLiteralTokenStruct *textToken; // including ? or #
+        ConstLiteralTokenStruct *textToken;
+        // if this literal is string, store the string literal node here for code generation.
+        StringLiteralTokenStruct *stringLiteralToken;
     };
-
+    
 
     // int a = 5
     // immutable: #int a = 5
@@ -448,14 +467,14 @@ namespace cshort {
         template<typename T>
         static inline NodeBase *upcast(T *node) {
             auto *n =  (NodeBase *) node;
-            assert(n->node_proof == 0x123);
+            assert(n->type_id == NODE_TYPE_ID);
             return n;
         }
 
         template<typename T>
         static inline TokenBase *upcastToken(T *token) {
             auto *t = (TokenBase *) token;
-            assert(t->token_proof == 0x456);
+            assert(t->type_id == TOKEN_TYPE_ID);
             return t;
         }
     };
@@ -728,7 +747,7 @@ namespace cshort {
                 return currentCodeLine;
             }
             auto *nodeBase = Cast::upcast(node);
-            assert(nodeBase->node_proof == 0x123);
+            assert(nodeBase->type_id == NODE_TYPE_ID);
 
             return nodeBase->vtable->appendToLine(nodeBase, currentCodeLine);
         }
@@ -775,7 +794,7 @@ namespace cshort {
             }
 
             auto *tokenBase = Cast::upcastToken(token);
-            assert(tokenBase->token_proof == 0x456);
+            assert(tokenBase->type_id == TOKEN_TYPE_ID);
             if (tokenBase->foundPos < 0) {
                 printf("no foundPos > -1: %s\n", typeText(tokenBase));
             }
@@ -847,7 +866,8 @@ namespace cshort {
             }
 
             lastToken = (TokenBase *) token;
-            assert(lastToken->token_proof == 0x456);
+            assert(lastToken->type_id == TOKEN_TYPE_ID);
+            assert(lastToken->parentNode != nullptr);
             if (this->context->appendLineMode == AppendLineMode::Normal) {
                 ((TokenBase *) token)->codeLine = this;
             }
@@ -924,7 +944,8 @@ namespace cshort {
 
         static void initSimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, void *parentNode, int charLen);
         static void assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, const utf8byte *text, int charLen);
-
+        static void initStringLiteralNode(StringLiteralTokenStruct *name, ParseContext *context,
+                                          NodeBase *parentNode);
 
     };
 
@@ -939,6 +960,7 @@ namespace cshort {
         static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, void *parentNode);
         static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, BlockCommentTokenStruct *parentNode);
         static ConstLiteralTokenStruct *newConstLiteralToken(ParseContext *context, NodeBase *parentNode);
+        static StringLiteralTokenStruct *newStringLiteralToken(ParseContext *context, NodeBase *parentNode);
 
         // Nodes
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
@@ -987,6 +1009,7 @@ namespace cshort {
     struct Tokenizers {
         // Tokens
         static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int stringLiteralTokenizer(TokenizerParams_argNode_ch_start_context);
 
         // Nodes
         static int classTokenizer(TokenizerParams_argNode_ch_start_context);
