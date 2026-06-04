@@ -206,6 +206,19 @@ namespace cshort {
         SimpleTextTokenStruct typeTextToken; // including ? or #
     };
 
+    
+    using StringLiteralTokenStruct = struct _StringLiteralTokenStruct {
+        TOKEN_HEADER;
+        char *text; // unparsed text including ""
+        int_fast32_t textLength;
+
+        char *str;
+        int strLength;
+
+        int literalType; // 0: "text", 1: `text`
+    };
+
+
     // true, false, null
     using LiteralValueNodeStruct = struct _LiteralValueStruct {
         NODE_HEADER;
@@ -213,10 +226,13 @@ namespace cshort {
         bool isTrue;
         bool isFalse;
         bool isNull;
+        bool isStringLiteral;
 
         ConstLiteralTokenStruct *textToken; // including ? or #
+        // if this literal is string, store the string literal node here for code generation.
+        StringLiteralTokenStruct *stringLiteralNode;
     };
-
+    
 
     // int a = 5
     // immutable: #int a = 5
@@ -928,7 +944,8 @@ namespace cshort {
 
         static void initSimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, void *parentNode, int charLen);
         static void assignText_SimpleTextToken(SimpleTextTokenStruct *textToken, ParseContext *context, const utf8byte *text, int charLen);
-
+        static void initStringLiteralNode(StringLiteralTokenStruct *name, ParseContext *context,
+                                          NodeBase *parentNode);
 
     };
 
@@ -943,6 +960,7 @@ namespace cshort {
         static BlockCommentTokenStruct *newBlockCommentToken(ParseContext *context, void *parentNode);
         static BlockCommentFragmentStruct *newBlockCommentFragmentToken(ParseContext *context, BlockCommentTokenStruct *parentNode);
         static ConstLiteralTokenStruct *newConstLiteralToken(ParseContext *context, NodeBase *parentNode);
+        static StringLiteralTokenStruct *newStringLiteralToken(ParseContext *context, NodeBase *parentNode);
 
         // Nodes
         static ClassNodeStruct *newClassNode(ParseContext *context, NodeBase *parentNode);
@@ -991,6 +1009,7 @@ namespace cshort {
     struct Tokenizers {
         // Tokens
         static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int stringLiteralTokenizer(TokenizerParams_argNode_ch_start_context);
 
         // Nodes
         static int classTokenizer(TokenizerParams_argNode_ch_start_context);
@@ -1008,7 +1027,6 @@ namespace cshort {
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
         static int identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int stringLiteralTokenizer(TokenizerParams_argNode_ch_start_context);
 
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
