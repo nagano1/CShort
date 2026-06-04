@@ -104,12 +104,10 @@ namespace cshort {
             currentCodeLine = VTableCall::callAppendNodeToLine(self->callerExprNode, currentCodeLine);
         }
 
-        //int formerParentDepth = self->context->parentDepth;
-        //self->context->parentDepth += 1;
-        //self->context->parentDepth = formerParentDepth;
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->openParenthesisToken, currentCodeLine);
 
+        int formerParentDepth = self->context->parentDepth;
         self->context->parentDepth += 1;
 
         auto *item = self->firstArgumentItem;
@@ -118,7 +116,7 @@ namespace cshort {
             item = Cast::downcast<FuncCallArgumentItemStruct *>(item->nextNode);
         }
 
-        self->context->parentDepth -= 1;
+        self->context->parentDepth = formerParentDepth;
 
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->closeParenthesisToken, currentCodeLine);
