@@ -115,7 +115,7 @@ namespace cshort {
             || ch == '&' || ch == '|') {
 
             auto *binaryOpNode = Alloc::newBinaryOperationNode(context, Cast::upcast(argNode), ch);
-
+            binaryOpNode->opToken.foundPos = start;
             context->mostLeftToken = Cast::upcastToken(&binaryOpNode->opToken);
             context->generatedPrimaryNode = Cast::upcast(binaryOpNode);
             return start + 1;

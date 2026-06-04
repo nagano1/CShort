@@ -70,6 +70,8 @@ class A { // comment
         str s = "string literal with escape char \n and \"quote\""
         str *s2 = `raw string literal with \n no escape and "quote"`
         let g = func(123, "2342", true)
+        let k = 23 + 42
+        let m = "weof" + /*comment*/ "test"
         return true
     }
 }
