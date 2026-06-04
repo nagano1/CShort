@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <stdlib.h>
 #include <array>
@@ -326,6 +326,14 @@ namespace cshort {
         FuncCallArgItemStruct *lastArgumentItem;
     };
 
+    
+    using BinaryOperationNodeStruct = struct _BinaryOperationNodeStruct {
+        NODE_HEADER;
+
+        NodeBase *leftExprNode;
+        SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
+        NodeBase *rightExprNode;
+    };
 
 
 
@@ -708,8 +716,8 @@ namespace cshort {
                 *ParenthesesVTable,
                 *IdentifiersAccessVTable,
                 *FuncCallArgVTable,
-                *FuncCallVTable;
-
+                *FuncCallVTable,
+                *BinaryOperationVTable
                 ;
 
         static const token_vtable
@@ -1011,6 +1019,9 @@ namespace cshort {
         static FuncCallArgItemStruct *newFuncCallArgItem(ParseContext *context, NodeBase *parentNode);
         static FuncCallNodeStruct *newFuncCallNode(ParseContext *context, NodeBase *parentNode);
 
+        // operations
+        static BinaryOperationNodeStruct *newBinaryOperationNode(ParseContext *context, NodeBase *parentNode, char op);
+
     };
 
 
@@ -1059,7 +1070,7 @@ namespace cshort {
         static int identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int tokenizeFuncCall(TokenizerParams_argNode_ch_start_context);
-
+        static int binaryOperationTokenizer(TokenizerParams_argNode_ch_start_context);
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
         // generator is a function pointer for generating corresponding token, it will be called when the word is matched, and the generated token will be returned by the tokenizer.

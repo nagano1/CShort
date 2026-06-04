@@ -34,13 +34,21 @@ namespace cshort {
             return Search::NOTFOUND;
         }
 
-        // call func expression: func()
+        ch = context->chars[result];
+        // after tokenizing a primary expression, we will try to tokenize binary operation or
+        // function call that follows the primary expression, because they are also part of the
+        // expression.
+        auto *mostLeftToken = context->mostLeftToken;
         int extraPos;
-        if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, context->chars[result],
-                                                           result, context))) {
+        // call func expression: func()
+        if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, ch, result, context))) {
+           result = extraPos;
+        } // binary operation: expression + expression.
+        else if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, ch, result, context))) {
            result = extraPos;
         }
 
+        context->mostLeftToken = mostLeftToken;
         return result;
     }
 }
