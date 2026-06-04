@@ -34,6 +34,13 @@ namespace cshort {
             return Search::NOTFOUND;
         }
 
+        // call func expression: func()
+        int extraPos;
+        if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, context->chars[result],
+                                                           result, context))) {
+           result = extraPos;
+        }
+
         return result;
     }
 }

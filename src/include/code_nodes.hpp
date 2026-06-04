@@ -304,6 +304,29 @@ namespace cshort {
     };
 
 
+    using FuncCallArgumentItemStruct = struct _FuncArgumentItemStruct {
+        NODE_HEADER;
+
+        NodeBase *exprNode; // expression Node
+        SymbolTokenStruct follwingComma;
+        bool hasComma;
+    };
+
+
+    // func(23, "str")
+    using FuncCallNodeStruct = struct _FuncCallNodeStruct {
+        NODE_HEADER;
+
+        NodeBase *callerExprNode; // this can be a variable or a property access like obj.method, or even a func call like getFunc()()
+        int parsePhase;
+        SymbolTokenStruct openParenthesisToken;
+        SymbolTokenStruct closeParenthesisToken;
+
+        FuncCallArgumentItemStruct *firstArgumentItem;
+        FuncCallArgumentItemStruct *lastArgumentItem;
+    };
+
+
 
 
     enum DocumentType {
@@ -683,7 +706,10 @@ namespace cshort {
                 *FixedLiteralVTable,
                 *NumberVTable,
                 *ParenthesesVTable,
-                *IdentifiersAccessVTable
+                *IdentifiersAccessVTable,
+                *FuncCallArgumentVTable,
+                *FuncCallVTable;
+
                 ;
 
         static const token_vtable
@@ -981,6 +1007,10 @@ namespace cshort {
 
         static ParenthesesNodeStruct *newParenthesesNode(ParseContext *context, NodeBase *parentNode);
         static IdentifiersAccessNodeStruct *newIdentifiersAccessNode(ParseContext *context, NodeBase *parentNode);
+
+        static FuncCallArgumentItemStruct *newFuncCallArgumentItem(ParseContext *context, NodeBase *parentNode);
+        static FuncCallNodeStruct *newFuncCallNode(ParseContext *context, NodeBase *parentNode);
+
     };
 
 
@@ -1027,6 +1057,8 @@ namespace cshort {
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
         static int identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context);
+
+        static int tokenizeFuncCall(TokenizerParams_argNode_ch_start_context);
 
 
         // tokenizer for simple keywords or symbols, like "null", "true", "false", " ", etc... they can be tokenized in one step without backtracking, so we can use this template function to generate them.
