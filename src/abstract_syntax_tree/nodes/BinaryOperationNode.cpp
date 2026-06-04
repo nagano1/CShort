@@ -162,12 +162,4 @@ namespace cshort {
 
         return node;
     }
-
-
-
-
-
-
-
-
 } // namespace
