@@ -196,6 +196,7 @@ namespace cshort {
         if (funcCallNode->parsePhase == phase::EXPECT_COMMA) {
             if (ch == ',') { // try to find ',' which leads to next key-value
                 currentKeyValueItem->hasComma = true;
+                currentKeyValueItem->follwingComma.foundPos = start;
                 context->mostLeftToken = Cast::upcastToken(&currentKeyValueItem->follwingComma);
                 funcCallNode->parsePhase = phase::EXPECT_VALUE;
                 return start + 1;
