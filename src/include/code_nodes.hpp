@@ -117,7 +117,7 @@ namespace cshort {
         TOKEN_HEADER;
 
         BlockCommentFragmentStruct *firstCommentFragment;
-        char* tagText; // for named block comment /*[hoge] ... [hoge]*/
+        char* tagText; // for named block comment /*<[hoge] ... [hoge]>*/
         int tagTextLength;
     };
 
