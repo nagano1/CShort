@@ -73,6 +73,22 @@ fn functionName(int a, bool b) {
 - Parameters are written as `type name` pairs separated by commas.
 - The body may contain statements such as declarations, assignments, and `return`.
 
+### Function Calls
+
+Functions can be called by using the function identifier followed by arguments enclosed in parentheses and separated by commas.
+Function calls can be standalone statements or part of expressions.
+
+```
+// Standalone function call
+func(123, "text")
+
+// Function call inside an expression
+let a = 12 + fnc(12)
+```
+
+- Arguments are passed inside parentheses, separated by commas.
+- Can be used in variable declarations, assignments, or arbitrary expressions.
+
 ### Comments
 
 CShort has three kinds of comments.
