@@ -228,9 +228,9 @@ namespace cshort {
         bool isNull;
         bool isStringLiteral;
 
-        ConstLiteralTokenStruct *textToken; // including ? or #
+        ConstLiteralTokenStruct *textToken;
         // if this literal is string, store the string literal node here for code generation.
-        StringLiteralTokenStruct *stringLiteralNode;
+        StringLiteralTokenStruct *stringLiteralToken;
     };
     
 

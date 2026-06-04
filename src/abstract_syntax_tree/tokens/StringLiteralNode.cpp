@@ -85,20 +85,21 @@ namespace cshort {
 
 
         assert(strLength > 1); // at least has two quotes
-        auto *strLiteralNode = context->newMem<StringLiteralTokenStruct>();
-        Init::initStringLiteralNode(strLiteralNode, context, Cast::upcast(argNode));
-        context->mostLeftToken = Cast::upcastToken(strLiteralNode);
+        auto *strLiteralToken = context->newMem<StringLiteralTokenStruct>();
+        Init::initStringLiteralNode(strLiteralToken, context, Cast::upcast(argNode));
+        strLiteralToken->foundPos = start;
+        context->mostLeftToken = Cast::upcastToken(strLiteralToken);
 
-        strLiteralNode->text = context->memBuffer.newText(strLength);
-        strLiteralNode->textLength = strLength;
+        strLiteralToken->text = context->memBuffer.newText(strLength);
+        strLiteralToken->textLength = strLength;
 
-        memcpy(strLiteralNode->text, context->chars + start, strLength);
-        strLiteralNode->text[strLength] = '\0';
+        memcpy(strLiteralToken->text, context->chars + start, strLength);
+        strLiteralToken->text[strLength] = '\0';
 
 
-        strLiteralNode->literalType = literalType;
-        strLiteralNode->str = strLiteralNode->text;
-        strLiteralNode->strLength = strLength;
+        strLiteralToken->literalType = literalType;
+        strLiteralToken->str = strLiteralToken->text;
+        strLiteralToken->strLength = strLength;
 
         return start + strLength;
     }

@@ -67,6 +67,8 @@ class A { // comment
         ?bool *nullableBool = false
         int a = -3214
         int b = 102024L
+        str s = "string literal with escape char \n and \"quote\""
+        str *s2 = `raw string literal with \n no escape and "quote"`
         return true
     }
 }
