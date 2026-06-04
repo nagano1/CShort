@@ -62,6 +62,11 @@ namespace cshort {
         for (int_fast32_t i = start + 1; i < context->length; i++) {
             strLength++;
 
+            if (context->chars[i] == '\n' || context->chars[i] == '\r' || context->chars[i] == '\0') {
+                context->setError(ErrorIndex::unexpected_line_break_or_null_in_string_literal, i);
+                return Search::NOTFOUND;
+            }
+
             if (escapeMode) {
                 escapeMode = false;
                 continue;

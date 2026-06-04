@@ -41,6 +41,7 @@ namespace cshort {
         missing_closing_quote,
         missing_closing_quote2,
         missing_object_delimiter,
+        unexpected_line_break_or_null_in_string_literal,
 
         // class
         invalid_class_name,
@@ -138,6 +139,7 @@ namespace cshort {
             ErrorInfo{ ErrorIndex::missing_closing_quote2, 989900, "missing closing quote" },
 
             ErrorInfo{ ErrorIndex::missing_object_delimiter, 7677812, "missing object delimiter"},
+            ErrorInfo{ ErrorIndex::unexpected_line_break_or_null_in_string_literal, 7677813, "unexpected line break or end of document  in string literal"},
 
             // class
             ErrorInfo{ ErrorIndex::invalid_class_name, 7777413, "Invalid class name"},
