@@ -36,7 +36,6 @@ namespace cshort {
     int Tokenizers::stringLiteralTokenizer(TokenizerParams_argNode_ch_start_context) {
         int strLength = 0; // including quotes, and escape characters
 
-        bool endsWithQuote = false;
 
         char quoteChar;
         int literalType;
@@ -57,6 +56,8 @@ namespace cshort {
 
 
         bool escapeMode = false;
+        bool succeededWithEndQuote = false;
+
 
         // find the closing quote, and count the length of the literal text
         for (int_fast32_t i = start + 1; i < context->length; i++) {
@@ -71,19 +72,18 @@ namespace cshort {
                 escapeMode = false;
                 continue;
             }
-
-            if (context->chars[i] == '\\') {
+            else if (context->chars[i] == '\\') {
                 escapeMode = true;
                 continue;
             }
 
             if (context->chars[i] == quoteChar) {
-                endsWithQuote = true;
+                succeededWithEndQuote = true;
                 break;
             }
         }
 
-        if (!endsWithQuote) {
+        if (!succeededWithEndQuote) {
             context->setError(ErrorIndex::missing_closing_quote, start);
             return Search::NOTFOUND;
         }

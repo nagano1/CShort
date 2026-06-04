@@ -88,8 +88,7 @@ namespace cshort {
 
     static CodeLine *appendToLine(LiteralValueNodeStruct *self, CodeLine *currentCodeLine)
     {
-        TokenVTableCall::callAppendTokenToLine(getLiteralToken(self), currentCodeLine);
-        return currentCodeLine;
+        return TokenVTableCall::callAppendTokenToLine(getLiteralToken(self), currentCodeLine);
     }
 
 
