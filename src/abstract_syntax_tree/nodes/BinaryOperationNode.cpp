@@ -58,7 +58,6 @@ namespace cshort {
         return currentCodeLine;
     }
 
-    // virtual node does not have self text. underlying nodes will be appended to code line.
     static void copySelfText_binaryOp(BinaryOperationNodeStruct *self, utf8byte *buf)
     {
     }
@@ -98,12 +97,12 @@ namespace cshort {
     static constexpr const char binaryop_NodeTypeText[] = "<binary op>";
 
     static node_vtable binaryop_VTable = CREATE_VTABLE(BinaryOperationNodeStruct ,
-                                                             binaryop_selfTextLength,
-                                                             copySelfText_binaryOp,
-                                                             binaryop_appendToLine,
+                                                       binaryop_selfTextLength,
+                                                       copySelfText_binaryOp,
+                                                       binaryop_appendToLine,
                                                        BinaryOperationNodeStruct_applyFuncToDescendants,
-                                                             binaryop_NodeTypeText,
-                                                                NodeTypeId::BinaryOperation);
+                                                       binaryop_NodeTypeText,
+                                                       NodeTypeId::BinaryOperation);
 
     const node_vtable *VTables::BinaryOperationVTable = &binaryop_VTable;
 
@@ -133,10 +132,7 @@ namespace cshort {
         assert(context->generatedPrimaryNode != nullptr);
 
         auto *leftExpressionNode = context->generatedPrimaryNode;
-        auto *leftToken = context->mostLeftToken;
-
         int resultPos = Scanner::scanOnce(parent, inner_op_binaryOpTokenizer, context, start);
-        context->mostLeftToken = leftToken;
 
         if (Search::IsTokenized(resultPos)) {
             auto* binaryOpNode = Cast::downcast<BinaryOperationNodeStruct*>(context->generatedPrimaryNode);
@@ -147,7 +143,6 @@ namespace cshort {
             if (Search::IsTokenized(resultPos)) {
                 binaryOpNode->rightExprNode = context->generatedPrimaryNode;
                 context->generatedPrimaryNode = Cast::upcast(binaryOpNode);
-                context->mostLeftToken = leftToken;
                 return resultPos;
             }
         }

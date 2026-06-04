@@ -221,16 +221,14 @@ namespace cshort {
         auto *funcCallNode = Alloc::newFuncCallNode(context, parent);
         funcCallNode->openParenthesisToken.foundPos = start;
 
-        funcCallNode->callerExprNode = context->generatedPrimaryNode;
-        funcCallNode->callerExprNode->parentNode = Cast::upcast(funcCallNode);
-
-        auto *leftToken = context->mostLeftToken; // this is also the generatedPrimaryNode which is the expression before '('
+        auto *primaryExprNode = context->generatedPrimaryNode;
 
         int currentPos = start + 1;
         int resultPos = Scanner::scanLoop(funcCallNode, tokenizeFuncCallInternal, context, currentPos);
         if (Search::IsTokenized(resultPos)) {
+            primaryExprNode->parentNode = Cast::upcast(funcCallNode);
+            funcCallNode->callerExprNode = primaryExprNode;
             context->generatedPrimaryNode = Cast::upcast(funcCallNode);
-            context->mostLeftToken = leftToken;
             return resultPos;
         }
         return Search::NOTFOUND;

@@ -35,6 +35,9 @@ namespace cshort {
         }
 
         ch = context->chars[result];
+        // after tokenizing a primary expression, we will try to tokenize binary operation or
+        // function call that follows the primary expression, because they are also part of the expression. for example, after tokenizing "a" in "a + b", we will try to tokenize "+ b" as a binary operation. if we can tokenize it, then the whole "a + b" is an expression. if we cannot tokenize it, then "a" is just a simple expression without binary operation.
+        auto *mostLeftToken = context->mostLeftToken;
         int extraPos;
         // call func expression: func()
         if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, ch, result, context))) {
@@ -44,6 +47,7 @@ namespace cshort {
            result = extraPos;
         }
 
+        context->mostLeftToken = mostLeftToken;
         return result;
     }
 }
