@@ -24,6 +24,38 @@ namespace cshort {
     //    |  Binary Operation        |
     //    +--------------------------+
 
+    /*
+        343 + 23142
+            - 1234132
+            + 1234
+
+        (343 - 1234132 - (3241
+            + 3241 + 2412
+            + fjowie()
+        ))
+
+        longlonglonglonglonglongType
+            longlonglonglonglonglonglonglonglonglonglongVariable
+                = 3214213
+
+        (
+            343
+                - 1234132
+                - (
+                    324321 + 214
+                )
+        )
+        
+        int a = 3421432 + (3124
+            - 421
+            - 421
+        )
+
+        true + false + (
+            324112 - 32142
+        )
+    
+    */
     static CodeLine *binaryop_appendToLine(BinaryOperationNodeStruct *self, CodeLine *currentCodeLine)
     {
         int formerParentDepth = self->context->parentDepth;
