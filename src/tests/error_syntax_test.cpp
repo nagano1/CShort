@@ -23,7 +23,7 @@ int main()
 }
 
 constexpr const char *classOnlyText = u8R"(
-class A{
+class {
 
 
 }
