@@ -44,10 +44,13 @@ namespace cshort {
     static CodeLine *appendToLine2(FuncBodyNodeStruct *self, CodeLine *currentCodeLine) {
         auto *funcBodyNode = self;
 
+        int prevDepthIncrementMode = self->context->depthIncrementMode;
+
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
 
-        auto formerParentDepth = self->context->parentDepth;
-        self->context->parentDepth += 1;
+        auto formerParentDepth = self->context->currentIndentDepth;
+
+        self->context->depthIncrementMode = true;
 
         {
             auto *child = funcBodyNode->firstChildNode;
@@ -61,11 +64,12 @@ namespace cshort {
         auto *prevCodeLine = currentCodeLine;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 
-        if (prevCodeLine != currentCodeLine) {
-            currentCodeLine->depth = formerParentDepth + 1;
+        if (currentCodeLine != prevCodeLine) {
+            currentCodeLine->depth = formerParentDepth;
         }
 
-        self->context->parentDepth = formerParentDepth;
+        self->context->currentIndentDepth = formerParentDepth;
+        self->context->depthIncrementMode = prevDepthIncrementMode;
 
 
         return currentCodeLine;
@@ -351,15 +355,15 @@ namespace cshort {
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine (&self->fnKeywordToken, currentCodeLine);
 
-        auto formerParentDepth = self->context->parentDepth;
-        self->context->parentDepth += 1;
+        auto formerParentDepth = self->context->currentIndentDepth;
+        self->context->currentIndentDepth += 1;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->funcNameToken, currentCodeLine);
-        self->context->parentDepth = formerParentDepth;
+        self->context->currentIndentDepth = formerParentDepth;
 
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterStartNode, currentCodeLine);
 
-        self->context->parentDepth += 1;
+        self->context->currentIndentDepth += 1;
 
         auto *item = self->firstChildParameterNode;
         while (item != nullptr) {
@@ -367,7 +371,7 @@ namespace cshort {
             item = Cast::downcast<FuncParameterItemStruct *>(item->nextNode);
         }
 
-        self->context->parentDepth -= 1;
+        self->context->currentIndentDepth -= 1;
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterEndNode, currentCodeLine);
 

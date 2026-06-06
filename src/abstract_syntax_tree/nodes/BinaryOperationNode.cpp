@@ -58,7 +58,8 @@ namespace cshort {
     */
     static CodeLine *binaryop_appendToLine(BinaryOperationNodeStruct *self, CodeLine *currentCodeLine)
     {
-        int formerParentDepth = self->context->parentDepth;
+        int formerParentDepth = self->context->currentIndentDepth;
+        bool prevDepthIncrementMode = self->context->depthIncrementMode;
 
         if (self->leftExprNode) {
             // leftExpr
@@ -67,25 +68,37 @@ namespace cshort {
 
         int formerArithmeticDepth = self->context->arithmeticBaseDepth;
 
-        int diff = currentCodeLine->depth == self->context->parentDepth ? 0 : 1;
+        int diff = currentCodeLine->depth == self->context->currentIndentDepth ? 0 : 1;
 
         int newDepth = self->context->arithmeticBaseDepth > -1 ?
                        self->context->arithmeticBaseDepth : formerParentDepth + diff;
 
         self->context->arithmeticBaseDepth = newDepth;
-        self->context->parentDepth = newDepth;
+        self->context->depthIncrementMode = true;
+        //self->context->currentIndentDepth = formerParentDepth;
+
+        auto *line = currentCodeLine;
 
         // operator +
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->opToken, currentCodeLine);
+        // if (line != currentCodeLine) {
+        //     // if operator is on a new line, increase indent depth for the right expression
+        //     currentCodeLine->depth = depthForNextLine;
+        // }
 
 
         if (self->rightExprNode) {
             // rightExpr
             currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
+            // if (line != currentCodeLine) {
+            //     // if right expression is on a new line, reset indent depth to parent depth for next nodes
+            //     currentCodeLine->depth = depthForNextLine;
+            //}
         }
 
-        self->context->parentDepth = formerParentDepth;
+        self->context->currentIndentDepth = formerParentDepth;
         self->context->arithmeticBaseDepth = formerArithmeticDepth;
+        self->codeLine->context->depthIncrementMode = prevDepthIncrementMode;
 
         return currentCodeLine;
     }

@@ -32,17 +32,17 @@ namespace cshort {
         int formerDepth = currentCodeLine->depth;
 
         if (self->valueNode) {
-            int formerParentDepth = self->context->parentDepth;
+            int formerParentDepth = self->context->currentIndentDepth;
             int formerArithmeticDepth = self->context->arithmeticBaseDepth;
 
             self->context->arithmeticBaseDepth = -1;
 
-            int diff = currentCodeLine->depth == self->context->parentDepth ? 0 : 1;
-            self->context->parentDepth += diff;
+            int diff = currentCodeLine->depth == self->context->currentIndentDepth ? 0 : 1;
+            self->context->currentIndentDepth += diff;
             currentCodeLine = VTableCall::callAppendNodeToLine(self->valueNode, currentCodeLine);
 
             self->context->arithmeticBaseDepth = formerArithmeticDepth;
-            self->context->parentDepth = formerParentDepth;
+            self->context->currentIndentDepth = formerParentDepth;
         }
 
 

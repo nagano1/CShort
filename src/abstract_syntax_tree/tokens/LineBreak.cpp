@@ -41,14 +41,18 @@ namespace cshort
             currentCodeLine->appendToken(currentLineBreakItem);
 
             // If there are multiple line breaks in a row, append them all and create one new CodeLine per break.
-            // The new line depth is derived from the current parentDepth (indentation context) and does not accumulate per break.
+            // The new line depth is derived from the current currentIndentDepth (indentation context) and does not accumulate per break.
             auto *newNextLine = self->context->newCodeLine();
             newNextLine->init(self->context);
 
+            if (self->context->depthIncrementMode) {
+                self->context->currentIndentDepth += 1;
+                self->context->depthIncrementMode = false;
+            }
+            newNextLine->depth = self->context->currentIndentDepth;
+
             currentCodeLine->nextLine = newNextLine;
             currentCodeLine = newNextLine;
-
-            currentCodeLine->depth = self->context->parentDepth + 1;
 
             currentLineBreakItem = currentLineBreakItem->nextLineBreak;
         }

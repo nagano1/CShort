@@ -12,6 +12,8 @@ using namespace cshort;
 
 void testParsing();
 
+void checkIndentDepth(const char *chars);
+
 int main()
 {
     printf("cshort test\n");

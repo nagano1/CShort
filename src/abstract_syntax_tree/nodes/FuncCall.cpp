@@ -106,8 +106,8 @@ namespace cshort {
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->openParenthesisToken, currentCodeLine);
 
-        int formerParentDepth = self->context->parentDepth;
-        self->context->parentDepth += 1;
+        int formerParentDepth = self->context->currentIndentDepth;
+        self->context->currentIndentDepth += 1;
 
         auto *argItem = self->firstArgumentItem;
         while (argItem != nullptr) {
@@ -115,7 +115,7 @@ namespace cshort {
             argItem = Cast::downcast<FuncCallArgItemStruct *>(argItem->nextNode);
         }
 
-        self->context->parentDepth = formerParentDepth;
+        self->context->currentIndentDepth = formerParentDepth;
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->closeParenthesisToken, currentCodeLine);
 

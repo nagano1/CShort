@@ -327,12 +327,28 @@ namespace cshort {
     };
 
     
+
+    enum BinaryOperationGroup {
+        Add_Subtract, // +, - 
+        Multiply_Divide_Modulo, // *,/,%
+        And_Or, // &&, ||
+        BitwiseAnd_BitwiseOr, // &, |
+    };
+
+    // a + 
+    using OpItemNodeStruct = struct _OpItemNodeStruct {
+        NodeBase *leftExprNode;
+        bool hasFollowingOpToken;
+        SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
+    };
+
     using BinaryOperationNodeStruct = struct _BinaryOperationNodeStruct {
         NODE_HEADER;
 
         NodeBase *leftExprNode;
         SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
         NodeBase *rightExprNode;
+        BinaryOperationGroup opGroup;
     };
 
 
@@ -438,7 +454,8 @@ namespace cshort {
         int baseIndent;
         SyntaxErrorInfo syntaxErrorInfo;
         bool has_depth_error{false};
-        int parentDepth { -1 };
+        int currentIndentDepth { -1 };
+        bool depthIncrementMode{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 
         void setError(ErrorIndex errorCode, st_int startPos) {

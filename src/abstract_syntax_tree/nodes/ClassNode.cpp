@@ -34,18 +34,23 @@ namespace cshort {
     static void copySelfText(ClassNodeStruct * classNode, utf8byte *buf) {
     }
 
-    static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine) {
+    static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
+    {
+        bool prevDepthIncrementMode = classNode->context->depthIncrementMode;
+        
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->classKeywordToken, currentCodeLine);
 
-        auto formerParentDepth = classNode->context->parentDepth;
-        classNode->context->parentDepth += 1;
+        auto formerParentDepth = classNode->context->currentIndentDepth;
+
+        classNode->context->depthIncrementMode = true;
+        // className
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
-        classNode->context->parentDepth = formerParentDepth;
+        classNode->context->depthIncrementMode = false;
+        classNode->context->currentIndentDepth = formerParentDepth;
 
         currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);
 
-        formerParentDepth = classNode->context->parentDepth;
-        classNode->context->parentDepth += 1;
+        classNode->context->depthIncrementMode = true;
 
         {
             auto *child = classNode->firstChildNode;
@@ -55,17 +60,15 @@ namespace cshort {
             }
         }
 
-
-
         auto* prevCodeLine = currentCodeLine;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->endBodySymbolToken, currentCodeLine);
 
         if (prevCodeLine != currentCodeLine) {
-            currentCodeLine->depth = formerParentDepth+1;
+             currentCodeLine->depth = formerParentDepth;
         }
 
-        classNode->context->parentDepth = formerParentDepth;
-
+        classNode->context->currentIndentDepth = formerParentDepth;
+        classNode->context->depthIncrementMode = prevDepthIncrementMode;
 
         return currentCodeLine;
     };

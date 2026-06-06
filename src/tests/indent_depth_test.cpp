@@ -22,7 +22,7 @@ int main()
     return 0;
 }
 
-const int indentDepthRuleList[] = {0,0,0,1,2,1,2,1,0,0};
+const int indentDepthRuleList1[] = {0,0,0,1,2,1,2,3,1,0,0};
 constexpr const char *classOnlyText = u8R"(// 0
 class TestCl     // 0
 { // 0
@@ -35,26 +35,50 @@ class TestCl     // 0
 }    // 0
 // 0)";
 
-void testParsing()
+const int indentDepthRuleList2[] = {0,0,1,0,1,2,1,1,2,1,1,2,1,2,1,0};
+constexpr const char *classOnlyText2 = u8R"(// 0
+class
+    TestCl
 {
+    fn func(int a, int b) {
 
-    const char* chars = classOnlyText;
-    auto* document = Alloc::newDocument(DocumentType::CodeDocument);
-    DocumentUtils::parseText(document, chars, strlen(classOnlyText));
+    }
+    fn a() {
+        return 324
+    }
+    class B { fn c() {
+
+    }
+        fn d() {}
+    }
+})";
+
+
+void checkIndentDepth(const char *chars, const int indentDepthRuleList[], int ruleListLength)
+{
+    printf("----------------- CShort test ----------------\n");
+    auto *document = Alloc::newDocument(DocumentType::CodeDocument);
+    DocumentUtils::parseText(document, chars, strlen(chars));
     assert(document->context->syntaxErrorInfo.hasError == false);
 
-    auto* line = document->firstCodeLine;
+    auto *line = document->firstCodeLine;
     int i = 0;
-    while (line) {
+    while (line)
+    {
         printf("%d, depth: %d\n", indentDepthRuleList[i], line->depth);
         assert(line->depth == indentDepthRuleList[i]);
         line = line->nextLine;
         i++;
     }
 
-    assert( i == sizeof(indentDepthRuleList) / sizeof(indentDepthRuleList[0]));
+    assert(i == ruleListLength);
 
     Alloc::deleteDocument(document);
+}
+void testParsing()
+{
+    //checkIndentDepth(classOnlyText, indentDepthRuleList1, sizeof(indentDepthRuleList1) / sizeof(indentDepthRuleList1[0]));
+    checkIndentDepth(classOnlyText2, indentDepthRuleList2, sizeof(indentDepthRuleList2) / sizeof(indentDepthRuleList2[0]));
 
 }
 
