@@ -61,7 +61,7 @@ namespace cshort {
         int formerParentDepth = self->context->currentIndentDepth;
         bool prevDepthIncrementMode = self->context->depthIncrementMode;
 
-        if (self->leftExprNode) {
+        if (self->leftExprNode != nullptr) {
             // leftExpr
             currentCodeLine = VTableCall::callAppendNodeToLine(self->leftExprNode, currentCodeLine);
         }
@@ -77,6 +77,7 @@ namespace cshort {
         self->context->depthIncrementMode = true;
         //self->context->currentIndentDepth = formerParentDepth;
 
+
         auto *line = currentCodeLine;
 
         // operator +
@@ -87,7 +88,7 @@ namespace cshort {
         // }
 
 
-        if (self->rightExprNode) {
+        if (self->rightExprNode != nullptr) {
             // rightExpr
             currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
             // if (line != currentCodeLine) {
@@ -96,10 +97,10 @@ namespace cshort {
             //}
         }
 
+;
         self->context->currentIndentDepth = formerParentDepth;
         self->context->arithmeticBaseDepth = formerArithmeticDepth;
-        self->codeLine->context->depthIncrementMode = prevDepthIncrementMode;
-
+        self->context->depthIncrementMode = prevDepthIncrementMode;
         return currentCodeLine;
     }
 
@@ -153,10 +154,11 @@ namespace cshort {
 
 
 
-    static int inner_op_binaryOpTokenizer(TokenizerParams_argNode_ch_start_context) {
-
+    static int inner_op_binaryOpTokenizer(TokenizerParams_argNode_ch_start_context)
+    {
         if (ch == '+' || ch == '*' || ch == '-' || ch == '/' || ch == '%'
             || ch == '&' || ch == '|') {
+
 
             auto *binaryOpNode = Alloc::newBinaryOperationNode(context, Cast::upcast(argNode), ch);
             binaryOpNode->opToken.foundPos = start;
@@ -184,6 +186,7 @@ namespace cshort {
             binaryOpNode->leftExprNode = leftExpressionNode;
             binaryOpNode->leftExprNode->parentNode = Cast::upcast(binaryOpNode);
 
+
             resultPos = Scanner::scanOnce(binaryOpNode, Tokenizers::tokenizeExpression, context, resultPos);
             if (Search::IsTokenized(resultPos)) {
                 binaryOpNode->rightExprNode = context->generatedPrimaryNode;
@@ -191,6 +194,8 @@ namespace cshort {
                 return resultPos;
             }
         }
+
+
         return Search::NOTFOUND;
     }
 
