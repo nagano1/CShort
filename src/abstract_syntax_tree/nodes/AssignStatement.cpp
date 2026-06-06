@@ -39,9 +39,13 @@ namespace cshort {
 
     static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
     {
+
         if (self->hasTypeDecl) {
             currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
         }
+
+        int previousIndentDepth = self->context->currentIndentDepth;
+        bool prevDepthIncrementMode = self->context->depthIncrementMode;
         
         if (self->pointerAsterisk.foundPos > -1) {
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
@@ -50,13 +54,16 @@ namespace cshort {
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->nameNode, currentCodeLine);
 
         if (self->equalSymbol.foundPos > -1) {
+            self->context->depthIncrementMode = true;
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->equalSymbol, currentCodeLine);
 
-
             assert(self->expressionNode); // if equal symbol exists, expression node must exist, otherwise tokenizer throws syntax errors.
+            self->context->depthIncrementMode = true;
             currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
         }
 
+        self->context->depthIncrementMode = prevDepthIncrementMode;
+        self->context->currentIndentDepth = previousIndentDepth;
         return currentCodeLine;
     }
 
