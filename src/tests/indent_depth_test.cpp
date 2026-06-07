@@ -35,7 +35,7 @@ class TestCl     // 0
 }    // 0
 // 0)";
 
-const int indentDepthRuleList2[] = {0,0,1,0,1,2,1,1,2,1,1,2,1,2,1,0};
+const int indentDepthRuleList2[] = {0,0,1,0,1,2,1,1,2,1,1,2,2,2,1,0};
 constexpr const char *classOnlyText2 = u8R"(// 0
 class
     TestCl
@@ -48,7 +48,7 @@ class
     }
     class B { fn c() {
 
-    }
+        }
         fn d() {}
     }
 })";

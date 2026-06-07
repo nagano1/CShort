@@ -44,11 +44,11 @@ namespace cshort {
     static CodeLine *appendToLine2(FuncBodyNodeStruct *self, CodeLine *currentCodeLine) {
         auto *funcBodyNode = self;
 
-        int prevDepthIncrementMode = self->context->depthIncrementMode;
+        auto *firstLine = currentCodeLine;
+        int endBracketDepth = self->context->currentIndentDepth + (self->context->depthIncrementMode ? 1 : 0);
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
 
-        auto formerParentDepth = self->context->currentIndentDepth;
 
         self->context->depthIncrementMode = true;
 
@@ -62,15 +62,17 @@ namespace cshort {
 
 
         auto *prevCodeLine = currentCodeLine;
+        //auto formerParentDepth2 = self->context->currentIndentDepth;
+
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 
-        if (currentCodeLine != prevCodeLine) {
-            currentCodeLine->depth = formerParentDepth;
+        if (currentCodeLine != firstLine) {
+            printf("set depth for line %d to %d\n", currentCodeLine->lineNumber, endBracketDepth);
+            currentCodeLine->depth = endBracketDepth;
+            self->context->currentIndentDepth = endBracketDepth;
         }
 
-        self->context->currentIndentDepth = formerParentDepth;
-        self->context->depthIncrementMode = prevDepthIncrementMode;
-
+        //self->context->currentIndentDepth = formerParentDepth;
 
         return currentCodeLine;
     }
