@@ -43,10 +43,10 @@ class
     fn est() {}
     fn func(int a, int b) {
 
-    var a = 314}
+        var a = 314}
     fn a() {
         return 324
-    }
+    /*fjwoi*/}
     class B { fn c() {
 
         }

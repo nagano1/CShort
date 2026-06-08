@@ -890,7 +890,9 @@ namespace cshort {
                 auto currentToken = token;
                 token = token->nextTokenInLine; // assign next token before checking current token
 
-                if (currentToken->vtable == VTables::BlockCommentVTable) {
+                printf("currentToken: %s\n", TokenVTableCall::typeText(currentToken));
+                if (currentToken->vtable == VTables::BlockCommentFragmentVTable
+                     || currentToken->vtable == VTables::BlockCommentVTable) {
                     continue;
                 }
 
