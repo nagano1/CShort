@@ -241,7 +241,7 @@ namespace cshort {
         context->remainedSpaceCount = 0;
         context->baseIndent = 4;
         context->currentIndentDepth = 0;
-        context->depthIncrementMode = false;
+        context->incrementDepthOnNextLine = false;
         context->arithmeticBaseDepth = -1;
         context->isAfterLineBreak = false;
 

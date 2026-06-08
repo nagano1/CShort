@@ -59,7 +59,7 @@ namespace cshort {
     static CodeLine *binaryop_appendToLine(BinaryOperationNodeStruct *self, CodeLine *currentCodeLine)
     {
         int formerParentDepth = self->context->currentIndentDepth;
-        bool prevDepthIncrementMode = self->context->depthIncrementMode;
+        bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
 
         if (self->leftExprNode != nullptr) {
             // leftExpr
@@ -74,7 +74,7 @@ namespace cshort {
                        self->context->arithmeticBaseDepth : formerParentDepth + diff;
 
         self->context->arithmeticBaseDepth = newDepth;
-        self->context->depthIncrementMode = true;
+        self->context->incrementDepthOnNextLine = true;
         //self->context->currentIndentDepth = formerParentDepth;
 
 
@@ -100,7 +100,7 @@ namespace cshort {
 ;
         self->context->currentIndentDepth = formerParentDepth;
         self->context->arithmeticBaseDepth = formerArithmeticDepth;
-        self->context->depthIncrementMode = prevDepthIncrementMode;
+        self->context->incrementDepthOnNextLine = prevDepthIncrementMode;
         return currentCodeLine;
     }
 
@@ -209,7 +209,6 @@ namespace cshort {
         node->rightExprNode = nullptr;
 
         Init::initSymbolToken(&node->opToken, context, node, op);
-
         return node;
     }
 } // namespace

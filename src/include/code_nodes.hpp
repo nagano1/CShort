@@ -142,6 +142,7 @@ namespace cshort {
 
         bool isEnabled;
         utf8byte symbol[2];
+        bool isEndFlag;
     };
 
     
@@ -455,11 +456,15 @@ namespace cshort {
         SyntaxErrorInfo syntaxErrorInfo;
         bool has_depth_error{false};
         int currentIndentDepth { -1 };
-        bool depthIncrementMode{false}; // when true, the next line break will increase indent depth by 1.
+        bool incrementDepthOnNextLine{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 
         void setError(ErrorIndex errorCode, st_int startPos) {
             setError2(errorCode, startPos, startPos);
+        }
+
+        inline int getNextLineIndentDepth() const {
+            return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
         }
 
         void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
@@ -747,8 +752,7 @@ namespace cshort {
                 *IdentifierTokenVTable,
                 *StringLiteralTokenVTable,
                 *SymbolTokenVTable,
-                *LineBreakTokenVTable,
-                *CommentTokenVTable
+                *LineBreakTokenVTable
                 ;
     };
 
@@ -880,6 +884,27 @@ namespace cshort {
             this->depth = 0;
         }
 
+        static inline bool HasOnlyEndParentheses(CodeLine *line) {
+            auto token = line->firstToken;
+            while (token != nullptr) {
+                auto currentToken = token;
+                token = token->nextTokenInLine; // assign next token before checking current token
+
+                if (currentToken->vtable == VTables::BlockCommentVTable) {
+                    continue;
+                }
+
+                if (currentToken->vtable != VTables::SymbolTokenVTable) {
+                    return false;
+                }
+
+                auto *symbolToken = Cast::downcast<SymbolTokenStruct *>(currentToken);
+                if (!symbolToken->isEndFlag) {
+                    return false;
+                }
+            }
+            return true;
+        }
         // insert token into this line, if prev is null, insert it into top of the line
         CodeLine *insertToken(TokenBase *token, TokenBase *prev) {
             if (firstToken == nullptr) {

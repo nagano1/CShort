@@ -31,7 +31,7 @@ namespace cshort {
     }
 
     static CodeLine *appendToLine(ReturnStatementNodeStruct*self, CodeLine *currentCodeLine) {
-        bool prevDepthIncrementMode = self->context->depthIncrementMode;
+        bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->returnText, currentCodeLine);
 
         auto *prevCodeLine = currentCodeLine;
@@ -47,7 +47,7 @@ namespace cshort {
         }
 
         self->context->currentIndentDepth = formerParentDepth;
-        self->context->depthIncrementMode = prevDepthIncrementMode;
+        self->context->incrementDepthOnNextLine = prevDepthIncrementMode;
 
         return currentCodeLine;
     }

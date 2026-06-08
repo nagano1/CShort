@@ -284,6 +284,7 @@ namespace cshort {
 
         Init::initSymbolToken(&node->openParenthesisToken, context, node, '(');
         Init::initSymbolToken(&node->closeParenthesisToken, context, node, ')');
+        node->closeParenthesisToken.isEndFlag = true;
 
         node->firstArgumentItem = nullptr;
         node->lastArgumentItem = nullptr;

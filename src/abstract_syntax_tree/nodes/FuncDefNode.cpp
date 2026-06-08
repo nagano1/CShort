@@ -45,6 +45,7 @@ namespace cshort {
     class A
     {fn est() {
         let a = 3
+        let b = 5
         }
         fn func(int a, int b) {
     }
@@ -59,16 +60,16 @@ namespace cshort {
         auto *funcBodyNode = self;
         auto *firstLine = currentCodeLine;
         int firstDepth = self->context->currentIndentDepth;
-        bool firstIncrementMode = self->context->depthIncrementMode;
+        bool firstIncrementMode = self->context->incrementDepthOnNextLine;
 
         // the indent depth for the body should be parent's indent depth + 1, if the body is not empty, otherwise it should be the same as parent's indent depth.
-        int endBracketDepth = self->context->currentIndentDepth + (self->context->depthIncrementMode ? 1 : 0);
+        int endBracketDepth = self->context->getNextLineIndentDepth();
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
         auto *startBracketLine = currentCodeLine;
 
 
-        self->context->depthIncrementMode = true;
+        self->context->incrementDepthOnNextLine = true;
 
         {
             auto *child = funcBodyNode->firstChildNode;
@@ -81,14 +82,14 @@ namespace cshort {
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 
-        if (currentCodeLine != startBracketLine) {
+        if (CodeLine::HasOnlyEndParentheses(currentCodeLine)) {
             currentCodeLine->depth = endBracketDepth;
         }
         
         // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
         if (currentCodeLine == firstLine) {
             self->context->currentIndentDepth = firstDepth;
-            self->context->depthIncrementMode = firstIncrementMode;
+            self->context->incrementDepthOnNextLine = firstIncrementMode;
         }
         else {
             self->context->currentIndentDepth = endBracketDepth;
@@ -145,6 +146,7 @@ namespace cshort {
 
         Init::initSymbolToken(&node->bodyStartNode, context, node, '{');
         Init::initSymbolToken(&node->endBodyNode, context, node, '}');
+        node->endBodyNode.isEndFlag = true;
     }
 
 
@@ -452,6 +454,7 @@ namespace cshort {
 
         Init::initSymbolToken(&funcNode->parameterStartNode, context, funcNode, '(');
         Init::initSymbolToken(&funcNode->parameterEndNode, context, funcNode, ')');
+        funcNode->parameterEndNode.isEndFlag = true;
 
         Init::initFuncBodyNode(&funcNode->bodyNode, context, funcNode);
 

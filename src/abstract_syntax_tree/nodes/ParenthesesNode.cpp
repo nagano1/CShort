@@ -177,6 +177,7 @@ namespace cshort {
 
         Init::initSymbolToken(&node->openNode, context, node, '(');
         Init::initSymbolToken(&node->closeNode, context, node, ')');
+        node->closeNode.isEndFlag = true;
         return node;
     }
 }

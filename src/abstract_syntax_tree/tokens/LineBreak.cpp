@@ -45,9 +45,9 @@ namespace cshort
             auto *newNextLine = self->context->newCodeLine();
             newNextLine->init(self->context);
 
-            if (self->context->depthIncrementMode) {
+            if (self->context->incrementDepthOnNextLine) {
                 self->context->currentIndentDepth += 1;
-                self->context->depthIncrementMode = false;
+                self->context->incrementDepthOnNextLine = false;
             }
             newNextLine->depth = self->context->currentIndentDepth;
 

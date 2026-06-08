@@ -36,21 +36,31 @@ namespace cshort {
 
     static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
     {
-        bool prevDepthIncrementMode = classNode->context->depthIncrementMode;
+        /*
+        class className {
+            [child nodes]
+        }
+        */
+        auto *context = classNode->context;
+
+        auto *firstLine = currentCodeLine;
+        bool firstIncrementMode = context->incrementDepthOnNextLine;
+        int firstDepth = context->currentIndentDepth;
+        int thisClassBaseDepth = context->getNextLineIndentDepth();
         
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->classKeywordToken, currentCodeLine);
 
-        auto formerParentDepth = classNode->context->currentIndentDepth;
+        auto formerParentDepth = context->currentIndentDepth;
 
-        classNode->context->depthIncrementMode = true;
+        context->incrementDepthOnNextLine = true;
         // className
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
-        classNode->context->depthIncrementMode = false;
-        classNode->context->currentIndentDepth = formerParentDepth;
+        context->incrementDepthOnNextLine = false;
+        context->currentIndentDepth = formerParentDepth;
 
+        // {
         currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);
-
-        classNode->context->depthIncrementMode = true;
+        context->incrementDepthOnNextLine = true;
 
         {
             auto *child = classNode->firstChildNode;
@@ -60,15 +70,24 @@ namespace cshort {
             }
         }
 
-        auto* prevCodeLine = currentCodeLine;
+        auto *previousLine = currentCodeLine;
+        // }
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->endBodySymbolToken, currentCodeLine);
-
-        if (prevCodeLine != currentCodeLine) {
-             currentCodeLine->depth = formerParentDepth;
+        if (CodeLine::HasOnlyEndParentheses(currentCodeLine)) { // current line has only the end bracket.
+            currentCodeLine->depth = thisClassBaseDepth;
         }
 
-        classNode->context->currentIndentDepth = formerParentDepth;
-        classNode->context->depthIncrementMode = prevDepthIncrementMode;
+        if (currentCodeLine == firstLine) {
+            // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
+            context->currentIndentDepth = firstDepth;
+            context->incrementDepthOnNextLine = firstIncrementMode;
+        }
+        else {
+            context->currentIndentDepth = thisClassBaseDepth;
+        }
+
+        context->currentIndentDepth = formerParentDepth;
+        //context->incrementDepthOnNextLine = firstIncrementMode;
 
         return currentCodeLine;
     };
@@ -115,6 +134,7 @@ namespace cshort {
 
         Init::initSymbolToken(&classNode->bodyStartSymbolToken, context, classNode, '{');
         Init::initSymbolToken(&classNode->endBodySymbolToken, context, classNode, '}');
+        classNode->endBodySymbolToken.isEndFlag = true;
 
         return classNode;
     }
