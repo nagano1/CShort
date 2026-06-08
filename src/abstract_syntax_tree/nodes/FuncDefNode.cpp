@@ -18,7 +18,7 @@
 #include "code_nodes.hpp"
 
 namespace cshort {
-    // FuncNodeStruct represents a function declaration. It contains the function name, parameters, and body.
+    // FuncDefNodeStruct represents a function declaration. It contains the function name, parameters, and body.
     // Declaration syntax of function looks like this:
     //     fn funcName(int arg1, string *arg2, ...) {
     //        [body]
@@ -51,20 +51,9 @@ namespace cshort {
     
     */
     static CodeLine *appendToLine_FuncBodyNode(FuncBodyNodeStruct *self, CodeLine *currentCodeLine) {
-        /*
-           {
-                [child nodes]
-           }
-        */
         auto *context = self->context;
         auto *funcBodyNode = self;
-        auto *firstLine = currentCodeLine;
-        int firstDepth = context->currentIndentDepth;
-        bool firstIncrementMode = context->incrementDepthOnNextLine;
-        IndentRuleApplier indentRuleApplier = context->CreateIndentRuleApplier(currentCodeLine);
-
-        // the indent depth for the body should be parent's indent depth + 1, if the body is not empty, otherwise it should be the same as parent's indent depth.
-        int endBracketDepth = context->getNextLineIndentDepth();
+        IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
         auto *startBracketLine = currentCodeLine;
@@ -82,18 +71,7 @@ namespace cshort {
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 
-        if (CodeLine::HasOnlyEndParentheses(currentCodeLine)) {
-            currentCodeLine->depth = endBracketDepth;
-        }
-        
-        // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
-        if (currentCodeLine == firstLine) {
-            context->currentIndentDepth = firstDepth;
-            context->incrementDepthOnNextLine = firstIncrementMode;
-        }
-        else {
-            context->currentIndentDepth = endBracketDepth;
-        }
+        indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
 
         return currentCodeLine;
     }
@@ -249,7 +227,7 @@ namespace cshort {
     }
 
     // --------------------- Implements ClassNode Parser ----------------------
-    static void appendChildParameterNode(FuncNodeStruct *fnNode, FuncParameterItemStruct *node) {
+    static void appendChildParameterNode(FuncDefNodeStruct *fnNode, FuncParameterItemStruct *node) {
         if (fnNode->firstChildParameterNode == nullptr) {
             fnNode->firstChildParameterNode = node;
         }
@@ -261,7 +239,7 @@ namespace cshort {
     }
 
 
-    static inline int parseNextValue(TokenizerParams_argNode_ch_start_context, FuncNodeStruct* funcNode)
+    static inline int parseNextValue(TokenizerParams_argNode_ch_start_context, FuncDefNodeStruct* funcNode)
     {
         NodeBase *parent = Cast::upcast(argNode);
         auto *nextParam = Alloc::newFuncParameterItem(context, parent);
@@ -279,7 +257,7 @@ namespace cshort {
     // This loop is responsible for parsing function parameters. It will keep parsing until it finds the closing parenthesis of the parameter list.
     static int internal_parameterListTokenizerLoop(TokenizerParams_argNode_ch_start_context) {
         NodeBase *parent = Cast::upcast(argNode);
-        auto *funcNode = Cast::downcast<FuncNodeStruct *>(parent);
+        auto *funcNode = Cast::downcast<FuncDefNodeStruct *>(parent);
 
         if (ch == ')') {
             context->scanEnd = true;
@@ -364,48 +342,77 @@ namespace cshort {
 
     //=======================================================================================
     //
-    //                                    FuncNodeStruct
+    //                                    FuncDefNodeStruct
     //
     //=======================================================================================
-    static int selfTextLength(FuncNodeStruct *) {
+    static int selfTextLength(FuncDefNodeStruct *) {
         return 0;
     }
 
-    static void copySelfText(FuncNodeStruct *self, utf8byte *buf)
+    static void copySelfText(FuncDefNodeStruct *self, utf8byte *buf)
     {
     }
 
-    static CodeLine *appendToLine(FuncNodeStruct *self, CodeLine *currentCodeLine) {
+    // fn funcName ( [parameters] ) funcBody
+    static CodeLine *appendToLine(FuncDefNodeStruct *self, CodeLine *currentCodeLine)
+    {
+        ParseContext *context = self->context;
+        CodeLine *firstLine = currentCodeLine;
+        IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
+        int baseDepth = indentRuleApplier.GetBaseDepth();
 
+        // fn
         currentCodeLine = TokenVTableCall::callAppendTokenToLine (&self->fnKeywordToken, currentCodeLine);
 
-        auto formerParentDepth = self->context->currentIndentDepth;
-        self->context->currentIndentDepth += 1;
+        self->context->incrementDepthOnNextLine = true;
+        // funcName
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->funcNameToken, currentCodeLine);
-        self->context->currentIndentDepth = formerParentDepth;
 
-
+        //self->context->currentIndentDepth = baseDepth;
+        self->context->incrementDepthOnNextLine = false;
+        // (
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterStartNode, currentCodeLine);
 
-        self->context->currentIndentDepth += 1;
+        bool mode = context->incrementDepthOnNextLine;
+        self->context->incrementDepthOnNextLine = true;
+        auto *line = currentCodeLine;
 
+        // [parameters]
         auto *item = self->firstChildParameterNode;
         while (item != nullptr) {
             currentCodeLine = VTableCall::callAppendNodeToLine(item, currentCodeLine);
             item = Cast::downcast<FuncParameterItemStruct *>(item->nextNode);
         }
 
-        self->context->currentIndentDepth -= 1;
-
+        CodeLine * prevLine = currentCodeLine;
+        // )
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterEndNode, currentCodeLine);
+        if (currentCodeLine != prevLine) {
+            // if there is no parameter, we need to make sure the closing parenthesis is in the next line
+            currentCodeLine->depth = baseDepth;
+        }
+        //indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
+        context->incrementDepthOnNextLine = false;
+        context->currentIndentDepth = baseDepth;
 
+
+        //self->context->incrementDepthOnNextLine = false;
+        // body
         currentCodeLine = VTableCall::callAppendNodeToLine(&self->bodyNode, currentCodeLine);
+
+        if (currentCodeLine == firstLine) {
+            // if there is no parameter, we need to make sure the body is in the next line
+            self->context->incrementDepthOnNextLine = mode;
+        }
+
+
+        self->context->currentIndentDepth = baseDepth;
 
         return currentCodeLine;
     }
 
 
-    static int FuncNodeStruct_applyFuncToDescendants(FuncNodeStruct *node, ApplyFunc_params3)
+    static int FuncNodeStruct_applyFuncToDescendants(FuncDefNodeStruct *node, ApplyFunc_params3)
     {
         if (parentIsFirst) {
             if (targetVTable == nullptr || node->vtable == targetVTable) {
@@ -427,7 +434,7 @@ namespace cshort {
 
     static constexpr const char fnTypeText[] = "<fn>";
 
-    static node_vtable _fnVTable = CREATE_VTABLE(FuncNodeStruct,
+    static node_vtable _fnVTable = CREATE_VTABLE(FuncDefNodeStruct,
                                                  selfTextLength,
                                                  copySelfText,
                                                  appendToLine,
@@ -437,9 +444,9 @@ namespace cshort {
 
     const struct node_vtable *VTables::FuncDefVTable = &_fnVTable;
 
-    FuncNodeStruct* Alloc::newFuncNode(ParseContext *context, NodeBase *parentNode)
+    FuncDefNodeStruct* Alloc::newFuncNode(ParseContext *context, NodeBase *parentNode)
     {
-        auto *funcNode = context->newMem<FuncNodeStruct>();
+        auto *funcNode = context->newMem<FuncDefNodeStruct>();
 
         INIT_NODE(funcNode, context, parentNode, &_fnVTable);
 
@@ -466,7 +473,7 @@ namespace cshort {
     // tokenizer for function declaration, function name is already parsed by the caller,
     // this tokenizer is responsible for parsing function parameters and function body.
     static int inner_fnParamsAndBodyTokenizer(TokenizerParams_argNode_ch_start_context) {
-        auto *fnNode = Cast::downcast<FuncNodeStruct *>(argNode);
+        auto *fnNode = Cast::downcast<FuncDefNodeStruct *>(argNode);
 
         if (fnNode->parameterStartNode.foundPos == -1) {
             if (ch == '(') {

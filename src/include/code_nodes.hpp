@@ -24,7 +24,7 @@ namespace cshort {
 
     struct ParseContext;
     struct CodeLine;
-
+    
     #define NODE_TYPE_ID 0x123
     #define TOKEN_TYPE_ID 0x456
 
@@ -286,7 +286,7 @@ namespace cshort {
         bool hasComma;
     };
 
-    using FuncNodeStruct = struct _FuncNodeStruct {
+    using FuncDefNodeStruct = struct _FuncNodeStruct {
         NODE_HEADER;
 
         SimpleTextTokenStruct fnKeywordToken; // "fn"
@@ -381,59 +381,6 @@ namespace cshort {
         DetectErrorSpanTokens // add tokens only on the line that has syntax error, used for LSP server to reduce unnecessary addition.
     };
 
-    class IndentRuleApplier {
-private:
-    ParseContext *context;
-    CodeLine *firstLine;
-    CodeLine *currentCodeLine;
-    int firstDepth;
-    bool firstIncrementMode;
-    int endBracketDepth;
-    
-public:
-    IndentRuleApplier(ParseContext *context, CodeLine *currentCodeLine) {
-        assert(context != nullptr);
-        this->context = context;
-        this->currentCodeLine = currentCodeLine;
-        this->firstLine = currentCodeLine;
-        this->firstDepth = context->currentIndentDepth;
-        this->firstIncrementMode = context->incrementDepthOnNextLine;
-        int endBracketDepth = context->getNextLineIndentDepth();
-        this->endBracketDepth = endBracketDepth;
-
-    }
-    
-    ~IndentRuleApplier() {
-        if (CodeLine::HasOnlyEndParentheses(currentCodeLine)) {
-            currentCodeLine->depth = endBracketDepth;
-        }
-        
-        // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
-        if (currentCodeLine == firstLine) {
-            context->currentIndentDepth = firstDepth;
-            context->incrementDepthOnNextLine = firstIncrementMode;
-        }
-        else {
-            context->currentIndentDepth = endBracketDepth;
-        }
-
-    }
-    
-    // コピー禁止
-    IndentRuleApplier(const IndentRuleApplier&) = delete;
-    IndentRuleApplier& operator=(const IndentRuleApplier&) = delete;
-    
-    // ムーブは許可
-    IndentRuleApplier(IndentRuleApplier&& other) noexcept {
-        this->context = other.context;
-        this->firstLine = other.firstLine;
-        this->currentCodeLine = other.currentCodeLine;
-        this->firstDepth = other.firstDepth;
-        this->firstIncrementMode = other.firstIncrementMode;
-        this->endBracketDepth = other.endBracketDepth;
-        other.context = nullptr;
-    }
-};
 
     struct ParseContext {
         st_uint start;
@@ -457,10 +404,6 @@ public:
 
         MemBuffer memBuffer;
         MemBuffer memBufferForCodeLines;
-
-        IndentRuleApplier CreateIndentRuleApplier(CodeLine *currentCodeLine) {
-            return IndentRuleApplier(this, currentCodeLine);
-        }
 
         void init() {
             memBuffer.init();
@@ -567,6 +510,8 @@ public:
             }
         }
     };
+
+
 
 
     struct Cast {
@@ -1026,6 +971,49 @@ public:
         }
     };
 
+    
+    struct IndentRuleApplier {
+        ParseContext *context;
+        CodeLine *firstLine;
+        int firstDepth;
+        bool firstIncrementMode;
+        int baseDepth;
+
+        static IndentRuleApplier Create(ParseContext *context, CodeLine *currentCodeLine) {
+            auto indentRuleApplier = IndentRuleApplier();
+            indentRuleApplier.Init(context, currentCodeLine);
+            return indentRuleApplier;
+        }
+
+        void Init(ParseContext *context, CodeLine *currentCodeLine) {
+            assert(context != nullptr);
+
+            this->context = context;
+            
+            this->firstLine = currentCodeLine;
+            this->firstDepth = context->currentIndentDepth;
+            this->firstIncrementMode = context->incrementDepthOnNextLine;
+            this->baseDepth = context->getNextLineIndentDepth();
+        }
+
+        int GetBaseDepth() const {
+            return baseDepth;
+        }
+        
+        void FinishAfterEndBracket(CodeLine *codeLine) {
+            if (CodeLine::HasOnlyEndParentheses(codeLine)) {
+                codeLine->depth = baseDepth;
+            }
+            
+            if (codeLine == firstLine) {
+                context->currentIndentDepth = firstDepth;
+                context->incrementDepthOnNextLine = firstIncrementMode;
+            }
+            else {
+                context->currentIndentDepth = baseDepth;
+            }
+        }
+    };
 
     /**
      * Node Changed Event
@@ -1111,7 +1099,7 @@ public:
         static AssignStatementNodeStruct *newAssignStatement(ParseContext *context, NodeBase *parentNode);
         static ReturnStatementNodeStruct *newReturnStatement(ParseContext *context, NodeBase *parentNode);
 
-        static FuncNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
+        static FuncDefNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
 
         static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
 

@@ -46,6 +46,7 @@ namespace cshort
             newNextLine->init(self->context);
 
             if (self->context->incrementDepthOnNextLine) {
+                printf("\nline= %d\n", self->context->currentIndentDepth);
                 self->context->currentIndentDepth += 1;
                 self->context->incrementDepthOnNextLine = false;
             }

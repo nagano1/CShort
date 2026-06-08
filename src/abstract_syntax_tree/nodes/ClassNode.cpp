@@ -34,34 +34,30 @@ namespace cshort {
     static void copySelfText(ClassNodeStruct * classNode, utf8byte *buf) {
     }
 
+    /*
+    class className {
+        [child nodes]
+    }
+    */
     static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
     {
-        /*
-        class className {
-            [child nodes]
-        }
-        */
         auto *context = classNode->context;
-
-        auto *firstLine = currentCodeLine;
-        bool firstIncrementMode = context->incrementDepthOnNextLine;
-        int firstDepth = context->currentIndentDepth;
-        int thisClassBaseDepth = context->getNextLineIndentDepth();
+        IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
         
+        // class
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->classKeywordToken, currentCodeLine);
-
-        auto formerParentDepth = context->currentIndentDepth;
-
         context->incrementDepthOnNextLine = true;
+        
         // className
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
         context->incrementDepthOnNextLine = false;
-        context->currentIndentDepth = formerParentDepth;
+        context->currentIndentDepth = indentRuleApplier.GetBaseDepth();
 
         // {
         currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);
         context->incrementDepthOnNextLine = true;
 
+        // [child nodes]
         {
             auto *child = classNode->firstChildNode;
             while (child) {
@@ -70,24 +66,9 @@ namespace cshort {
             }
         }
 
-        auto *previousLine = currentCodeLine;
         // }
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->endBodySymbolToken, currentCodeLine);
-        if (CodeLine::HasOnlyEndParentheses(currentCodeLine)) { // current line has only the end bracket.
-            currentCodeLine->depth = thisClassBaseDepth;
-        }
-
-        if (currentCodeLine == firstLine) {
-            // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
-            context->currentIndentDepth = firstDepth;
-            context->incrementDepthOnNextLine = firstIncrementMode;
-        }
-        else {
-            context->currentIndentDepth = thisClassBaseDepth;
-        }
-
-        context->currentIndentDepth = formerParentDepth;
-        //context->incrementDepthOnNextLine = firstIncrementMode;
+        indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
 
         return currentCodeLine;
     };
