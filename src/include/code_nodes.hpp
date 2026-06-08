@@ -381,6 +381,60 @@ namespace cshort {
         DetectErrorSpanTokens // add tokens only on the line that has syntax error, used for LSP server to reduce unnecessary addition.
     };
 
+    class IndentRuleApplier {
+private:
+    ParseContext *context;
+    CodeLine *firstLine;
+    CodeLine *currentCodeLine;
+    int firstDepth;
+    bool firstIncrementMode;
+    int endBracketDepth;
+    
+public:
+    IndentRuleApplier(ParseContext *context, CodeLine *currentCodeLine) {
+        assert(context != nullptr);
+        this->context = context;
+        this->currentCodeLine = currentCodeLine;
+        this->firstLine = currentCodeLine;
+        this->firstDepth = context->currentIndentDepth;
+        this->firstIncrementMode = context->incrementDepthOnNextLine;
+        int endBracketDepth = context->getNextLineIndentDepth();
+        this->endBracketDepth = endBracketDepth;
+
+    }
+    
+    ~IndentRuleApplier() {
+        if (CodeLine::HasOnlyEndParentheses(currentCodeLine)) {
+            currentCodeLine->depth = endBracketDepth;
+        }
+        
+        // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
+        if (currentCodeLine == firstLine) {
+            context->currentIndentDepth = firstDepth;
+            context->incrementDepthOnNextLine = firstIncrementMode;
+        }
+        else {
+            context->currentIndentDepth = endBracketDepth;
+        }
+
+    }
+    
+    // コピー禁止
+    IndentRuleApplier(const IndentRuleApplier&) = delete;
+    IndentRuleApplier& operator=(const IndentRuleApplier&) = delete;
+    
+    // ムーブは許可
+    IndentRuleApplier(IndentRuleApplier&& other) noexcept {
+        this->context = other.context;
+        this->firstLine = other.firstLine;
+        this->currentCodeLine = other.currentCodeLine;
+        this->firstDepth = other.firstDepth;
+        this->firstIncrementMode = other.firstIncrementMode;
+        this->endBracketDepth = other.endBracketDepth;
+        other.context = nullptr;
+    }
+};
+
     struct ParseContext {
         st_uint start;
         int length;
@@ -403,6 +457,10 @@ namespace cshort {
 
         MemBuffer memBuffer;
         MemBuffer memBufferForCodeLines;
+
+        IndentRuleApplier CreateIndentRuleApplier(CodeLine *currentCodeLine) {
+            return IndentRuleApplier(this, currentCodeLine);
+        }
 
         void init() {
             memBuffer.init();
