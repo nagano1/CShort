@@ -34,20 +34,38 @@ namespace cshort {
     //                                    FuncBodyNode
     //
     // -----------------------------------------------------------------------------------
-    static int selfTextLength2(FuncBodyNodeStruct* d) {
+    static int selfTextLength_FuncBody(FuncBodyNodeStruct* d) {
         return 0;
     }
 
-    static void copySelfText2(FuncBodyNodeStruct *self, utf8byte *buf) {
+    static void copySelfText_FuncBody(FuncBodyNodeStruct *self, utf8byte *buf) {
     }
 
-    static CodeLine *appendToLine2(FuncBodyNodeStruct *self, CodeLine *currentCodeLine) {
+    /*
+    class A
+    {fn est() {
+        let a = 3
+        }
+        fn func(int a, int b) {
+    }
+    
+    */
+    static CodeLine *appendToLine_FuncBodyNode(FuncBodyNodeStruct *self, CodeLine *currentCodeLine) {
+        /*
+           {
+                [child nodes]
+           }
+        */
         auto *funcBodyNode = self;
-
         auto *firstLine = currentCodeLine;
+        int firstDepth = self->context->currentIndentDepth;
+        bool firstIncrementMode = self->context->depthIncrementMode;
+
+        // the indent depth for the body should be parent's indent depth + 1, if the body is not empty, otherwise it should be the same as parent's indent depth.
         int endBracketDepth = self->context->currentIndentDepth + (self->context->depthIncrementMode ? 1 : 0);
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
+        auto *startBracketLine = currentCodeLine;
 
 
         self->context->depthIncrementMode = true;
@@ -61,18 +79,20 @@ namespace cshort {
         }
 
 
-        auto *prevCodeLine = currentCodeLine;
-        //auto formerParentDepth2 = self->context->currentIndentDepth;
-
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 
-        if (currentCodeLine != firstLine) {
-            printf("set depth for line %d to %d\n", currentCodeLine->lineNumber, endBracketDepth);
+        if (currentCodeLine != startBracketLine) {
             currentCodeLine->depth = endBracketDepth;
+        }
+        
+        // if the body is empty, the end bracket will be in the same line as the start bracket, in this case we should not change the indent depth for this line, and the indent depth should be the same as the parent node's indent depth.
+        if (currentCodeLine == firstLine) {
+            self->context->currentIndentDepth = firstDepth;
+            self->context->depthIncrementMode = firstIncrementMode;
+        }
+        else {
             self->context->currentIndentDepth = endBracketDepth;
         }
-
-        //self->context->currentIndentDepth = formerParentDepth;
 
         return currentCodeLine;
     }
@@ -106,9 +126,9 @@ namespace cshort {
 
 
     static node_vtable _bodyVTable = CREATE_VTABLE(FuncBodyNodeStruct,
-                                                   selfTextLength2,
-                                                   copySelfText2,
-                                                   appendToLine2,
+                                                   selfTextLength_FuncBody,
+                                                   copySelfText_FuncBody,
+                                                   appendToLine_FuncBodyNode,
                                                    BodyNodeStruct_applyFuncToDescendants,
                                                    bodyTypeText, NodeTypeId::Body);
 

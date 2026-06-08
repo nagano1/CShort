@@ -35,14 +35,15 @@ class TestCl     // 0
 }    // 0
 // 0)";
 
-const int indentDepthRuleList2[] = {0,0,1,0,1,2,1,1,2,1,1,2,2,2,1,0};
+const int indentDepthRuleList2[] = {0,0,1,0,1,1,2,1,1,2,1,1,2,2,2,1,0};
 constexpr const char *classOnlyText2 = u8R"(// 0
 class
     TestCl
 {
+    fn est() {}
     fn func(int a, int b) {
 
-    }
+    /*jkkkkkkkkkkkkkkjkjkj*/}
     fn a() {
         return 324
     }
