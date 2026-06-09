@@ -323,7 +323,6 @@ namespace cshort
         context->isAfterLineBreak = false;
         int lastTokenizedPos = context->lastTokenizedPos;
         context->mostLeftToken = nullptr;
-        context->firstMostLeftToken = nullptr;
 
         for (int32_t i = start; i <= context->length;) { // iterate until the end of chars
             ch = (i < context->length) ? context->chars[i] : 0;
@@ -360,9 +359,6 @@ namespace cshort
                 context->lastTokenizedPos = result;
 
                 assert(context->mostLeftToken != nullptr);
-                if(context->firstMostLeftToken == nullptr) {
-                    context->firstMostLeftToken = context->mostLeftToken;
-                }
                 parsingData.assignWhiteSpaces(context->mostLeftToken, i);
                 parsingData.assignCommentToken(context->mostLeftToken);
                 parsingData.assignLineBreak(context->mostLeftToken);

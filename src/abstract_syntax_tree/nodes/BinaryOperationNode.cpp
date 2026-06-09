@@ -289,7 +289,7 @@ namespace cshort {
 
         if (Search::IsTokenized(resultPos)) {
             context->generatedPrimaryNode = Cast::upcast(binaryOpNode);
-            context->mostLeftToken = Cast::upcastToken(context->firstMostLeftToken);
+            // mostLeftToken is handled in tokenizeExpression.
             return resultPos;
         }
 
