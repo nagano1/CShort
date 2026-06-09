@@ -73,7 +73,7 @@ class A { // comment
         str *s2 = `raw string literal with \n no escape and "quote"`
         let g = func(123, "2342", true)
         let k = 23 + 42
-        string m = "weof" + /*comment*/ "test"
+        string m = "weof"  + /*comment*/ "test"
         ?string nm = null
         return true
     }

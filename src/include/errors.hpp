@@ -35,7 +35,7 @@ namespace cshort {
 
         // value
         expect_end_parenthesis,
-
+        expected_expression_after_operator,
 
         // string
         missing_closing_quote,
@@ -133,6 +133,7 @@ namespace cshort {
 
             // value
             ErrorInfo{ ErrorIndex::expect_end_parenthesis, 418133, "expect_end_parenthesis" },
+            ErrorInfo{ ErrorIndex::expected_expression_after_operator, 418134, "expected expression after operator" },
 
             // string
             ErrorInfo{ ErrorIndex::missing_closing_quote, 989800, "missing closing quote" },
