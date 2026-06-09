@@ -43,8 +43,10 @@ namespace cshort {
         // call func expression: func()
         if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, ch, result, context))) {
            result = extraPos;
-        } // binary operation: expression + expression.
-        else if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, ch, result, context))) {
+        }
+        
+        // binary operation: expression + expression.
+        if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, ch, result, context))) {
            result = extraPos;
         }
 

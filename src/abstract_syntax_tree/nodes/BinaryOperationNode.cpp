@@ -271,7 +271,6 @@ namespace cshort {
     {
         NodeBase *parent = Cast::upcast(argNode);
         assert(context->generatedPrimaryNode != nullptr);
-        auto *generatedPrimaryNode = context->generatedPrimaryNode;
 
         auto *binaryOpNode = Alloc::newBinaryOperationNode(context, parent, ch);
 
@@ -293,7 +292,7 @@ namespace cshort {
             return resultPos;
         }
 
-        context->generatedPrimaryNode = generatedPrimaryNode;
+        context->generatedPrimaryNode = leftExpressionNode;
         return Search::NOTFOUND;
     }
 
