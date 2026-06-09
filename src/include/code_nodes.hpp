@@ -989,13 +989,13 @@ namespace cshort {
         bool savedIncrementMode;
 
         static IndentRuleApplier Create(ParseContext *context, CodeLine *currentCodeLine) {
-            auto indentRuleApplier = IndentRuleApplier();
+            IndentRuleApplier indentRuleApplier = IndentRuleApplier();
             indentRuleApplier.Init(context, currentCodeLine, false);
             return indentRuleApplier;
         }
 
         static IndentRuleApplier CreateWithBase(ParseContext *context, CodeLine *currentCodeLine) {
-            auto indentRuleApplier = IndentRuleApplier();
+            IndentRuleApplier indentRuleApplier = IndentRuleApplier();
             indentRuleApplier.Init(context, currentCodeLine, true);
             return indentRuleApplier;
         }
