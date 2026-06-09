@@ -1022,10 +1022,10 @@ namespace cshort {
                 this->firstIncrementMode = context->baseIncrementMode;
             }
             else {
+                this->baseDepth = context->getNextLineIndentDepth();
                 this->firstLine = currentCodeLine;
                 this->firstDepth = context->currentIndentDepth;
                 this->firstIncrementMode = context->incrementDepthOnNextLine;
-                this->baseDepth = context->getNextLineIndentDepth();
             }
         }
 
@@ -1034,7 +1034,6 @@ namespace cshort {
         }
         
         void StartBracket(CodeLine *currentCodeLine) {
-            // if the current code line is the same as the first line, it means the caller will handle the indent for this line, so we don't need to set indent for this line, just set indent for next lines.
             if (currentCodeLine != firstLine) {
                 currentCodeLine->depth = baseDepth;
                 context->currentIndentDepth = baseDepth;

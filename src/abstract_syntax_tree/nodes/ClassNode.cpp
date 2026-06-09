@@ -46,11 +46,10 @@ namespace cshort {
         
         // class
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->classKeywordToken, currentCodeLine);
-        context->incrementDepthOnNextLine = true;
         
         // className
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
         context->incrementDepthOnNextLine = false;
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
 
         // {
         currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);

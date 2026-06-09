@@ -212,7 +212,7 @@ namespace cshort {
 
     static CodeLine *appendToLine_FuncParameterItemStruct(FuncParameterItemStruct *self, CodeLine *currentCodeLine) {
 
-        if (self->assignStatementNodeStruct) {
+        if (self->assignStatementNodeStruct != nullptr) {
             currentCodeLine = VTableCall::callAppendNodeToLine(self->assignStatementNodeStruct, currentCodeLine);
         }
 
@@ -365,11 +365,10 @@ namespace cshort {
         currentCodeLine = TokenVTableCall::callAppendTokenToLine (&self->fnKeywordToken, currentCodeLine);
 
         // funcName
-        self->context->incrementDepthOnNextLine = true;
+        self->context->incrementDepthOnNextLine = false;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->funcNameToken, currentCodeLine);
 
         // (
-        self->context->incrementDepthOnNextLine = false;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterStartNode, currentCodeLine);
         indentRuleApplier.StartBracket(currentCodeLine);
 
