@@ -55,13 +55,15 @@ class
     }
 })";
 
-const int indentDepthRuleList3[] = {0,0,0,1,2,2,1,0};
+const int indentDepthRuleList3[] = {0,0,0,1,2,3,2,2,1,0};
 constexpr const char *classOnlyText3 = u8R"(
 class TestCl
 {
-    class B {class C { class D {
+    class B {class C {
+        class D {
 
-        }}
+        }
+        }
     }
 })";
 

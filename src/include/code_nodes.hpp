@@ -398,6 +398,8 @@ namespace cshort {
         ClassNodeStruct *unusedClassNode;
         AssignStatementNodeStruct *unusedAssignment;
         CodeLine *baseCodeLine; // used for storing the code line with base indent, used for calculating indent for other lines.
+        int baseindentDepth;
+        bool baseIncrementMode;
 
         LineBreakTokenStruct *remainedLineBreakToken;
         void *remainedCommentToken;

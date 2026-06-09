@@ -245,6 +245,10 @@ namespace cshort {
         context->arithmeticBaseDepth = -1;
         context->isAfterLineBreak = false;
 
+        context->baseCodeLine = nullptr;
+        context->baseindentDepth = 0;
+        context->baseIncrementMode = false;
+
         context->unusedClassNode = nullptr;
         context->unusedAssignment = nullptr;
 
