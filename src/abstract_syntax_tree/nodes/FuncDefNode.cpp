@@ -358,6 +358,7 @@ namespace cshort {
     {
         ParseContext *context = self->context;
         CodeLine *firstLine = currentCodeLine;
+        context->baseCodeLine = currentCodeLine; // reffered by body node
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
         int baseDepth = indentRuleApplier.GetBaseDepth();
 

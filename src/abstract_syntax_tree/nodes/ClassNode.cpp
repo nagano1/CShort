@@ -41,7 +41,7 @@ namespace cshort {
     */
     static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
     {
-        auto *context = classNode->context;
+        ParseContext *context = classNode->context;
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
         
         // class
@@ -57,12 +57,10 @@ namespace cshort {
         indentRuleApplier.StartBracket(currentCodeLine);
 
         // [child nodes]
-        {
-            auto *child = classNode->firstChildNode;
-            while (child) {
-                currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
-                child = child->nextNode;
-            }
+        auto *child = classNode->firstChildNode;
+        while (child != nullptr) {
+            currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
+            child = child->nextNode;
         }
 
         // }
