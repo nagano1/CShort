@@ -109,7 +109,7 @@ void testParsing()
 {
     checkIndentDepth(classOnlyText, indentDepthRuleList1, sizeof(indentDepthRuleList1) / sizeof(indentDepthRuleList1[0]));
     checkIndentDepth(classOnlyText2, indentDepthRuleList2, sizeof(indentDepthRuleList2) / sizeof(indentDepthRuleList2[0]));
-    //checkIndentDepth(classOnlyText3, indentDepthRuleList3, sizeof(indentDepthRuleList3) / sizeof(indentDepthRuleList3[0]));
+    checkIndentDepth(classOnlyText3, indentDepthRuleList3, sizeof(indentDepthRuleList3) / sizeof(indentDepthRuleList3[0]));
     checkIndentDepth(classOnlyText4, indentDepthRuleList4, sizeof(indentDepthRuleList4) / sizeof(indentDepthRuleList4[0]));
 
 }

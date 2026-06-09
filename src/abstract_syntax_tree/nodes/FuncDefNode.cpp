@@ -362,10 +362,7 @@ namespace cshort {
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
 
         // fn
-        printf("K depth = %d, %d\n", currentCodeLine->depth, context->incrementDepthOnNextLine);
-
         currentCodeLine = TokenVTableCall::callAppendTokenToLine (&self->fnKeywordToken, currentCodeLine);
-        printf("A depth = %d\n", currentCodeLine->depth);
 
         // funcName
         self->context->incrementDepthOnNextLine = false;
