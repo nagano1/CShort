@@ -972,6 +972,9 @@ namespace cshort {
     };
 
     
+
+    // this struct is used for applying indent rules when appending code lines,
+    // it will save the indent state when created, and restore the indent state when finished.
     struct IndentRuleApplier {
         ParseContext *context;
         CodeLine *firstLine;

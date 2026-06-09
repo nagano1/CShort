@@ -41,7 +41,6 @@ namespace cshort {
     */
     static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
     {
-        auto *firstLine = currentCodeLine;
         auto *context = classNode->context;
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
         
