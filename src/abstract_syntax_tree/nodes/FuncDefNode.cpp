@@ -53,22 +53,21 @@ namespace cshort {
     static CodeLine *appendToLine_FuncBodyNode(FuncBodyNodeStruct *self, CodeLine *currentCodeLine)
     {
         auto *context = self->context;
-        auto *funcBodyNode = self;
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::CreateWithBase(context, currentCodeLine);
 
         // {
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->bodyStartNode, currentCodeLine);
         indentRuleApplier.StartBracket(currentCodeLine);
 
         // [child nodes]
-        auto *child = funcBodyNode->firstChildNode;
+        auto *child = self->firstChildNode;
         while (child) {
             currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
             child = child->nextNode;
         }
 
         // }
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->endBodyNode, currentCodeLine);
         indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
 
         return currentCodeLine;
