@@ -54,12 +54,11 @@ namespace cshort {
     {
         auto *context = self->context;
         auto *funcBodyNode = self;
-        IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
+        IndentRuleApplier indentRuleApplier = IndentRuleApplier::CreateWithBase(context, currentCodeLine);
 
+        // {
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->bodyStartNode, currentCodeLine);
-        auto *startBracketLine = currentCodeLine;
-
-        context->incrementDepthOnNextLine = true;
+        indentRuleApplier.StartBracket(currentCodeLine);
 
         {
             auto *child = funcBodyNode->firstChildNode;
@@ -69,6 +68,7 @@ namespace cshort {
             }
         }
 
+        // }
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 
         indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
@@ -358,25 +358,27 @@ namespace cshort {
     {
         ParseContext *context = self->context;
         CodeLine *firstLine = currentCodeLine;
-        context->baseCodeLine = currentCodeLine; // reffered by body node
+        context->baseCodeLine = currentCodeLine; // referred by body node
+        context->baseindentDepth = context->currentIndentDepth;
+        context->baseIncrementMode = context->incrementDepthOnNextLine;
+
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
         int baseDepth = indentRuleApplier.GetBaseDepth();
 
         // fn
         currentCodeLine = TokenVTableCall::callAppendTokenToLine (&self->fnKeywordToken, currentCodeLine);
-
         self->context->incrementDepthOnNextLine = true;
+
         // funcName
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->funcNameToken, currentCodeLine);
-
-        //self->context->currentIndentDepth = baseDepth;
         self->context->incrementDepthOnNextLine = false;
         // (
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterStartNode, currentCodeLine);
+        indentRuleApplier.StartBracket(currentCodeLine);
 
-        bool mode = context->incrementDepthOnNextLine;
-        self->context->incrementDepthOnNextLine = true;
-        auto *line = currentCodeLine;
+        //bool mode = context->incrementDepthOnNextLine;
+        //self->context->incrementDepthOnNextLine = true;
+//        auto *line = currentCodeLine;
 
         // [parameters]
         auto *item = self->firstChildParameterNode;
@@ -385,9 +387,12 @@ namespace cshort {
             item = Cast::downcast<FuncParameterItemStruct *>(item->nextNode);
         }
 
-        CodeLine * prevLine = currentCodeLine;
+//        CodeLine * prevLine = currentCodeLine;
         // )
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->parameterEndNode, currentCodeLine);
+        indentRuleApplier.FinishAfterEndBracket(currentCodeLine);   
+
+        /*
         if (currentCodeLine != prevLine) {
             // if there is no parameter, we need to make sure the closing parenthesis is in the next line
             currentCodeLine->depth = baseDepth;
@@ -395,12 +400,12 @@ namespace cshort {
         //indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
         context->incrementDepthOnNextLine = false;
         context->currentIndentDepth = baseDepth;
-
+*/
 
         //self->context->incrementDepthOnNextLine = false;
         // body
         currentCodeLine = VTableCall::callAppendNodeToLine(&self->bodyNode, currentCodeLine);
-
+/*
         if (currentCodeLine == firstLine) {
             // if there is no parameter, we need to make sure the body is in the next line
             self->context->incrementDepthOnNextLine = mode;
@@ -408,7 +413,8 @@ namespace cshort {
 
 
         self->context->currentIndentDepth = baseDepth;
-
+*/
+        //indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
         return currentCodeLine;
     }
 

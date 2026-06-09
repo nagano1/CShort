@@ -990,7 +990,13 @@ namespace cshort {
 
         static IndentRuleApplier Create(ParseContext *context, CodeLine *currentCodeLine) {
             auto indentRuleApplier = IndentRuleApplier();
-            indentRuleApplier.Init(context, currentCodeLine);
+            indentRuleApplier.Init(context, currentCodeLine, false);
+            return indentRuleApplier;
+        }
+
+        static IndentRuleApplier CreateWithBase(ParseContext *context, CodeLine *currentCodeLine) {
+            auto indentRuleApplier = IndentRuleApplier();
+            indentRuleApplier.Init(context, currentCodeLine, true);
             return indentRuleApplier;
         }
 
@@ -1004,15 +1010,21 @@ namespace cshort {
             this->context->incrementDepthOnNextLine = this->savedIncrementMode;
         }
 
-        void Init(ParseContext *context, CodeLine *currentCodeLine) {
+        void Init(ParseContext *context, CodeLine *currentCodeLine, bool useBase) {
             assert(context != nullptr);
 
             this->context = context;
             
-            this->firstLine = currentCodeLine;
-            this->firstDepth = context->currentIndentDepth;
-            this->firstIncrementMode = context->incrementDepthOnNextLine;
-            this->baseDepth = context->getNextLineIndentDepth();
+            if (useBase) {
+                this->baseDepth = context->baseindentDepth + (context->baseIncrementMode ? 1 : 0);
+                this->firstLine = context->baseCodeLine;
+                this->firstIncrementMode = context->baseIncrementMode;
+            }
+            else {
+                this->firstLine = currentCodeLine;
+                this->firstIncrementMode = context->incrementDepthOnNextLine;
+                this->baseDepth = context->getNextLineIndentDepth();
+            }
         }
 
         int GetBaseDepth() const {
