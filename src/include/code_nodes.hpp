@@ -1017,11 +1017,13 @@ namespace cshort {
             
             if (useBase) {
                 this->baseDepth = context->baseindentDepth + (context->baseIncrementMode ? 1 : 0);
+                this->firstDepth = context->baseindentDepth;
                 this->firstLine = context->baseCodeLine;
                 this->firstIncrementMode = context->baseIncrementMode;
             }
             else {
                 this->firstLine = currentCodeLine;
+                this->firstDepth = context->currentIndentDepth;
                 this->firstIncrementMode = context->incrementDepthOnNextLine;
                 this->baseDepth = context->getNextLineIndentDepth();
             }
