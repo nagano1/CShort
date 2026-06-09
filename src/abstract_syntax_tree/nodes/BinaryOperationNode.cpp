@@ -24,11 +24,14 @@ namespace cshort {
     static constexpr const char opItem_NodeTypeText[] = "<OpItem>";
     static CodeLine *opItem_appendToLine(OpItemNodeStruct *self, CodeLine *currentCodeLine)
     {
-        if (self->hasLeadingOpToken) {
+        if (!self->isFirstOp) {
+            assert(self->opToken.foundPos > -1); 
+            assert(self->opToken.symbol[0] != '_');
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->opToken, currentCodeLine);
         }
 
         currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
+        
         if (self->isFirstOp) {
             self->context->incrementDepthOnNextLine = true;
         }
@@ -53,7 +56,7 @@ namespace cshort {
             }
         }
 
-        if (node->hasLeadingOpToken) {
+        if (!node->isFirstOp) {
             // op token is not a node, so we cannot call applyFuncToDescendants on it, but we can still call func on it if the targetVTable is for op tokens
             if (targetVTable == nullptr || &node->opToken.vtable == targetVTable) {
                 //func(&node->opToken, ApplyFunc_pass);
@@ -130,52 +133,6 @@ namespace cshort {
             opItemNode = opItemNode->nextOpNode;
         }
         return currentCodeLine;
-        /*
-        int formerParentDepth = self->context->currentIndentDepth;
-        bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
-
-        if (self->leftExprNode != nullptr) {
-            // leftExpr
-            currentCodeLine = VTableCall::callAppendNodeToLine(self->leftExprNode, currentCodeLine);
-        }
-
-        int formerArithmeticDepth = self->context->arithmeticBaseDepth;
-
-        int diff = currentCodeLine->depth == self->context->currentIndentDepth ? 0 : 1;
-
-        int newDepth = self->context->arithmeticBaseDepth > -1 ?
-                       self->context->arithmeticBaseDepth : formerParentDepth + diff;
-
-        self->context->arithmeticBaseDepth = newDepth;
-        self->context->incrementDepthOnNextLine = true;
-        //self->context->currentIndentDepth = formerParentDepth;
-
-
-        auto *line = currentCodeLine;
-
-        // operator +
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->opToken, currentCodeLine);
-        // if (line != currentCodeLine) {
-        //     // if operator is on a new line, increase indent depth for the right expression
-        //     currentCodeLine->depth = depthForNextLine;
-        // }
-
-
-        if (self->rightExprNode != nullptr) {
-            // rightExpr
-            currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
-            // if (line != currentCodeLine) {
-            //     // if right expression is on a new line, reset indent depth to parent depth for next nodes
-            //     currentCodeLine->depth = depthForNextLine;
-            //}
-        }
-
-;
-        self->context->currentIndentDepth = formerParentDepth;
-        self->context->arithmeticBaseDepth = formerArithmeticDepth;
-        self->context->incrementDepthOnNextLine = prevDepthIncrementMode;
-        return currentCodeLine;
-        */
     }
 
     static void copySelfText_binaryOp(BinaryOperationNodeStruct *self, utf8byte *buf)
@@ -232,12 +189,9 @@ namespace cshort {
     {
         OpItemNodeStruct *prevOpItem = Cast::downcast<OpItemNodeStruct*>(context->generatedPrimaryNode);
 
-        if (ch == '+' || ch == '*' || ch == '-' || ch == '/' || ch == '%'
-            || ch == '&' || ch == '|') {
+        if (ch == '+' || ch == '*' || ch == '-' || ch == '/' || ch == '%' || ch == '&' || ch == '|') {
             auto *parent = Cast::upcast(argNode);
             auto *newOpNode = Alloc::newOpItemNode(context, parent, ch);
-            newOpNode->hasLeadingOpToken = true;
-            newOpNode->isFirstOp = false;
             prevOpItem->nextOpNode = newOpNode;
             newOpNode->opToken.foundPos = start;
 
@@ -277,7 +231,6 @@ namespace cshort {
         auto *leftExpressionNode = context->generatedPrimaryNode;
         auto *firstOpItem = Alloc::newOpItemNode(context, Cast::upcast(binaryOpNode), '_');
         firstOpItem->rightExprNode = leftExpressionNode;
-        firstOpItem->hasLeadingOpToken = false;
         firstOpItem->isFirstOp = true;
         context->generatedPrimaryNode = Cast::upcast(firstOpItem);
 
@@ -314,7 +267,6 @@ namespace cshort {
 
         node->rightExprNode = nullptr;
         node->isFirstOp = false;
-        node->hasLeadingOpToken = false;
 
         Init::initSymbolToken(&node->opToken, context, node, op);
         return node;

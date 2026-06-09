@@ -343,7 +343,6 @@ namespace cshort {
         NodeBase *rightExprNode;
         bool isFirstOp;
 
-        bool hasLeadingOpToken;
         SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
 
         struct _OpItemNodeStruct *nextOpNode; // for handling multiple binary operations with same precedence, like a + b + c, leftExprNode will be a, opToken will be +, nextOpNode->leftExprNode will be b, nextOpNode->opToken will be +, nextOpNode->nextOpNode will be nullptr, and the rightExprNode of the last OpItemNodeStruct will be c.
@@ -1058,6 +1057,7 @@ namespace cshort {
             }
             else {
                 context->currentIndentDepth = baseDepth;
+                context->incrementDepthOnNextLine = false;
             }
         }
     };
