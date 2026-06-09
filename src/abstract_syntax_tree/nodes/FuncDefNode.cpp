@@ -50,7 +50,8 @@ namespace cshort {
     }
     
     */
-    static CodeLine *appendToLine_FuncBodyNode(FuncBodyNodeStruct *self, CodeLine *currentCodeLine) {
+    static CodeLine *appendToLine_FuncBodyNode(FuncBodyNodeStruct *self, CodeLine *currentCodeLine)
+    {
         auto *context = self->context;
         auto *funcBodyNode = self;
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
@@ -67,7 +68,6 @@ namespace cshort {
                 child = child->nextNode;
             }
         }
-
 
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&funcBodyNode->endBodyNode, currentCodeLine);
 

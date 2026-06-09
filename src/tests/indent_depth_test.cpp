@@ -35,7 +35,7 @@ class TestCl     // 0
 }    // 0
 // 0)";
 
-const int indentDepthRuleList2[] = {0,0,1,0,1,1,2,2,1,2,1,1,2,2,2,1,0};
+const int indentDepthRuleList2[] = {0,0,1,0,1,1,2,2,1,2,2,1,1,2,2,2,1,0};
 constexpr const char *classOnlyText2 = u8R"(// 0
 class
     TestCl
@@ -45,12 +45,23 @@ class
 
         var a = 314}
     fn a() {
-        return 324
+        
+    
     /*fjwoi*/}
     class B { fn c() {
 
         }
         fn d() {}
+    }
+})";
+
+const int indentDepthRuleList3[] = {0,0,0,1,2,2,1,0};
+constexpr const char *classOnlyText3 = u8R"(
+class TestCl
+{
+    class B {class C { class D {
+
+        }}
     }
 })";
 
@@ -79,7 +90,8 @@ void checkIndentDepth(const char *chars, const int indentDepthRuleList[], int ru
 void testParsing()
 {
     //checkIndentDepth(classOnlyText, indentDepthRuleList1, sizeof(indentDepthRuleList1) / sizeof(indentDepthRuleList1[0]));
-    checkIndentDepth(classOnlyText2, indentDepthRuleList2, sizeof(indentDepthRuleList2) / sizeof(indentDepthRuleList2[0]));
+    //checkIndentDepth(classOnlyText2, indentDepthRuleList2, sizeof(indentDepthRuleList2) / sizeof(indentDepthRuleList2[0]));
+    checkIndentDepth(classOnlyText3, indentDepthRuleList3, sizeof(indentDepthRuleList3) / sizeof(indentDepthRuleList3[0]));
 
 }
 

@@ -979,10 +979,23 @@ namespace cshort {
         bool firstIncrementMode;
         int baseDepth;
 
+        int savedPos;
+        bool savedIncrementMode;
+
         static IndentRuleApplier Create(ParseContext *context, CodeLine *currentCodeLine) {
             auto indentRuleApplier = IndentRuleApplier();
             indentRuleApplier.Init(context, currentCodeLine);
             return indentRuleApplier;
+        }
+
+        void saveCurrentPos() {
+            this->savedPos = this->context->currentIndentDepth;
+            this->savedIncrementMode = this->context->incrementDepthOnNextLine;
+        }
+
+        void restorePos() {
+            this->context->currentIndentDepth = this->savedPos;
+            this->context->incrementDepthOnNextLine = this->savedIncrementMode;
         }
 
         void Init(ParseContext *context, CodeLine *currentCodeLine) {
@@ -1000,6 +1013,14 @@ namespace cshort {
             return baseDepth;
         }
         
+        void StartBracket(CodeLine *currentCodeLine) {
+            if (currentCodeLine != firstLine) {
+                currentCodeLine->depth = baseDepth;
+                context->currentIndentDepth = baseDepth;
+            }
+            context->incrementDepthOnNextLine = true;
+        }
+
         void FinishAfterEndBracket(CodeLine *codeLine) {
             if (CodeLine::HasOnlyEndParentheses(codeLine)) {
                 codeLine->depth = baseDepth;

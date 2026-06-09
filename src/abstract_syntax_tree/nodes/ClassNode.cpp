@@ -41,6 +41,7 @@ namespace cshort {
     */
     static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
     {
+        auto *firstLine = currentCodeLine;
         auto *context = classNode->context;
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
         
@@ -51,11 +52,10 @@ namespace cshort {
         // className
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
         context->incrementDepthOnNextLine = false;
-        context->currentIndentDepth = indentRuleApplier.GetBaseDepth();
 
         // {
         currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);
-        context->incrementDepthOnNextLine = true;
+        indentRuleApplier.StartBracket(currentCodeLine);
 
         // [child nodes]
         {
