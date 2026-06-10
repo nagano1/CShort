@@ -238,6 +238,7 @@ namespace cshort {
             if (!Search::IsTokenized(resultPos)) {
                 break;
             }
+
             tokenized = true;
             assert(context->generatedPrimaryNode != nullptr);
             OpItemNodeStruct *newOpItem = Cast::downcast<OpItemNodeStruct*>(context->generatedPrimaryNode);
@@ -245,7 +246,7 @@ namespace cshort {
             if (binaryOpExpressoinNode == nullptr) { // first time to tokenize a binary operation
                 binaryOpExpressoinNode = Alloc::newBinaryOperationNode(context, parent, ch);
                 parent = Cast::upcast(binaryOpExpressoinNode);
-                OpItemNodeStruct *firstOpItem = Alloc::newOpItemNode(context, Cast::upcast(binaryOpExpressoinNode), '_');
+                OpItemNodeStruct *firstOpItem = Alloc::newOpItemNode(context, parent, '_');
 
                 firstOpItem->rightExprNode = firstExpressionNode;
                 firstOpItem->isFirstOp = true;
