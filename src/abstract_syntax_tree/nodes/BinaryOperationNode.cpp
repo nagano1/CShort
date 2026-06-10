@@ -230,16 +230,13 @@ namespace cshort {
         OpItemNodeStruct *currentOpItem = nullptr;
         BinaryOperationNodeStruct *binaryOpExpressoinNode = nullptr;
         
-        bool tokenized = false;
-        
         // + 320 - 1123 * 5
-        while (true) {
+        while (start < context->length) {
             int resultPos = Scanner::scanOnce(parent, binaryOpTokenizerInternal, context, start);
             if (!Search::IsTokenized(resultPos)) {
                 break;
             }
 
-            tokenized = true;
             assert(context->generatedPrimaryNode != nullptr);
             OpItemNodeStruct *newOpItem = Cast::downcast<OpItemNodeStruct*>(context->generatedPrimaryNode);
 
@@ -263,10 +260,11 @@ namespace cshort {
             currentOpItem = newOpItem;
             newOpItem->parentNode = parent;
 
+            assert(start < resultPos);
             start = resultPos;
         }
 
-        if (tokenized) {
+        if (binaryOpExpressoinNode != nullptr) {
             context->generatedPrimaryNode = Cast::upcast(binaryOpExpressoinNode);
             context->mostLeftToken = Cast::upcastToken(&secondOpItem->opToken);
             return start;
