@@ -69,7 +69,7 @@ namespace cshort {
         // }
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->endBodyNode, currentCodeLine);
         indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
-        printf("B depth = %d\n", currentCodeLine->depth);
+        //printf("B depth = %d\n", currentCodeLine->depth);
         return currentCodeLine;
     }
 

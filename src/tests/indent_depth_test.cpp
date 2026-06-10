@@ -83,6 +83,16 @@ class TestCl
     }
 })";
 
+const int indentDepthRuleList5[] = {0,0,1,2,,3,2,1,0};
+constexpr const char *classOnlyText5 = u8R"(
+fn Cook() {
+    int g = (343 - 
+        (3241 + 
+            232
+        )
+    )
+})";
+
 
 void checkIndentDepth(const char *chars, const int indentDepthRuleList[], int ruleListLength)
 {
@@ -111,6 +121,7 @@ void testParsing()
     checkIndentDepth(classOnlyText2, indentDepthRuleList2, sizeof(indentDepthRuleList2) / sizeof(indentDepthRuleList2[0]));
     checkIndentDepth(classOnlyText3, indentDepthRuleList3, sizeof(indentDepthRuleList3) / sizeof(indentDepthRuleList3[0]));
     checkIndentDepth(classOnlyText4, indentDepthRuleList4, sizeof(indentDepthRuleList4) / sizeof(indentDepthRuleList4[0]));
+    checkIndentDepth(classOnlyText5, indentDepthRuleList5, sizeof(indentDepthRuleList5) / sizeof(indentDepthRuleList5[0]));
 
 }
 

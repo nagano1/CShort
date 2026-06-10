@@ -404,6 +404,8 @@ namespace cshort {
         int baseindentDepth;
         bool baseIncrementMode;
 
+        bool skipBinaryExpressionTokenizer;
+
         LineBreakTokenStruct *remainedLineBreakToken;
         void *remainedCommentToken;
         int remainedSpaceCount{0};
@@ -990,12 +992,19 @@ namespace cshort {
         bool firstIncrementMode;
         int baseDepth;
 
+        bool isExpressionMode;
         int savedPos;
         bool savedIncrementMode;
 
         static IndentRuleApplier Create(ParseContext *context, CodeLine *currentCodeLine) {
             IndentRuleApplier indentRuleApplier = IndentRuleApplier();
             indentRuleApplier.Init(context, currentCodeLine, false);
+            return indentRuleApplier;
+        }
+
+        static IndentRuleApplier CreateForExpression(ParseContext *context, CodeLine *currentCodeLine) {
+            IndentRuleApplier indentRuleApplier = IndentRuleApplier();
+            indentRuleApplier.Init(context, currentCodeLine, false, true);
             return indentRuleApplier;
         }
 
@@ -1015,10 +1024,11 @@ namespace cshort {
             this->context->incrementDepthOnNextLine = this->savedIncrementMode;
         }
 
-        void Init(ParseContext *context, CodeLine *currentCodeLine, bool useBase) {
+        void Init(ParseContext *context, CodeLine *currentCodeLine, bool useBase, bool expressionMode = false) {
             assert(context != nullptr);
 
             this->context = context;
+            this->isExpressionMode = expressionMode;
             
             if (useBase) {
                 this->baseDepth = context->baseindentDepth + (context->baseIncrementMode ? 1 : 0);
@@ -1027,7 +1037,7 @@ namespace cshort {
                 this->firstIncrementMode = context->baseIncrementMode;
             }
             else {
-                this->baseDepth = context->getNextLineIndentDepth();
+                this->baseDepth = expressionMode ? context->currentIndentDepth : context->getNextLineIndentDepth();
                 this->firstLine = currentCodeLine;
                 this->firstDepth = context->currentIndentDepth;
                 this->firstIncrementMode = context->incrementDepthOnNextLine;
@@ -1039,7 +1049,7 @@ namespace cshort {
         }
         
         void StartBracket(CodeLine *currentCodeLine) {
-            if (currentCodeLine != firstLine) {
+            if (currentCodeLine != firstLine && !this->isExpressionMode) {
                 currentCodeLine->depth = baseDepth;
                 context->currentIndentDepth = baseDepth;
             }

@@ -25,8 +25,13 @@ namespace cshort {
     //    +--------------------------+
     static CodeLine *parentheses_appendToLine(ParenthesesNodeStruct *self, CodeLine *currentCodeLine)
     {
+        printf("depth = %d, incrementmode = %d\n", self->context->currentIndentDepth, self->context->incrementDepthOnNextLine);
+        IndentRuleApplier indentRuleApplier = IndentRuleApplier::CreateForExpression(self->context, currentCodeLine);
+        printf("baseDepth = %d\n", indentRuleApplier.GetBaseDepth());
         // (
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->openNode, currentCodeLine);
+        indentRuleApplier.StartBracket(currentCodeLine);
+        //self->context->incrementDepthOnNextLine = true;
 
         auto *openCodeLine = currentCodeLine;
         int formerDepth = currentCodeLine->depth;
@@ -37,18 +42,17 @@ namespace cshort {
 
             self->context->arithmeticBaseDepth = -1;
 
-            int diff = currentCodeLine->depth == self->context->currentIndentDepth ? 0 : 1;
-            self->context->currentIndentDepth += diff;
             currentCodeLine = VTableCall::callAppendNodeToLine(self->valueNode, currentCodeLine);
 
             self->context->arithmeticBaseDepth = formerArithmeticDepth;
-            self->context->currentIndentDepth = formerParentDepth;
+            //self->context->currentIndentDepth = formerParentDepth;
         }
 
 
         // )
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->closeNode, currentCodeLine);
-
+        indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
+/*
         // if there is no non-bracket entity in this line, it means this line is only for brackets, we can set the depth of this line to the former depth before parentheses, which can make the code more tidy when generating code later.
         if (currentCodeLine != openCodeLine) {
             bool hasNonBracketEntity = false;
@@ -75,7 +79,7 @@ namespace cshort {
                 currentCodeLine->depth = formerDepth;
             }
         }
-
+*/
         return currentCodeLine;
     }
 
@@ -128,7 +132,10 @@ namespace cshort {
             auto *parenthesesNode = Alloc::newParenthesesNode(context, Cast::upcast(argNode));
             parenthesesNode->openNode.foundPos = start;
             int currentPos = start + 1;
+            bool prevBinaryMode = context->skipBinaryExpressionTokenizer;
+            context->skipBinaryExpressionTokenizer = false;
             int resultPos =  Scanner::scanLoop(parenthesesNode, tokenizeExpressionForParenthesesInternalLoop, context, currentPos);
+            context->skipBinaryExpressionTokenizer = prevBinaryMode;
             if (Search::IsTokenized(resultPos)) {
                 context->generatedPrimaryNode = Cast::upcast(parenthesesNode);
                 context->mostLeftToken = Cast::upcastToken(&parenthesesNode->openNode);

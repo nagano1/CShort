@@ -248,6 +248,7 @@ namespace cshort {
         context->baseCodeLine = nullptr;
         context->baseindentDepth = 0;
         context->baseIncrementMode = false;
+        context->skipBinaryExpressionTokenizer = false;
 
         context->unusedClassNode = nullptr;
         context->unusedAssignment = nullptr;

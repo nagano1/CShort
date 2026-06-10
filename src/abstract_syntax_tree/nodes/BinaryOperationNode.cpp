@@ -36,9 +36,11 @@ namespace cshort {
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->opToken, currentCodeLine);
         }
 
+        printf("a depth = %d\n", self->context->currentIndentDepth);
         currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
 
         if (self->isFirstOp) {
+            printf("set incrementDepthOnNextLine to true for first op\n");
             self->context->incrementDepthOnNextLine = true;
         }
 
@@ -135,6 +137,7 @@ namespace cshort {
     */
     static CodeLine *binaryop_appendToLine(BinaryOperationNodeStruct *self, CodeLine *currentCodeLine)
     {
+        printf("---------------------------------------------\n");
         OpItemNodeStruct *opItemNode = self->firstOpNode;
         while (opItemNode != nullptr) {
             currentCodeLine = VTableCall::callAppendNodeToLine(opItemNode, currentCodeLine);
@@ -197,6 +200,7 @@ namespace cshort {
     {
         if (ch == '+' || ch == '*' || ch == '-' || ch == '/' || ch == '%' || ch == '&' || ch == '|') {
             // try to tokenize right expression: + 300, * 3214, etc...
+            context->skipBinaryExpressionTokenizer = true; // to avoid recursive call to binary operation tokenizer when tokenizing right expression
             int resultPos = Scanner::scanOnce(argNode, Tokenizers::tokenizeExpression, context, start + 1);
             if (Search::IsTokenized(resultPos)) {
                 auto *newOpNode = Alloc::newOpItemNode(context, Cast::upcast(argNode), ch);
