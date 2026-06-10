@@ -1049,7 +1049,7 @@ namespace cshort {
         }
         
         void StartBracket(CodeLine *currentCodeLine) {
-            if (currentCodeLine != firstLine && !this->isExpressionMode) {
+            if (currentCodeLine != firstLine/* && !this->isExpressionMode*/) {
                 currentCodeLine->depth = baseDepth;
                 context->currentIndentDepth = baseDepth;
             }
