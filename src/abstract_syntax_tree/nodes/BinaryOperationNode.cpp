@@ -268,7 +268,7 @@ namespace cshort {
         if (tokenized) {
             context->generatedPrimaryNode = Cast::upcast(binaryOpExpressoinNode);
             context->mostLeftToken = Cast::upcastToken(&secondOpItem->opToken);
-            //return start;
+            return start;
         }
 
         return Search::NOTFOUND;
