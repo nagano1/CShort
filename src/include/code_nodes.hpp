@@ -341,9 +341,9 @@ namespace cshort {
         NODE_HEADER;
 
         NodeBase *rightExprNode;
-        bool isFirstOp;
-
         SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
+        bool isFirstOp; // first op item has opToken
+
 
         struct _OpItemNodeStruct *nextOpNode; // for handling multiple binary operations with same precedence, like a + b + c, leftExprNode will be a, opToken will be +, nextOpNode->leftExprNode will be b, nextOpNode->opToken will be +, nextOpNode->nextOpNode will be nullptr, and the rightExprNode of the last OpItemNodeStruct will be c.
     };

@@ -19,6 +19,12 @@
 #include "code_nodes.hpp"
 
 namespace cshort {
+    
+    // -----------------------------------------------------------------------------------
+    //
+    //                              OpItemNodeStruct
+    //
+    // -----------------------------------------------------------------------------------
 
     // Op Item
     static constexpr const char opItem_NodeTypeText[] = "<OpItem>";
@@ -31,7 +37,7 @@ namespace cshort {
         }
 
         currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
-        
+
         if (self->isFirstOp) {
             self->context->incrementDepthOnNextLine = true;
         }
@@ -57,7 +63,8 @@ namespace cshort {
         }
 
         if (!node->isFirstOp) {
-            // op token is not a node, so we cannot call applyFuncToDescendants on it, but we can still call func on it if the targetVTable is for op tokens
+            // op token is not a node, so we cannot call applyFuncToDescendants on it,
+            // but we can still call func on it if the targetVTable is for op tokens
             if (targetVTable == nullptr || &node->opToken.vtable == targetVTable) {
                 //func(&node->opToken, ApplyFunc_pass);
             }
@@ -89,10 +96,11 @@ namespace cshort {
 
 
 
-    //    +--------------------------+
-    //    |  Binary Operation        |
-    //    +--------------------------+
-
+    // -----------------------------------------------------------------------------------
+    //
+    //                              BinaryOperationNodeStruct
+    //
+    // -----------------------------------------------------------------------------------
     /*
         343 + 23142
             - 1234132
@@ -185,37 +193,28 @@ namespace cshort {
 
 
 
-    static int inner_op_binaryOpTokenizerLoop(TokenizerParams_argNode_ch_start_context)
+    static int binaryOpTokenizerInternal(TokenizerParams_argNode_ch_start_context)
     {
-        OpItemNodeStruct *prevOpItem = Cast::downcast<OpItemNodeStruct*>(context->generatedPrimaryNode);
-
         if (ch == '+' || ch == '*' || ch == '-' || ch == '/' || ch == '%' || ch == '&' || ch == '|') {
-            auto *parent = Cast::upcast(argNode);
-            auto *newOpNode = Alloc::newOpItemNode(context, parent, ch);
-            prevOpItem->nextOpNode = newOpNode;
-            newOpNode->opToken.foundPos = start;
-
-            int resultPos = Scanner::scanOnce(newOpNode, Tokenizers::tokenizeExpression, context, start + 1);
+            // try to tokenize right expression: + 300, * 3214, etc...
+            int resultPos = Scanner::scanOnce(argNode, Tokenizers::tokenizeExpression, context, start + 1);
             if (Search::IsTokenized(resultPos)) {
+                auto *newOpNode = Alloc::newOpItemNode(context, Cast::upcast(argNode), ch);
+                newOpNode->opToken.foundPos = start;
                 newOpNode->rightExprNode = context->generatedPrimaryNode;
+                newOpNode->rightExprNode->parentNode =  Cast::upcast(newOpNode);
+
                 context->mostLeftToken = Cast::upcastToken(&newOpNode->opToken);
                 context->generatedPrimaryNode = Cast::upcast(newOpNode);
 
                 return resultPos;
             }
             else {
-                context->scanEnd = true;
                 context->setError(ErrorIndex::expected_expression_after_operator, start);
                 return Search::NOTFOUND;
             }
         }
-        else {
-            context->scanEnd = true;
-            if (prevOpItem->isFirstOp) {
-                return Search::NOTFOUND;
-            }
-            return Search::DONE_WITH_PREVIOUS_POSITION;
-        }
+        return Search::NOTFOUND;
     }
 
 
@@ -226,26 +225,52 @@ namespace cshort {
         NodeBase *parent = Cast::upcast(argNode);
         assert(context->generatedPrimaryNode != nullptr);
 
-        auto *binaryOpNode = Alloc::newBinaryOperationNode(context, parent, ch);
-
-        auto *leftExpressionNode = context->generatedPrimaryNode;
-        auto *firstOpItem = Alloc::newOpItemNode(context, Cast::upcast(binaryOpNode), '_');
-        firstOpItem->rightExprNode = leftExpressionNode;
-        firstOpItem->isFirstOp = true;
-        context->generatedPrimaryNode = Cast::upcast(firstOpItem);
-
-        binaryOpNode->firstOpNode = firstOpItem;
+        NodeBase *firstExpressionNode = context->generatedPrimaryNode;
+        OpItemNodeStruct *secondOpItem = nullptr;
+        OpItemNodeStruct *currentOpItem = nullptr;
+        BinaryOperationNodeStruct *binaryOpExpressoinNode = nullptr;
         
-        // + 320 - 1123
-        int resultPos = Scanner::scanLoop(binaryOpNode, inner_op_binaryOpTokenizerLoop, context, start);
+        bool tokenized = false;
+        
+        // + 320 - 1123 * 5
+        while (true) {
+            int resultPos = Scanner::scanOnce(parent, binaryOpTokenizerInternal, context, start);
+            if (!Search::IsTokenized(resultPos)) {
+                break;
+            }
+            tokenized = true;
+            assert(context->generatedPrimaryNode != nullptr);
+            OpItemNodeStruct *newOpItem = Cast::downcast<OpItemNodeStruct*>(context->generatedPrimaryNode);
 
-        if (Search::IsTokenized(resultPos)) {
-            context->generatedPrimaryNode = Cast::upcast(binaryOpNode);
-            // mostLeftToken is handled in tokenizeExpression.
-            return resultPos;
+            if (binaryOpExpressoinNode == nullptr) { // first time to tokenize a binary operation
+                binaryOpExpressoinNode = Alloc::newBinaryOperationNode(context, parent, ch);
+                parent = Cast::upcast(binaryOpExpressoinNode);
+                OpItemNodeStruct *firstOpItem = Alloc::newOpItemNode(context, Cast::upcast(binaryOpExpressoinNode), '_');
+
+                firstOpItem->rightExprNode = firstExpressionNode;
+                firstOpItem->isFirstOp = true;
+                firstOpItem->parentNode = parent;
+
+                binaryOpExpressoinNode->firstOpNode = firstOpItem;
+                currentOpItem = firstOpItem;
+
+                secondOpItem = newOpItem;
+            }
+        
+            // link the new op item to the binary operation node
+            currentOpItem->nextOpNode = newOpItem;
+            currentOpItem = newOpItem;
+            newOpItem->parentNode = Cast::upcast(binaryOpExpressoinNode);
+
+            start = resultPos;
         }
 
-        context->generatedPrimaryNode = leftExpressionNode;
+        if (tokenized) {
+            context->generatedPrimaryNode = Cast::upcast(binaryOpExpressoinNode);
+            context->mostLeftToken = Cast::upcastToken(&secondOpItem->opToken);
+            return start;
+        }
+
         return Search::NOTFOUND;
     }
 
@@ -256,7 +281,6 @@ namespace cshort {
         INIT_NODE(node, context, parentNode, VTables::BinaryOperationVTable);
 
         node->firstOpNode = nullptr;
-        //Init::initSymbolToken(&node->opToken, context, node, op);
         return node;
     }
 

@@ -29,8 +29,8 @@ class TestCl     // 0
     fn func(int a    // 1
             int b)   // 2: line break in parameter list, indent depth should be increased
     { // 1
-        let aw = (242 + 23421
-            - 142)
+        let aw = 242 + 23421
+            - 142
     } // 1
 }    // 0
 // 0)";
