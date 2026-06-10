@@ -257,10 +257,10 @@ namespace cshort {
                 secondOpItem = newOpItem;
             }
         
-            // link the new op item to the binary operation node
+            // link the new op item to the binary operation node and the previous op item
             currentOpItem->nextOpNode = newOpItem;
             currentOpItem = newOpItem;
-            newOpItem->parentNode = Cast::upcast(binaryOpExpressoinNode);
+            newOpItem->parentNode = parent;
 
             start = resultPos;
         }
