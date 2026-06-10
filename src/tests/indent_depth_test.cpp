@@ -88,8 +88,8 @@ constexpr const char *classOnlyText5 = u8R"(
 fn Cook() {
     int g = (343
         - (
-            3241 + 
-                (232 * 3)
+            3241 + (232 * 3)
+                - r34234
         )
     )
 })";
