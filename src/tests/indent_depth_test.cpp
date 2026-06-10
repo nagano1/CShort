@@ -83,13 +83,13 @@ class TestCl
     }
 })";
 
-const int indentDepthRuleList5[] = {0,0,1,2,3,3,2,1,0};
+const int indentDepthRuleList5[] = {0,0,1,2,3,4,2,1,0};
 constexpr const char *classOnlyText5 = u8R"(
 fn Cook() {
     int g = (343
         - (
             3241 + 
-            (232 * 3)
+                (232 * 3)
         )
     )
 })";
