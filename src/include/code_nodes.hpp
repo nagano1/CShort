@@ -262,6 +262,7 @@ namespace cshort {
 
 
 
+    // Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     using FuncBodyNodeStruct = struct _BodyNodeStruct {
         NODE_HEADER;
 
