@@ -27,9 +27,7 @@ namespace cshort {
     {
         // (
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->openNode, currentCodeLine);
-        printf("depth = %d, incrementmode = %d\n", self->context->currentIndentDepth, self->context->incrementDepthOnNextLine);
         IndentRuleApplier indentRuleApplier = IndentRuleApplier::CreateForExpression(self->context, currentCodeLine);
-        printf("baseDepth = %d\n", indentRuleApplier.GetBaseDepth());
 
         indentRuleApplier.StartBracket(currentCodeLine);
         //self->context->incrementDepthOnNextLine = true;
