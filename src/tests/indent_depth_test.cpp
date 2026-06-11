@@ -83,6 +83,7 @@ class TestCl
     }
 })";
 
+// Only assignment, call, increment, decrement, and new object expressions can be used as a statement
 const int indentDepthRuleList5[] = {0,0,1,2,3,4,2,1,0};
 constexpr const char *classOnlyText5 = u8R"(
 fn Cook() {
