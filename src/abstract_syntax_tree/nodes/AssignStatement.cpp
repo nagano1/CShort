@@ -39,7 +39,6 @@ namespace cshort {
 
     static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
     {
-
         if (self->hasTypeDecl) {
             currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
         }
