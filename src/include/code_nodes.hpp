@@ -460,12 +460,32 @@ namespace cshort {
             return memBuffer.newMem<T>(1);
         }
 
+        static int IncrementIndentDepth(ParseContext *context) {
+            auto formerIndentDepth = context->currentIndentDepth;
+            if (!context->isAfterOpenParenthesis) {
+                context->currentIndentDepth++;
+            }
+            context->isAfterOpenParenthesis = false;
+            return formerIndentDepth;
+        }
+
+        static int IncrementIndentDepthForParenthesis(ParseContext *context) {
+            auto formerIndentDepth = context->currentIndentDepth;
+            context->isAfterOpenParenthesis = true;
+            context->currentIndentDepth++;
+            return formerIndentDepth;
+        }
+
+        static void DecrementIndentDepth(ParseContext *context) {
+            context->currentIndentDepth--;
+        }
 
         
         int baseIndent;
         SyntaxErrorInfo syntaxErrorInfo;
         bool has_depth_error{false};
         int currentIndentDepth { -1 };
+        bool isAfterOpenParenthesis { false }; // used for indent depth calculation, when true, indent depth will be increased by 1 for the line after current line until the closing parenthesis is found.
         bool incrementDepthOnNextLine{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 

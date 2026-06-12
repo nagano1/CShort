@@ -185,6 +185,17 @@ namespace cshort {
     void DocumentUtils::regenerateCodeLines(DocumentStruct *docStruct)
     {
         auto *context = docStruct->context;
+
+        context->baseIndent = 4;
+        context->currentIndentDepth = 0;
+        context->incrementDepthOnNextLine = false;
+        context->arithmeticBaseDepth = -1;
+        context->baseCodeLine = nullptr;
+        context->baseindentDepth = 0;
+        context->baseIncrementMode = false;
+        context->skipBinaryExpressionTokenizer = false;
+        context->isAfterOpenParenthesis = false;
+
         context->appendLineMode = AppendLineMode::Normal;
         context->memBufferForCodeLines.freeAll();
         context->memBufferForCodeLines.init();
@@ -218,16 +229,7 @@ namespace cshort {
         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
-
-
-
-
-
-        context->syntaxErrorInfo.hasError = false;
-        context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
-        context->syntaxErrorInfo.errorItem.errorId = 10000;
-        context->syntaxErrorInfo.errorItem.charPosition = -1;
-        context->syntaxErrorInfo.errorItem.charPosition2 = -1;
+        
         context->chars = text;
         context->start = 0;
         context->scanEnd = false;
@@ -235,20 +237,17 @@ namespace cshort {
         context->mostLeftToken = nullptr;
         context->generatedPrimaryNode = nullptr;
         context->lastTokenizedPos = 0;
+        context->isAfterLineBreak = false;
+        
         context->remainedLineBreakToken = nullptr;
         context->remainedCommentToken = nullptr;
-
         context->remainedSpaceCount = 0;
-        context->baseIndent = 4;
-        context->currentIndentDepth = 0;
-        context->incrementDepthOnNextLine = false;
-        context->arithmeticBaseDepth = -1;
-        context->isAfterLineBreak = false;
 
-        context->baseCodeLine = nullptr;
-        context->baseindentDepth = 0;
-        context->baseIncrementMode = false;
-        context->skipBinaryExpressionTokenizer = false;
+        context->syntaxErrorInfo.hasError = false;
+        context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
+        context->syntaxErrorInfo.errorItem.errorId = 10000;
+        context->syntaxErrorInfo.errorItem.charPosition = -1;
+        context->syntaxErrorInfo.errorItem.charPosition2 = -1;
 
         context->unusedClassNode = nullptr;
         context->unusedAssignment = nullptr;
