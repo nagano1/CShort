@@ -8,9 +8,9 @@
             "name": "(gdb) build and debug active file on Linux",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/main",
+            "program": "${workspaceFolder}/build/src/tests/indent_depth_test_run",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
@@ -23,7 +23,8 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: build project on Linux (debug)"
+            //"preLaunchTask": "C/C++: build project on Linux (debug)"
+            "preLaunchTask": "${defaultBuildTask}"
         },
 
     ]
