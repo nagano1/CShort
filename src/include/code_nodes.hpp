@@ -485,7 +485,7 @@ namespace cshort {
         SyntaxErrorInfo syntaxErrorInfo;
         bool has_depth_error{false};
         int currentIndentDepth { -1 };
-        bool isAfterOpenParenthesis { false }; // used for indent depth calculation, when true, indent depth will be increased by 1 for the line after current line until the closing parenthesis is found.
+        bool isAfterOpenParenthesis { false }; // used for indent depth calculation, when true, indent depth will be increased by 1 for the line after current line until the closing parenthesis(expression level) is found.
         bool incrementDepthOnNextLine{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 

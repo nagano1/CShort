@@ -250,6 +250,16 @@ namespace cshort {
         context->remainedSpaceCount = 0;
 
 
+                context->baseIndent = 4;
+        context->currentIndentDepth = 0;
+        context->incrementDepthOnNextLine = false;
+        context->arithmeticBaseDepth = -1;
+        context->baseCodeLine = nullptr;
+        context->baseindentDepth = 0;
+        context->baseIncrementMode = false;
+        context->skipBinaryExpressionTokenizer = false;
+        context->isAfterOpenParenthesis = false;
+
 
         context->unusedClassNode = nullptr;
         context->unusedAssignment = nullptr;
