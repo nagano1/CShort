@@ -193,8 +193,7 @@ namespace cshort {
         context->baseCodeLine = nullptr;
         context->baseindentDepth = 0;
         context->baseIncrementMode = false;
-        context->skipBinaryExpressionTokenizer = false;
-        context->isAfterOpenParenthesis = false;
+
 
         context->appendLineMode = AppendLineMode::Normal;
         context->memBufferForCodeLines.freeAll();
@@ -249,14 +248,6 @@ namespace cshort {
         context->remainedCommentToken = nullptr;
         context->remainedSpaceCount = 0;
 
-
-                context->baseIndent = 4;
-        context->currentIndentDepth = 0;
-        context->incrementDepthOnNextLine = false;
-        context->arithmeticBaseDepth = -1;
-        context->baseCodeLine = nullptr;
-        context->baseindentDepth = 0;
-        context->baseIncrementMode = false;
         context->skipBinaryExpressionTokenizer = false;
         context->isAfterOpenParenthesis = false;
 
