@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <cstdio>
 #include <string>
 #include <array>
@@ -229,6 +229,12 @@ namespace cshort {
         // Re-init persistent EOF token so its internal pointers don't refer to freed arena memory.
         Init::initSimpleTextToken(&docStruct->endOfFile.eofToken, context, Cast::upcast(&docStruct->endOfFile), 0);
 
+
+        context->syntaxErrorInfo.hasError = false;
+        context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
+        context->syntaxErrorInfo.errorItem.errorId = 10000;
+        context->syntaxErrorInfo.errorItem.charPosition = -1;
+        context->syntaxErrorInfo.errorItem.charPosition2 = -1;
         
         context->chars = text;
         context->start = 0;
@@ -243,11 +249,7 @@ namespace cshort {
         context->remainedCommentToken = nullptr;
         context->remainedSpaceCount = 0;
 
-        context->syntaxErrorInfo.hasError = false;
-        context->syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
-        context->syntaxErrorInfo.errorItem.errorId = 10000;
-        context->syntaxErrorInfo.errorItem.charPosition = -1;
-        context->syntaxErrorInfo.errorItem.charPosition2 = -1;
+
 
         context->unusedClassNode = nullptr;
         context->unusedAssignment = nullptr;
