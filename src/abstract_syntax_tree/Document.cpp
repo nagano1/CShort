@@ -193,8 +193,7 @@ namespace cshort {
         context->baseCodeLine = nullptr;
         context->baseindentDepth = 0;
         context->baseIncrementMode = false;
-
-
+        
         context->appendLineMode = AppendLineMode::Normal;
         context->memBufferForCodeLines.freeAll();
         context->memBufferForCodeLines.init();
@@ -243,14 +242,12 @@ namespace cshort {
         context->generatedPrimaryNode = nullptr;
         context->lastTokenizedPos = 0;
         context->isAfterLineBreak = false;
+        context->skipBinaryExpressionTokenizer = false;
+        context->isAfterOpenParenthesis = false;
         
         context->remainedLineBreakToken = nullptr;
         context->remainedCommentToken = nullptr;
         context->remainedSpaceCount = 0;
-
-        context->skipBinaryExpressionTokenizer = false;
-        context->isAfterOpenParenthesis = false;
-
 
         context->unusedClassNode = nullptr;
         context->unusedAssignment = nullptr;
