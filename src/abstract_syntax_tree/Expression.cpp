@@ -21,6 +21,10 @@ namespace cshort {
 
         
     int Tokenizers::tokenizeExpression(TokenizerParams_argNode_ch_start_context) {
+        bool skipBinaryTokenizer = context->skipBinaryExpressionTokenizer;
+        if (skipBinaryTokenizer) {
+            context->skipBinaryExpressionTokenizer = false;
+        }
         int result;
         if (Search::IsTokenized(result = Tokenizers::fixedLiteralNodeTokenizer(TokenizerParams_pass))) {
         }
@@ -43,9 +47,13 @@ namespace cshort {
         // call func expression: func()
         if (Search::IsTokenized(extraPos = Tokenizers::tokenizeFuncCall(argNode, ch, result, context))) {
            result = extraPos;
-        } // binary operation: expression + expression.
-        else if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, ch, result, context))) {
-           result = extraPos;
+        }
+        
+        if (!skipBinaryTokenizer) {
+            // binary operation: expression + expression.
+            if (Search::IsTokenized(extraPos = Tokenizers::binaryOperationTokenizer(argNode, ch, result, context))) {
+            result = extraPos;
+            }
         }
 
         context->mostLeftToken = mostLeftToken;

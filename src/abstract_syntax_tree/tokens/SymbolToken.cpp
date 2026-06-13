@@ -54,6 +54,7 @@ namespace cshort {
         token->isEnabled = false;
         token->symbol[0] = letter;
         token->symbol[1] = '\0';
+        token->isEndFlag = false;
     }
 
 }

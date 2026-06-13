@@ -31,20 +31,23 @@ namespace cshort {
     }
 
     static CodeLine *appendToLine(ReturnStatementNodeStruct*self, CodeLine *currentCodeLine) {
+        bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->returnText, currentCodeLine);
 
         auto *prevCodeLine = currentCodeLine;
-        auto formerParentDepth = self->context->parentDepth;
+        int formerParentDepth = self->context->currentIndentDepth;
 
         if (self->expressionNode) {
             currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
 
-            if (prevCodeLine != currentCodeLine) {
-                currentCodeLine->depth = formerParentDepth + 1;
-            }
+
+            //if (prevCodeLine != currentCodeLine) {
+            //    currentCodeLine->depth = formerParentDepth;
+            //}
         }
 
-        self->context->parentDepth = formerParentDepth;
+        self->context->currentIndentDepth = formerParentDepth;
+        self->context->incrementDepthOnNextLine = prevDepthIncrementMode;
 
         return currentCodeLine;
     }

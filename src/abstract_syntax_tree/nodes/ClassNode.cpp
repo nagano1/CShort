@@ -34,38 +34,37 @@ namespace cshort {
     static void copySelfText(ClassNodeStruct * classNode, utf8byte *buf) {
     }
 
-    static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine) {
+    /*
+    class className {
+        [child nodes]
+    }
+    */
+    static CodeLine *appendToLine(ClassNodeStruct *classNode, CodeLine *currentCodeLine)
+    {
+        ParseContext *context = classNode->context;
+        IndentRuleApplier indentRuleApplier = IndentRuleApplier::Create(context, currentCodeLine);
+        
+        // class
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->classKeywordToken, currentCodeLine);
-
-        auto formerParentDepth = classNode->context->parentDepth;
-        classNode->context->parentDepth += 1;
+        
+        // className
+        context->incrementDepthOnNextLine = false;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->identifierToken, currentCodeLine);
-        classNode->context->parentDepth = formerParentDepth;
 
+        // {
         currentCodeLine  = TokenVTableCall::callAppendTokenToLine(&classNode->bodyStartSymbolToken, currentCodeLine);
+        indentRuleApplier.StartBracket(currentCodeLine);
 
-        formerParentDepth = classNode->context->parentDepth;
-        classNode->context->parentDepth += 1;
-
-        {
-            auto *child = classNode->firstChildNode;
-            while (child) {
-                currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
-                child = child->nextNode;
-            }
+        // [child nodes]
+        auto *child = classNode->firstChildNode;
+        while (child != nullptr) {
+            currentCodeLine = VTableCall::callAppendNodeToLine(child, currentCodeLine);
+            child = child->nextNode;
         }
 
-
-
-        auto* prevCodeLine = currentCodeLine;
+        // }
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&classNode->endBodySymbolToken, currentCodeLine);
-
-        if (prevCodeLine != currentCodeLine) {
-            currentCodeLine->depth = formerParentDepth+1;
-        }
-
-        classNode->context->parentDepth = formerParentDepth;
-
+        indentRuleApplier.FinishAfterEndBracket(currentCodeLine);
 
         return currentCodeLine;
     };
@@ -112,6 +111,7 @@ namespace cshort {
 
         Init::initSymbolToken(&classNode->bodyStartSymbolToken, context, classNode, '{');
         Init::initSymbolToken(&classNode->endBodySymbolToken, context, classNode, '}');
+        classNode->endBodySymbolToken.isEndFlag = true;
 
         return classNode;
     }

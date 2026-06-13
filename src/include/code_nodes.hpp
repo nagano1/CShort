@@ -24,7 +24,7 @@ namespace cshort {
 
     struct ParseContext;
     struct CodeLine;
-
+    
     #define NODE_TYPE_ID 0x123
     #define TOKEN_TYPE_ID 0x456
 
@@ -142,6 +142,7 @@ namespace cshort {
 
         bool isEnabled;
         utf8byte symbol[2];
+        bool isEndFlag;
     };
 
     
@@ -261,6 +262,7 @@ namespace cshort {
 
 
 
+    // Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     using FuncBodyNodeStruct = struct _BodyNodeStruct {
         NODE_HEADER;
 
@@ -285,7 +287,7 @@ namespace cshort {
         bool hasComma;
     };
 
-    using FuncNodeStruct = struct _FuncNodeStruct {
+    using FuncDefNodeStruct = struct _FuncNodeStruct {
         NODE_HEADER;
 
         SimpleTextTokenStruct fnKeywordToken; // "fn"
@@ -327,12 +329,31 @@ namespace cshort {
     };
 
     
+
+    enum BinaryOperationGroup {
+        Add_Subtract, // +, - 
+        Multiply_Divide_Modulo, // *,/,%
+        And_Or, // &&, ||
+        BitwiseAnd_BitwiseOr, // &, |
+    };
+
+    // a + 
+    using OpItemNodeStruct = struct _OpItemNodeStruct {
+        NODE_HEADER;
+
+        NodeBase *rightExprNode;
+        SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
+        bool isFirstOp; // first op item has opToken
+
+
+        struct _OpItemNodeStruct *nextOpNode; // for handling multiple binary operations with same precedence, like a + b + c, leftExprNode will be a, opToken will be +, nextOpNode->leftExprNode will be b, nextOpNode->opToken will be +, nextOpNode->nextOpNode will be nullptr, and the rightExprNode of the last OpItemNodeStruct will be c.
+    };
+
     using BinaryOperationNodeStruct = struct _BinaryOperationNodeStruct {
         NODE_HEADER;
 
-        NodeBase *leftExprNode;
-        SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
-        NodeBase *rightExprNode;
+        BinaryOperationGroup opGroup;
+        struct _OpItemNodeStruct *firstOpNode;
     };
 
 
@@ -364,6 +385,7 @@ namespace cshort {
         DetectErrorSpanTokens // add tokens only on the line that has syntax error, used for LSP server to reduce unnecessary addition.
     };
 
+
     struct ParseContext {
         st_uint start;
         int length;
@@ -379,6 +401,11 @@ namespace cshort {
 
         ClassNodeStruct *unusedClassNode;
         AssignStatementNodeStruct *unusedAssignment;
+        CodeLine *baseCodeLine; // used for storing the code line with base indent, used for calculating indent for other lines.
+        int baseindentDepth;
+        bool baseIncrementMode;
+
+        bool skipBinaryExpressionTokenizer;
 
         LineBreakTokenStruct *remainedLineBreakToken;
         void *remainedCommentToken;
@@ -433,16 +460,41 @@ namespace cshort {
             return memBuffer.newMem<T>(1);
         }
 
+        static int IncrementIndentDepth(ParseContext *context) {
+            auto formerIndentDepth = context->currentIndentDepth;
+            if (!context->isAfterOpenParenthesis) {
+                context->currentIndentDepth++;
+            }
+            context->isAfterOpenParenthesis = false;
+            return formerIndentDepth;
+        }
+
+        static int IncrementIndentDepthForParenthesis(ParseContext *context) {
+            auto formerIndentDepth = context->currentIndentDepth;
+            context->isAfterOpenParenthesis = true;
+            context->currentIndentDepth++;
+            return formerIndentDepth;
+        }
+
+        static void DecrementIndentDepth(ParseContext *context) {
+            context->currentIndentDepth--;
+        }
 
         
         int baseIndent;
         SyntaxErrorInfo syntaxErrorInfo;
         bool has_depth_error{false};
-        int parentDepth { -1 };
+        int currentIndentDepth { -1 };
+        bool isAfterOpenParenthesis { false }; // used for indent depth calculation, when true, indent depth will be increased by 1 for the line after current line until the closing parenthesis(expression level) is found.
+        bool incrementDepthOnNextLine{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 
         void setError(ErrorIndex errorCode, st_int startPos) {
             setError2(errorCode, startPos, startPos);
+        }
+
+        inline int getNextLineIndentDepth() const {
+            return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
         }
 
         void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
@@ -489,6 +541,8 @@ namespace cshort {
     };
 
 
+
+
     struct Cast {
         template<typename T>
         static inline T downcast(void *node) {
@@ -524,9 +578,10 @@ namespace cshort {
         FuncArgument = 28,
         FuncParameter = 29,
         BinaryOperation = 30,
+        OpItem = 31,
         IdentifiersAccess = 25,
-        FixedLiteral = 31,
-        Number = 32,
+        FixedLiteral = 32,
+        Number = 33,
     };
 
     enum class TokenTypeId {
@@ -717,7 +772,8 @@ namespace cshort {
                 *IdentifiersAccessVTable,
                 *FuncCallArgVTable,
                 *FuncCallVTable,
-                *BinaryOperationVTable
+                *BinaryOperationVTable,
+                *OpItemVTable
                 ;
 
         static const token_vtable
@@ -730,8 +786,7 @@ namespace cshort {
                 *IdentifierTokenVTable,
                 *StringLiteralTokenVTable,
                 *SymbolTokenVTable,
-                *LineBreakTokenVTable,
-                *CommentTokenVTable
+                *LineBreakTokenVTable
                 ;
     };
 
@@ -863,6 +918,29 @@ namespace cshort {
             this->depth = 0;
         }
 
+        static inline bool HasOnlyEndParentheses(CodeLine *line) {
+            auto token = line->firstToken;
+            while (token != nullptr) {
+                auto currentToken = token;
+                token = token->nextTokenInLine; // assign next token before checking current token
+
+                printf("currentToken: %s\n", TokenVTableCall::typeText(currentToken));
+                if (currentToken->vtable == VTables::BlockCommentFragmentVTable
+                     || currentToken->vtable == VTables::BlockCommentVTable) {
+                    continue;
+                }
+
+                if (currentToken->vtable != VTables::SymbolTokenVTable) {
+                    return false;
+                }
+
+                auto *symbolToken = Cast::downcast<SymbolTokenStruct *>(currentToken);
+                if (!symbolToken->isEndFlag) {
+                    return false;
+                }
+            }
+            return true;
+        }
         // insert token into this line, if prev is null, insert it into top of the line
         CodeLine *insertToken(TokenBase *token, TokenBase *prev) {
             if (firstToken == nullptr) {
@@ -924,6 +1002,96 @@ namespace cshort {
         }
     };
 
+    
+
+    // this struct is used for applying indent rules when appending code lines,
+    // it will save the indent state when created, and restore the indent state when finished.
+    struct IndentRuleApplier {
+        ParseContext *context;
+        CodeLine *firstLine;
+        int firstDepth;
+        bool firstIncrementMode;
+        int baseDepth;
+
+        bool isExpressionMode;
+        int savedPos;
+        bool savedIncrementMode;
+
+        static IndentRuleApplier Create(ParseContext *context, CodeLine *currentCodeLine) {
+            IndentRuleApplier indentRuleApplier = IndentRuleApplier();
+            indentRuleApplier.Init(context, currentCodeLine, false);
+            return indentRuleApplier;
+        }
+
+        static IndentRuleApplier CreateForExpression(ParseContext *context, CodeLine *currentCodeLine) {
+            IndentRuleApplier indentRuleApplier = IndentRuleApplier();
+            indentRuleApplier.Init(context, currentCodeLine, false, true);
+            return indentRuleApplier;
+        }
+
+        static IndentRuleApplier CreateWithBase(ParseContext *context, CodeLine *currentCodeLine) {
+            IndentRuleApplier indentRuleApplier = IndentRuleApplier();
+            indentRuleApplier.Init(context, currentCodeLine, true);
+            return indentRuleApplier;
+        }
+
+        void saveCurrentPos() {
+            this->savedPos = this->context->currentIndentDepth;
+            this->savedIncrementMode = this->context->incrementDepthOnNextLine;
+        }
+
+        void restorePos() {
+            this->context->currentIndentDepth = this->savedPos;
+            this->context->incrementDepthOnNextLine = this->savedIncrementMode;
+        }
+
+        void Init(ParseContext *context, CodeLine *currentCodeLine, bool useBase, bool expressionMode = false) {
+            assert(context != nullptr);
+
+            this->context = context;
+            this->isExpressionMode = expressionMode;
+            
+            if (useBase) {
+                this->baseDepth = context->baseindentDepth + (context->baseIncrementMode ? 1 : 0);
+                this->firstDepth = context->baseindentDepth;
+                this->firstLine = context->baseCodeLine;
+                this->firstIncrementMode = context->baseIncrementMode;
+            }
+            else {
+                this->baseDepth = expressionMode ? context->currentIndentDepth : context->getNextLineIndentDepth();
+                this->firstLine = currentCodeLine;
+                this->firstDepth = context->currentIndentDepth;
+                this->firstIncrementMode = context->incrementDepthOnNextLine;
+            }
+        }
+
+        int GetBaseDepth() const {
+            return baseDepth;
+        }
+        
+        void StartBracket(CodeLine *currentCodeLine) {
+            if (currentCodeLine != firstLine/* && !this->isExpressionMode*/) {
+                currentCodeLine->depth = baseDepth;
+                context->currentIndentDepth = baseDepth;
+            }
+            context->incrementDepthOnNextLine = true;
+        }
+
+        void FinishAfterEndBracket(CodeLine *codeLine) {
+            if (CodeLine::HasOnlyEndParentheses(codeLine)) {
+                codeLine->depth = baseDepth;
+            }
+            
+            if (codeLine == firstLine) {
+                context->currentIndentDepth = firstDepth;
+                context->incrementDepthOnNextLine = firstIncrementMode;
+            }
+            else {
+                context->currentIndentDepth = baseDepth;
+                context->incrementDepthOnNextLine = false;
+            }
+        }
+    };
 
     /**
      * Node Changed Event
@@ -1009,7 +1177,7 @@ namespace cshort {
         static AssignStatementNodeStruct *newAssignStatement(ParseContext *context, NodeBase *parentNode);
         static ReturnStatementNodeStruct *newReturnStatement(ParseContext *context, NodeBase *parentNode);
 
-        static FuncNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
+        static FuncDefNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
 
         static FuncParameterItemStruct *newFuncParameterItem(ParseContext *context, NodeBase *parentNode);
 
@@ -1021,6 +1189,7 @@ namespace cshort {
 
         // operations
         static BinaryOperationNodeStruct *newBinaryOperationNode(ParseContext *context, NodeBase *parentNode, char op);
+        static OpItemNodeStruct *newOpItemNode(ParseContext *context, NodeBase *parentNode, char op);
 
     };
 
