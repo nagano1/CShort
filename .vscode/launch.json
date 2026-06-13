@@ -23,8 +23,8 @@
                     "ignoreFailures": true
                 }
             ],
-            //"preLaunchTask": "C/C++: build project on Linux (debug)"
-            "preLaunchTask": "${defaultBuildTask}"
+            "preLaunchTask": "C/C++: build project on Linux (debug)"
+            //"preLaunchTask": "${defaultBuildTask}"
         },
 
     ]
