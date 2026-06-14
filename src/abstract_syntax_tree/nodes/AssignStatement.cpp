@@ -44,22 +44,28 @@ namespace cshort {
             // for example:
             // 254
             // =int varName
+            int depth = self->context->currentIndentDepth;
             
             assert(self->hasTypeDecl);
             assert(self->expressionNode);
             assert(self->equalSymbol.foundPos > -1);
 
             currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
-            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->equalSymbol, currentCodeLine);
 
+            self->context->currentIndentDepth = depth;
+
+            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->equalSymbol, currentCodeLine);
             currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
 
-            if (self->pointerAsterisk.foundPos > -1) {
-                currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
-            }
-            return TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
+            self->context->IncrementIndentDepth(self->context);
+            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
+
+            self->context->currentIndentDepth = depth;
+
+            return currentCodeLine;
         }
         else {
+
             // In single-line assign, the order is like normal assignment statement. e.g.
             // int varName = 254
             if (self->hasTypeDecl) {
@@ -69,10 +75,6 @@ namespace cshort {
             int previousIndentDepth = self->context->currentIndentDepth;
             bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
             
-            if (self->pointerAsterisk.foundPos > -1) {
-                currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
-            }
-
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
 
             if (self->equalSymbol.foundPos > -1) {
@@ -140,8 +142,6 @@ namespace cshort {
         assignStatement->isMultiLineAssign = false;
 
 
-        Init::initSymbolToken(&assignStatement->pointerAsterisk, context, assignStatement, '*');
-
         Init::initIdentifierToken(&assignStatement->variableNameToken, context, assignStatement);
         Init::initSymbolToken(&assignStatement->equalSymbol, context, assignStatement, '=');
         Init::initTypeNode(&assignStatement->typeOrLet, context, assignStatement);
@@ -153,14 +153,6 @@ namespace cshort {
         auto *assignment = Cast::downcast<AssignStatementNodeStruct *>(argNode);
 
         if (assignment->variableNameToken.foundPos == -1) {
-             if (assignment->pointerAsterisk.foundPos == -1) {
-                if (ch == '*') {
-                    assignment->pointerAsterisk.foundPos = start;
-                    context->mostLeftToken = Cast::upcastToken(&assignment->pointerAsterisk);
-                    return start + 1;
-                }
-            }
-
             // if type is declared, it can be just declaration without assignment. e.g. int a 
             int result = Tokenizers::identifierTokenizer(Cast::upcastToken(&assignment->variableNameToken), ch, start, context);
             if (Search::IsTokenized(result)) {

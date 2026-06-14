@@ -119,19 +119,15 @@ void checkTextEquality(const char *name, const char* code)
 
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void testParsing()
-{/*
+{
     CheckTextEq(fnTestText);
     CheckTextEq(classOnlyText);
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);
     CheckTextEq(namedTagCommentText);
-    */
     CheckTextEq(multilineAssignment);
-    /*
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
-    */
-
 }
 
 #if defined(_MSC_VER)

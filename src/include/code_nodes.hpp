@@ -193,7 +193,7 @@ namespace cshort {
         int childCount;
     };
 
-    // ?string str
+    // ?string *
     using TypeNodeStruct = struct _TypeNodeStruct {
         NODE_HEADER;
 
@@ -202,6 +202,8 @@ namespace cshort {
         bool hasImmutableMark; // # immutable
         bool hasNullableMark; // ? nullable
         bool isLet; // or has type
+        
+        SymbolTokenStruct pointerAsterisk; // *
 
         IdentifierTokenStruct nameNode; // type name like int, string, etc..
         SimpleTextTokenStruct typeTextToken; // including ? or #
@@ -243,7 +245,7 @@ namespace cshort {
 
         TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
         bool hasTypeDecl; // only assignment: a = 3
-        SymbolTokenStruct pointerAsterisk; // *
+        //SymbolTokenStruct pointerAsterisk; // *
 
         int stackOffset;
         IdentifierTokenStruct variableNameToken; // variable name
