@@ -163,10 +163,6 @@ namespace cshort {
                 appendChildNode(body, context->generatedPrimaryNode);
                 return nextPos;
             }
-            else if (Search::IsTokenized(nextPos = Tokenizers::tokenizeExpression(TokenizerParams_pass))) {
-                appendChildNode(body, context->generatedPrimaryNode);
-                return nextPos;
-            }
         } else {
             context->setError(ErrorIndex::should_break_line, start);
         }

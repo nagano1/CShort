@@ -216,6 +216,42 @@ namespace cshort {
         return Search::NOTFOUND;
     }
 
+
+    
+
+    // This language supports multiple line syntax for assignment to decrease line length
+    // 1423 + 442 + func()
+    // =let longVariableName
+    // this is equal to `let longVariableName = 1423 + 442 + func()`
+    static int tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context)
+    {
+        AssignStatementNodeStruct *assignment;
+        auto *parent = Cast::upcast(argNode);
+
+        if (context->unusedAssignment == nullptr) {
+            assignment = Alloc::newAssignStatement(context, parent);
+        }
+        else {
+            assignment = context->unusedAssignment;
+            Init::initAssignStatement(context, parent, assignment);
+            context->unusedAssignment = nullptr;
+        }
+
+        int resultPos = Scanner::scanLoop(assignment, tokenizeAssignStatementLoop, context, start);
+        if (Search::IsTokenized(resultPos)) {
+            assignment->hasTypeDecl = false;
+            assignment->typeOrLet.isLet = false;
+
+            context->mostLeftToken = Cast::upcastToken(&assignment->nameNode);
+            context->generatedPrimaryNode = Cast::upcast(assignment);
+
+            return resultPos;
+        }
+
+        context->unusedAssignment = assignment;
+
+        return Search::NOTFOUND;
+    }
     // let a = 3
     // int m = 5
     // int a
