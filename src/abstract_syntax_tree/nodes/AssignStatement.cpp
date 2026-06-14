@@ -39,31 +39,55 @@ namespace cshort {
 
     static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
     {
-        if (self->hasTypeDecl) {
-            currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
-        }
+        if (self->isMultiLineAssign) {
+            // In multi-line assign, adding same tokens, but the order is different.
+            // for example:
+            // 254
+            // =int varName
+            
+            assert(self->hasTypeDecl);
+            assert(self->expressionNode);
+            assert(self->equalSymbol.foundPos > -1);
 
-        int previousIndentDepth = self->context->currentIndentDepth;
-        bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
-        
-        if (self->pointerAsterisk.foundPos > -1) {
-            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
-        }
-
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
-
-        if (self->equalSymbol.foundPos > -1) {
-            self->context->incrementDepthOnNextLine = true;
+            currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->equalSymbol, currentCodeLine);
 
-            assert(self->expressionNode); // if equal symbol exists, expression node must exist, otherwise tokenizer throws syntax errors.
-            self->context->incrementDepthOnNextLine = true;
-            currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
-        }
+            currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
 
-        self->context->incrementDepthOnNextLine = prevDepthIncrementMode;
-        self->context->currentIndentDepth = previousIndentDepth;
-        return currentCodeLine;
+            if (self->pointerAsterisk.foundPos > -1) {
+                currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
+            }
+            return TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
+        }
+        else {
+            // In single-line assign, the order is like normal assignment statement. e.g.
+            // int varName = 254
+            if (self->hasTypeDecl) {
+                currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
+            }
+
+            int previousIndentDepth = self->context->currentIndentDepth;
+            bool prevDepthIncrementMode = self->context->incrementDepthOnNextLine;
+            
+            if (self->pointerAsterisk.foundPos > -1) {
+                currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
+            }
+
+            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
+
+            if (self->equalSymbol.foundPos > -1) {
+                self->context->incrementDepthOnNextLine = true;
+                currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->equalSymbol, currentCodeLine);
+
+                assert(self->expressionNode); // if equal symbol exists, expression node must exist, otherwise tokenizer throws syntax errors.
+                self->context->incrementDepthOnNextLine = true;
+                currentCodeLine = VTableCall::callAppendNodeToLine(self->expressionNode, currentCodeLine);
+            }
+
+            self->context->incrementDepthOnNextLine = prevDepthIncrementMode;
+            self->context->currentIndentDepth = previousIndentDepth;
+            return currentCodeLine;
+        }
     }
 
 
