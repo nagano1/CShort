@@ -271,8 +271,8 @@ namespace cshort {
         // = symbol must be appeared first on the next line
         SymbolTokenStruct equalSymbol;
         Init::initSymbolToken(&equalSymbol, context, nullptr, '=');
-        int resultPos = Scanner::scanOnce(&equalSymbol, tokenizeEqualSymbolAtLineStart, context, nextPos);
-        if (!Search::IsTokenized(resultPos)) {
+        nextPos = Scanner::scanOnce(&equalSymbol, tokenizeEqualSymbolAtLineStart, context, nextPos);
+        if (!Search::IsTokenized(nextPos)) {
             return Search::NOTFOUND;
         }
 
@@ -295,8 +295,8 @@ namespace cshort {
         assignment->expressionNode = expressionNode;
 
         // Type name must be right after = symbol, no line break or comment allowed in between
-        int res = Tokenizers::typeTokenizer(&assignment->typeOrLet, ch, resultPos, context);
-        if (!Search::IsTokenized(res)) {
+        nextPos = Tokenizers::typeTokenizer(&assignment->typeOrLet, ch, nextPos, context);
+        if (!Search::IsTokenized(nextPos)) {
             assignment->isExpressionFirstMode = false;
             context->unusedAssignment = assignment;
             return Search::NOTFOUND;
@@ -304,13 +304,13 @@ namespace cshort {
 
         // spaces and comments are allowed between type declaration and variable name,
         // so we need to use scanOnce until we find the variable name token.
-        int resultPos2 = Scanner::scanOnce(&assignment->variableNameToken, Tokenizers::identifierTokenizer, context, res);
-        if (Search::IsTokenized(resultPos2)) {
+        nextPos = Scanner::scanOnce(&assignment->variableNameToken, Tokenizers::identifierTokenizer, context, nextPos);
+        if (Search::IsTokenized(nextPos)) {
             assignment->hasTypeDecl = true;
             context->mostLeftToken = mostLeftToken;
             context->generatedPrimaryNode = Cast::upcast(assignment);
 
-            return resultPos2;
+            return nextPos;
         }
 
         // if no variable name found, it can be just type declaration without assignment, e.g.
