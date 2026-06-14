@@ -74,7 +74,7 @@ class A { // comment
         let g = func(123, "2342", true)
         let k = 23 + 42
         string m = "weof"  + /*comment*/ "test"
-        ?string nm = null
+        ?string *nm = null
         return true
     }
 }
@@ -84,8 +84,15 @@ class A { // comment
 constexpr const char *multilineAssignment = u8R"(
 class A {
     fn method1() {
-        1235 + 3414
+        1235 + 3414 + func()
         =let variableName
+
+        "1235" + "3414" + func()
+        =let *variableName
+
+        "1235"/*comment*/+/*test*/"3414" + func() // ok
+        =let/*wow */*/*wow*/variableName //kiken
+
     }
 }
 )";
