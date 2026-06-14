@@ -50,7 +50,7 @@ namespace cshort {
             currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
         }
 
-        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->nameNode, currentCodeLine);
+        currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->variableNameToken, currentCodeLine);
 
         if (self->equalSymbol.foundPos > -1) {
             self->context->incrementDepthOnNextLine = true;
@@ -118,7 +118,7 @@ namespace cshort {
 
         Init::initSymbolToken(&assignStatement->pointerAsterisk, context, assignStatement, '*');
 
-        Init::initIdentifierToken(&assignStatement->nameNode, context, assignStatement);
+        Init::initIdentifierToken(&assignStatement->variableNameToken, context, assignStatement);
         Init::initSymbolToken(&assignStatement->equalSymbol, context, assignStatement, '=');
         Init::initTypeNode(&assignStatement->typeOrLet, context, assignStatement);
     }
@@ -128,7 +128,7 @@ namespace cshort {
     static int tokenizeAssignStatementLoop(TokenizerParams_argNode_ch_start_context) {
         auto *assignment = Cast::downcast<AssignStatementNodeStruct *>(argNode);
 
-        if (assignment->nameNode.foundPos == -1) {
+        if (assignment->variableNameToken.foundPos == -1) {
              if (assignment->pointerAsterisk.foundPos == -1) {
                 if (ch == '*') {
                     assignment->pointerAsterisk.foundPos = start;
@@ -138,9 +138,9 @@ namespace cshort {
             }
 
             // if type is declared, it can be just declaration without assignment. e.g. int a 
-            int result = Tokenizers::identifierTokenizer(Cast::upcastToken(&assignment->nameNode), ch, start, context);
+            int result = Tokenizers::identifierTokenizer(Cast::upcastToken(&assignment->variableNameToken), ch, start, context);
             if (Search::IsTokenized(result)) {
-                context->mostLeftToken = Cast::upcastToken(&assignment->nameNode);
+                context->mostLeftToken = Cast::upcastToken(&assignment->variableNameToken);
                 return result;
             }
             else {
@@ -206,7 +206,7 @@ namespace cshort {
             assignment->hasTypeDecl = false;
             assignment->typeOrLet.isLet = false;
 
-            context->mostLeftToken = Cast::upcastToken(&assignment->nameNode);
+            context->mostLeftToken = Cast::upcastToken(&assignment->variableNameToken);
             context->generatedPrimaryNode = Cast::upcast(assignment);
 
             return resultPos;
@@ -222,7 +222,10 @@ namespace cshort {
     {
         // = symbol must be appeared first on the next line
         if (ch == '=' && context->isAfterLineBreak) {
-            printf("AAAAA-----------------\n");
+            SymbolTokenStruct *equalSymbol = Cast::downcast<SymbolTokenStruct *>(argNode);
+            Init::initSymbolToken(equalSymbol, context, nullptr, '=');
+            equalSymbol->foundPos = start;
+            context->mostLeftToken = Cast::upcastToken(equalSymbol);
             return start + 1;
         }
 
@@ -238,7 +241,6 @@ namespace cshort {
     // this is equal to ```let longVariableName = 1423 + 442 + func()```
     int Tokenizers::tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context)
     {
-        printf("\nA fjoiwe\n");
         auto *parent = Cast::upcast(argNode);
 
         TokenBase *mostLeftToken;
@@ -248,20 +250,16 @@ namespace cshort {
         {
             return Search::NOTFOUND;
         }
-        printf("\nB fjoiwe, c = %c\n", context->chars[nextPos - 1]);
 
         mostLeftToken = context->mostLeftToken;
 
         // = symbol must be appeared first on the next line
-        int resultPos = Scanner::scanOnce(parent, firstEqualLetterTokenizer, context, nextPos);
-        printf("freach!");
+        SymbolTokenStruct equalSymbol;
+        Init::initSymbolToken(&equalSymbol, context, nullptr, '=');
+        int resultPos = Scanner::scanOnce(&equalSymbol, firstEqualLetterTokenizer, context, nextPos);
         if (!Search::IsTokenized(resultPos)) {
             return Search::NOTFOUND;
         }
-
-            printf("\nwhy dfjoiwe\n");
-        printf("\nC fjoiwe\n");
-        fflush(stdout);
 
         AssignStatementNodeStruct *assignment;
         NodeBase *expressionNode = context->generatedPrimaryNode;
@@ -275,11 +273,14 @@ namespace cshort {
             context->unusedAssignment = nullptr;
         }
 
+
+        assignment->equalSymbol = equalSymbol;
+        assignment->equalSymbol.parentNode = Cast::upcast(assignment);
         assignment->isMultiLineAssign = true;
         assignment->expressionNode = expressionNode;
 
         // Type name must be right after = symbol, no line break or comment allowed in between
-        int res = Tokenizers::typeTokenizer(Cast::upcastToken(&assignment->nameNode), ch, start, context);
+        int res = Tokenizers::typeTokenizer(&assignment->typeOrLet, ch, resultPos, context);
         if (!Search::IsTokenized(res)) {
             assignment->isMultiLineAssign = false;
             context->unusedAssignment = assignment;
@@ -288,7 +289,7 @@ namespace cshort {
 
         // spaces and comments are allowed between type declaration and variable name,
         // so we need to use scanOnce until we find the variable name token.
-        int resultPos2 = Scanner::scanOnce(&assignment->nameNode, Tokenizers::identifierTokenizer, context, start);
+        int resultPos2 = Scanner::scanOnce(&assignment->variableNameToken, Tokenizers::identifierTokenizer, context, res);
         if (Search::IsTokenized(resultPos2)) {
             assignment->hasTypeDecl = true;
             context->mostLeftToken = mostLeftToken;

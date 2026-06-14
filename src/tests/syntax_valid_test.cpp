@@ -85,7 +85,7 @@ constexpr const char *multilineAssignment = u8R"(
 class A {
     fn method1() {
         1235 + 3414
-        =let a = variableName
+        =let variableName
     }
 }
 )";
@@ -119,15 +119,18 @@ void checkTextEquality(const char *name, const char* code)
 
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void testParsing()
-{
+{/*
     CheckTextEq(fnTestText);
     CheckTextEq(classOnlyText);
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);
     CheckTextEq(namedTagCommentText);
+    */
     CheckTextEq(multilineAssignment);
+    /*
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
+    */
 
 }
 

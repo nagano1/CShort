@@ -246,7 +246,7 @@ namespace cshort {
         SymbolTokenStruct pointerAsterisk; // *
 
         int stackOffset;
-        IdentifierTokenStruct nameNode; // variable name
+        IdentifierTokenStruct variableNameToken; // variable name
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
 
