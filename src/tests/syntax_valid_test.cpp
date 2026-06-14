@@ -81,6 +81,14 @@ class A { // comment
 )";
 
 
+constexpr const char *multilineAssignment = u8R"(
+class A {
+    fn method1() {
+        1235 + 3414
+        =let a = variableName
+    }
+}
+)";
 
 const char classCommentText[] = u8"class A \r\n // comment \r\n {}";
 
@@ -117,6 +125,7 @@ void testParsing()
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);
     CheckTextEq(namedTagCommentText);
+    CheckTextEq(multilineAssignment);
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
 

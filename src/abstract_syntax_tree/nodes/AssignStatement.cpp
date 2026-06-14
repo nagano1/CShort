@@ -113,6 +113,7 @@ namespace cshort {
         assignStatement->hasTypeDecl = false;
         assignStatement->expressionNode = nullptr;
         assignStatement->stackOffset = 0;
+        assignStatement->isMultiLineAssign = false;
 
 
         Init::initSymbolToken(&assignStatement->pointerAsterisk, context, assignStatement, '*');
@@ -221,6 +222,7 @@ namespace cshort {
     {
         // = symbol must be appeared first on the next line
         if (ch == '=' && context->isAfterLineBreak) {
+            printf("AAAAA-----------------\n");
             return start + 1;
         }
 
@@ -236,6 +238,7 @@ namespace cshort {
     // this is equal to ```let longVariableName = 1423 + 442 + func()```
     int Tokenizers::tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context)
     {
+        printf("\nA fjoiwe\n");
         auto *parent = Cast::upcast(argNode);
 
         TokenBase *mostLeftToken;
@@ -245,14 +248,20 @@ namespace cshort {
         {
             return Search::NOTFOUND;
         }
+        printf("\nB fjoiwe, c = %c\n", context->chars[nextPos - 1]);
 
         mostLeftToken = context->mostLeftToken;
 
         // = symbol must be appeared first on the next line
-        int resultPos = Scanner::scanLoop(parent, firstEqualLetterTokenizer, context, start);
+        int resultPos = Scanner::scanOnce(parent, firstEqualLetterTokenizer, context, nextPos);
+        printf("freach!");
         if (!Search::IsTokenized(resultPos)) {
             return Search::NOTFOUND;
         }
+
+            printf("\nwhy dfjoiwe\n");
+        printf("\nC fjoiwe\n");
+        fflush(stdout);
 
         AssignStatementNodeStruct *assignment;
         NodeBase *expressionNode = context->generatedPrimaryNode;
@@ -279,13 +288,13 @@ namespace cshort {
 
         // spaces and comments are allowed between type declaration and variable name,
         // so we need to use scanOnce until we find the variable name token.
-        int resultPos = Scanner::scanOnce(&assignment->nameNode, Tokenizers::identifierTokenizer, context, start);
-        if (Search::IsTokenized(resultPos)) {
+        int resultPos2 = Scanner::scanOnce(&assignment->nameNode, Tokenizers::identifierTokenizer, context, start);
+        if (Search::IsTokenized(resultPos2)) {
             assignment->hasTypeDecl = true;
             context->mostLeftToken = mostLeftToken;
             context->generatedPrimaryNode = Cast::upcast(assignment);
 
-            return resultPos;
+            return resultPos2;
         }
 
         // if no variable name found, it can be just type declaration without assignment, e.g.
