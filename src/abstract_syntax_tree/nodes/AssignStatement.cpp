@@ -39,10 +39,10 @@ namespace cshort {
 
     static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
     {
-        if (self->isMultiLineAssign) {
-            // In multi-line assign, adding same tokens, but the order is different.
+        if (self->isExpressionFirstMode) {
+            // In expression-first assignment, adding same tokens but the order is different.
             // for example:
-            // 254
+            // 254 + 5123 - func()
             // =int varName
             int depth = self->context->currentIndentDepth;
             
@@ -66,7 +66,7 @@ namespace cshort {
         }
         else {
 
-            // In single-line assign, the order is like normal assignment statement. e.g.
+            // normal mode . e.g.
             // int varName = 254
             if (self->hasTypeDecl) {
                 currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
@@ -139,7 +139,7 @@ namespace cshort {
         assignStatement->hasTypeDecl = false;
         assignStatement->expressionNode = nullptr;
         assignStatement->stackOffset = 0;
-        assignStatement->isMultiLineAssign = false;
+        assignStatement->isExpressionFirstMode = false;
 
 
         Init::initIdentifierToken(&assignStatement->variableNameToken, context, assignStatement);
@@ -234,12 +234,11 @@ namespace cshort {
     }
 
 
-    static int firstEqualLetterTokenizer(TokenizerParams_argNode_ch_start_context)
+    static int tokenizeEqualSymbolAtLineStart(TokenizerParams_argNode_ch_start_context)
     {
         // = symbol must be appeared first on the next line
         if (ch == '=' && context->isAfterLineBreak) {
             SymbolTokenStruct *equalSymbol = Cast::downcast<SymbolTokenStruct *>(argNode);
-            Init::initSymbolToken(equalSymbol, context, nullptr, '=');
             equalSymbol->foundPos = start;
             context->mostLeftToken = Cast::upcastToken(equalSymbol);
             return start + 1;
@@ -249,13 +248,13 @@ namespace cshort {
     }
     
 
-    // This language supports multiple line syntax for assignment to decrease line length
+    // This language supports expression-first syntax for assignment to decrease line length
     // ```
     // 1423 + 442 + func()
     // =let longVariableName
     // ```
     // this is equal to ```let longVariableName = 1423 + 442 + func()```
-    int Tokenizers::tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context)
+    int Tokenizers::tokenizeExpressionFirstAssignStatement(TokenizerParams_argNode_ch_start_context)
     {
         auto *parent = Cast::upcast(argNode);
 
@@ -272,7 +271,7 @@ namespace cshort {
         // = symbol must be appeared first on the next line
         SymbolTokenStruct equalSymbol;
         Init::initSymbolToken(&equalSymbol, context, nullptr, '=');
-        int resultPos = Scanner::scanOnce(&equalSymbol, firstEqualLetterTokenizer, context, nextPos);
+        int resultPos = Scanner::scanOnce(&equalSymbol, tokenizeEqualSymbolAtLineStart, context, nextPos);
         if (!Search::IsTokenized(resultPos)) {
             return Search::NOTFOUND;
         }
@@ -292,13 +291,13 @@ namespace cshort {
 
         assignment->equalSymbol = equalSymbol;
         assignment->equalSymbol.parentNode = Cast::upcast(assignment);
-        assignment->isMultiLineAssign = true;
+        assignment->isExpressionFirstMode = true;
         assignment->expressionNode = expressionNode;
 
         // Type name must be right after = symbol, no line break or comment allowed in between
         int res = Tokenizers::typeTokenizer(&assignment->typeOrLet, ch, resultPos, context);
         if (!Search::IsTokenized(res)) {
-            assignment->isMultiLineAssign = false;
+            assignment->isExpressionFirstMode = false;
             context->unusedAssignment = assignment;
             return Search::NOTFOUND;
         }
@@ -315,7 +314,7 @@ namespace cshort {
         }
 
         // if no variable name found, it can be just type declaration without assignment, e.g.
-        assignment->isMultiLineAssign = false;
+        assignment->isExpressionFirstMode = false;
         context->unusedAssignment = assignment;
         return Search::NOTFOUND;
     }

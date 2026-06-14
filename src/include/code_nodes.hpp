@@ -252,7 +252,7 @@ namespace cshort {
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
 
-        bool isMultiLineAssign; // for handling multiple line assign statement
+        bool isExpressionFirstMode; // for handling multiple line assign statement
     };
 
     using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {
@@ -1220,6 +1220,8 @@ namespace cshort {
 
         }
     };
+
+    // Tokenizer functions for different nodes and tokens, they will be called in Scanner::scanWithTokenizer, and they will try to match the text with corresponding node/token, if matched, they will generate the node/token and return the position after the matched text, otherwise they will return Search::NOTFOUND.
     struct Tokenizers {
         // Tokens
         static int identifierTokenizer(TokenizerParams_argNode_ch_start_context);
@@ -1238,7 +1240,7 @@ namespace cshort {
 
         static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int assignStatementWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context);
+        static int tokenizeExpressionFirstAssignStatement(TokenizerParams_argNode_ch_start_context);
 
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);

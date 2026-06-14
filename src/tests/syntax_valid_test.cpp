@@ -80,8 +80,8 @@ class A { // comment
 }
 )";
 
-
-constexpr const char *multilineAssignment = u8R"(
+// a.k.a equal-let syntax
+constexpr const char *expressionFirstAssignment = u8R"(
 class A {
     fn method1() {
         1235 + 3414 + func()
@@ -90,8 +90,8 @@ class A {
         "1235" + "3414" + func()
         =let *variableName
 
-        "1235"/*comment*/+/*test*/"3414" + func() // ok
-        =let/*wow */*/*wow*/variableName //kiken
+        "1235" /*comment*/+  /*test*/  "3414" + func() // ok
+        =let/*wow */* /*wow*/variableName //kiken
 
     }
 }
@@ -132,7 +132,7 @@ void testParsing()
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);
     CheckTextEq(namedTagCommentText);
-    CheckTextEq(multilineAssignment);
+    CheckTextEq(expressionFirstAssignment);
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
 }
