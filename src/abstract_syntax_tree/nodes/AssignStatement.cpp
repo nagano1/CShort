@@ -186,7 +186,7 @@ namespace cshort {
 
 
     // b = 32
-    int Tokenizers::assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context)
+    int Tokenizers::assignStatementWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context)
     {
         AssignStatementNodeStruct *assignment;
         auto *parent = Cast::upcast(argNode);
@@ -217,16 +217,45 @@ namespace cshort {
     }
 
 
+    static int firstEqualLetterTokenizer(TokenizerParams_argNode_ch_start_context)
+    {
+        // = symbol must be appeared first on the next line
+        if (ch == '=' && context->isAfterLineBreak) {
+            return start + 1;
+        }
+
+        return Search::NOTFOUND;
+    }
     
 
     // This language supports multiple line syntax for assignment to decrease line length
+    // ```
     // 1423 + 442 + func()
     // =let longVariableName
-    // this is equal to `let longVariableName = 1423 + 442 + func()`
-    static int tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context)
+    // ```
+    // this is equal to ```let longVariableName = 1423 + 442 + func()```
+    int Tokenizers::tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context)
     {
-        AssignStatementNodeStruct *assignment;
         auto *parent = Cast::upcast(argNode);
+
+        TokenBase *mostLeftToken;
+        // Tokinize expression first
+        int nextPos = 0;
+        if (!Search::IsTokenized(nextPos = Tokenizers::tokenizeExpression(TokenizerParams_pass)))
+        {
+            return Search::NOTFOUND;
+        }
+
+        mostLeftToken = context->mostLeftToken;
+
+        // = symbol must be appeared first on the next line
+        int resultPos = Scanner::scanLoop(parent, firstEqualLetterTokenizer, context, start);
+        if (!Search::IsTokenized(resultPos)) {
+            return Search::NOTFOUND;
+        }
+
+        AssignStatementNodeStruct *assignment;
+        NodeBase *expressionNode = context->generatedPrimaryNode;
 
         if (context->unusedAssignment == nullptr) {
             assignment = Alloc::newAssignStatement(context, parent);
@@ -237,19 +266,31 @@ namespace cshort {
             context->unusedAssignment = nullptr;
         }
 
-        int resultPos = Scanner::scanLoop(assignment, tokenizeAssignStatementLoop, context, start);
-        if (Search::IsTokenized(resultPos)) {
-            assignment->hasTypeDecl = false;
-            assignment->typeOrLet.isLet = false;
+        assignment->isMultiLineAssign = true;
+        assignment->expressionNode = expressionNode;
 
-            context->mostLeftToken = Cast::upcastToken(&assignment->nameNode);
+        // Type name must be right after = symbol, no line break or comment allowed in between
+        int res = Tokenizers::typeTokenizer(Cast::upcastToken(&assignment->nameNode), ch, start, context);
+        if (!Search::IsTokenized(res)) {
+            assignment->isMultiLineAssign = false;
+            context->unusedAssignment = assignment;
+            return Search::NOTFOUND;
+        }
+
+        // spaces and comments are allowed between type declaration and variable name,
+        // so we need to use scanOnce until we find the variable name token.
+        int resultPos = Scanner::scanOnce(&assignment->nameNode, Tokenizers::identifierTokenizer, context, start);
+        if (Search::IsTokenized(resultPos)) {
+            assignment->hasTypeDecl = true;
+            context->mostLeftToken = mostLeftToken;
             context->generatedPrimaryNode = Cast::upcast(assignment);
 
             return resultPos;
         }
 
+        // if no variable name found, it can be just type declaration without assignment, e.g.
+        assignment->isMultiLineAssign = false;
         context->unusedAssignment = assignment;
-
         return Search::NOTFOUND;
     }
     // let a = 3

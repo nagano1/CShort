@@ -249,6 +249,8 @@ namespace cshort {
         IdentifierTokenStruct nameNode; // variable name
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
+
+        bool isMultiLineAssign; // for handling multiple line assign statement
     };
 
     using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {
@@ -1233,7 +1235,9 @@ namespace cshort {
         static int fnTokenizer(TokenizerParams_argNode_ch_start_context);
 
         static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int assignStatementWithoutLetTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int assignStatementWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int tokenizeMultipleLineAssignStatement(TokenizerParams_argNode_ch_start_context);
+
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
         static int identifiersAccessTokenizer(TokenizerParams_argNode_ch_start_context);
