@@ -26,18 +26,18 @@ namespace cshort {
     // this struct is also used in method parameters, e.g. fn func(int a, string *b) { ... }.
 
 
-    static int selfTextLength(AssignStatementNodeStruct *)
+    static int selfTextLength(AssignmentNodeStruct *)
     {
         return 0;
     }
 
-    static void copySelfText(AssignStatementNodeStruct *self, utf8byte *buf)
+    static void copySelfText(AssignmentNodeStruct *self, utf8byte *buf)
     {
 
     }
 
 
-    static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
+    static CodeLine *appendToCodeLine(AssignmentNodeStruct *self, CodeLine *currentCodeLine)
     {
         if (self->isExpressionFirstSyntax) {
             // In expression-first assignment, adding same tokens but the order is different.
@@ -93,9 +93,9 @@ namespace cshort {
     }
 
 
-    static constexpr const char assignTypeText[] = "<AssignStatement>";
+    static constexpr const char assignTypeText[] = "<Assignment>";
 
-    static int applyFuncToDescendants(AssignStatementNodeStruct *node, ApplyFunc_params3)
+    static int applyFuncToDescendants(AssignmentNodeStruct *node, ApplyFunc_params3)
     {
         if (parentIsFirst) {
             if (targetVTable == nullptr || node->vtable == targetVTable) {
@@ -116,41 +116,41 @@ namespace cshort {
         return 0;
     }
 
-    static node_vtable _assignVTable = CREATE_VTABLE(AssignStatementNodeStruct,
+    static node_vtable _assignVTable = CREATE_VTABLE(AssignmentNodeStruct,
                                                      selfTextLength,
                                                      copySelfText,
                                                      appendToCodeLine, applyFuncToDescendants,
                                                      assignTypeText,
-                                                     NodeTypeId::AssignStatement);
+                                                     NodeTypeId::Assignment);
 
-    const struct node_vtable *VTables::AssignStatementVTable = &_assignVTable;
+    const struct node_vtable *VTables::AssignmentVTable = &_assignVTable;
 
 
-    // -------------------- Implements AssignStatement Allocator --------------------- //
-    AssignStatementNodeStruct *Alloc::newAssignStatement(ParseContext *context, NodeBase *parentNode) {
-        auto *assignStatement = context->newMem<AssignStatementNodeStruct>();
-        Init::initAssignStatement(context, parentNode,  assignStatement);
-        return assignStatement;
+    // -------------------- Implements Assignment Allocator --------------------- //
+    AssignmentNodeStruct *Alloc::newAssignment(ParseContext *context, NodeBase *parentNode) {
+        auto *assignment = context->newMem<AssignmentNodeStruct>();
+        Init::initAssignment(context, parentNode,  assignment);
+        return assignment;
     }
 
-    void Init::initAssignStatement(ParseContext *context, NodeBase *parentNode, AssignStatementNodeStruct *assignStatement) {
-        INIT_NODE(assignStatement, context, parentNode, &_assignVTable);
+    void Init::initAssignment(ParseContext *context, NodeBase *parentNode, AssignmentNodeStruct *assignment) {
+        INIT_NODE(assignment, context, parentNode, &_assignVTable);
 
-        assignStatement->hasTypeDecl = false;
-        assignStatement->expressionNode = nullptr;
-        assignStatement->stackOffset = 0;
-        assignStatement->isExpressionFirstSyntax = false;
+        assignment->hasTypeDecl = false;
+        assignment->expressionNode = nullptr;
+        assignment->stackOffset = 0;
+        assignment->isExpressionFirstSyntax = false;
 
 
-        Init::initIdentifierToken(&assignStatement->variableNameToken, context, assignStatement);
-        Init::initSymbolToken(&assignStatement->equalSymbol, context, assignStatement, '=');
-        Init::initTypeNode(&assignStatement->typeOrLet, context, assignStatement);
+        Init::initIdentifierToken(&assignment->variableNameToken, context, assignment);
+        Init::initSymbolToken(&assignment->equalSymbol, context, assignment, '=');
+        Init::initTypeNode(&assignment->typeOrLet, context, assignment);
     }
 
 
     /// tokenizer for assignment statement without let keyword. e.g. a = 3
-    static int tokenizeAssignStatementLoop(TokenizerParams_argNode_ch_start_context) {
-        auto *assignment = Cast::downcast<AssignStatementNodeStruct *>(argNode);
+    static int tokenizeAssignmentLoop(TokenizerParams_argNode_ch_start_context) {
+        auto *assignment = Cast::downcast<AssignmentNodeStruct *>(argNode);
 
         if (assignment->variableNameToken.foundPos == -1) {
             // if type is declared, it can be just declaration without assignment. e.g. int a 
@@ -203,21 +203,21 @@ namespace cshort {
 
 
     // b = 32
-    int Tokenizers::assignStatementWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context)
+    int Tokenizers::assignmentWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context)
     {
-        AssignStatementNodeStruct *assignment;
+        AssignmentNodeStruct *assignment;
         auto *parent = Cast::upcast(argNode);
 
         if (context->unusedAssignment == nullptr) {
-            assignment = Alloc::newAssignStatement(context, parent);
+            assignment = Alloc::newAssignment(context, parent);
         }
         else {
             assignment = context->unusedAssignment;
-            Init::initAssignStatement(context, parent, assignment);
+            Init::initAssignment(context, parent, assignment);
             context->unusedAssignment = nullptr;
         }
 
-        int resultPos = Scanner::scanLoop(assignment, tokenizeAssignStatementLoop, context, start);
+        int resultPos = Scanner::scanLoop(assignment, tokenizeAssignmentLoop, context, start);
         if (Search::IsTokenized(resultPos)) {
             assignment->hasTypeDecl = false;
             assignment->typeOrLet.isLet = false;
@@ -254,7 +254,7 @@ namespace cshort {
     // =let longVariableName
     // ```
     // this is equal to ```let longVariableName = 1423 + 442 + func()```
-    int Tokenizers::tokenizeExpressionFirstAssignStatement(TokenizerParams_argNode_ch_start_context)
+    int Tokenizers::tokenizeExpressionFirstAssignment(TokenizerParams_argNode_ch_start_context)
     {
         auto *parent = Cast::upcast(argNode);
 
@@ -276,15 +276,15 @@ namespace cshort {
             return Search::NOTFOUND;
         }
 
-        AssignStatementNodeStruct *assignment;
+        AssignmentNodeStruct *assignment;
         NodeBase *expressionNode = context->generatedPrimaryNode;
 
         if (context->unusedAssignment == nullptr) {
-            assignment = Alloc::newAssignStatement(context, parent);
+            assignment = Alloc::newAssignment(context, parent);
         }
         else {
             assignment = context->unusedAssignment;
-            Init::initAssignStatement(context, parent, assignment);
+            Init::initAssignment(context, parent, assignment);
             context->unusedAssignment = nullptr;
         }
 
@@ -321,34 +321,34 @@ namespace cshort {
     // int m = 5
     // int a
     // ?string *str = null
-    int Tokenizers::assignStatementTokenizer(TokenizerParams_argNode_ch_start_context)
+    int Tokenizers::tokenizeAssignment(TokenizerParams_argNode_ch_start_context)
     {
         NodeBase *parent = Cast::upcast(argNode);
-        AssignStatementNodeStruct *assignStatement;
+        AssignmentNodeStruct *assignment;
         if (context->unusedAssignment == nullptr) {
-            assignStatement = Alloc::newAssignStatement(context, parent);
+            assignment = Alloc::newAssignment(context, parent);
         }
         else {
-            assignStatement = context->unusedAssignment;
-            Init::initAssignStatement(context, parent, assignStatement);
+            assignment = context->unusedAssignment;
+            Init::initAssignment(context, parent, assignment);
             context->unusedAssignment = nullptr;
         }
 
-        int result = Tokenizers::typeTokenizer(Cast::upcast(&assignStatement->typeOrLet), ch, start, context);
+        int result = Tokenizers::typeTokenizer(Cast::upcast(&assignment->typeOrLet), ch, start, context);
         if (Search::IsTokenized(result)) {
-            assignStatement->hasTypeDecl = true;
+            assignment->hasTypeDecl = true;
 
             int resultPos;
-            if (Search::IsTokenized(resultPos = Scanner::scanLoop(assignStatement, tokenizeAssignStatementLoop, context, result)))
+            if (Search::IsTokenized(resultPos = Scanner::scanLoop(assignment, tokenizeAssignmentLoop, context, result)))
             {
-                context->mostLeftToken = Cast::upcastToken(&assignStatement->typeOrLet.typeTextToken);
-                context->generatedPrimaryNode = Cast::upcast(assignStatement);
+                context->mostLeftToken = Cast::upcastToken(&assignment->typeOrLet.typeTextToken);
+                context->generatedPrimaryNode = Cast::upcast(assignment);
 
                 return resultPos;
             }
         }
 
-        context->unusedAssignment = assignStatement;
+        context->unusedAssignment = assignment;
         return Search::NOTFOUND;
     }
 }

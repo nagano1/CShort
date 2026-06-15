@@ -155,15 +155,15 @@ namespace cshort {
                 appendChildNode(body, context->generatedPrimaryNode);
                 return nextPos;
             }
-            else if (Search::IsTokenized(nextPos = Tokenizers::assignStatementTokenizer(TokenizerParams_pass))) {
+            else if (Search::IsTokenized(nextPos = Tokenizers::tokenizeAssignment(TokenizerParams_pass))) {
                 appendChildNode(body, context->generatedPrimaryNode);
                 return nextPos;
             }
-            else if (Search::IsTokenized(nextPos = Tokenizers::assignStatementWithoutTypeTokenizer(TokenizerParams_pass))) {
+            else if (Search::IsTokenized(nextPos = Tokenizers::assignmentWithoutTypeTokenizer(TokenizerParams_pass))) {
                 appendChildNode(body, context->generatedPrimaryNode);
                 return nextPos;
             }
-            else if (Search::IsTokenized(nextPos = Tokenizers::tokenizeExpressionFirstAssignStatement(TokenizerParams_pass))) {
+            else if (Search::IsTokenized(nextPos = Tokenizers::tokenizeExpressionFirstAssignment(TokenizerParams_pass))) {
                 appendChildNode(body, context->generatedPrimaryNode);
                 return nextPos;
             }
@@ -212,8 +212,8 @@ namespace cshort {
 
     static CodeLine *appendToLine_FuncParameterItemStruct(FuncParameterItemStruct *self, CodeLine *currentCodeLine) {
 
-        if (self->assignStatementNodeStruct != nullptr) {
-            currentCodeLine = VTableCall::callAppendNodeToLine(self->assignStatementNodeStruct, currentCodeLine);
+        if (self->assignmentNodeStruct != nullptr) {
+            currentCodeLine = VTableCall::callAppendNodeToLine(self->assignmentNodeStruct, currentCodeLine);
         }
 
         if (self->hasComma) {
@@ -241,8 +241,8 @@ namespace cshort {
         NodeBase *parent = Cast::upcast(argNode);
         auto *nextParam = Alloc::newFuncParameterItem(context, parent);
         int result;
-        if (Search::IsTokenized(result = Tokenizers::assignStatementTokenizer(Cast::upcast(nextParam), ch, start, context))) {
-            nextParam->assignStatementNodeStruct = Cast::downcast<AssignStatementNodeStruct *>(context->generatedPrimaryNode);
+        if (Search::IsTokenized(result = Tokenizers::tokenizeAssignment(Cast::upcast(nextParam), ch, start, context))) {
+            nextParam->assignmentNodeStruct = Cast::downcast<AssignmentNodeStruct *>(context->generatedPrimaryNode);
             appendChildParameterNode(funcNode, nextParam);
 
             funcNode->parameterParsePhase = FuncParamParsePhase::EXPECT_COMMA2;
@@ -326,7 +326,7 @@ namespace cshort {
 
         funcParameterItem->hasComma = false;
         funcParameterItem->nextNode = nullptr;
-        funcParameterItem->assignStatementNodeStruct = nullptr;
+        funcParameterItem->assignmentNodeStruct = nullptr;
 
         return funcParameterItem;
     }

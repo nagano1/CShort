@@ -240,7 +240,7 @@ namespace cshort {
     // int a = 5
     // immutable: #int a = 5
     // nullable: ?let *ptr = "jfwio"
-    using AssignStatementNodeStruct = struct _AssignStatementNodeStruct {
+    using AssignmentNodeStruct = struct _AssignmentNodeStruct {
         NODE_HEADER;
 
         TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
@@ -286,7 +286,7 @@ namespace cshort {
     // (?int point = null)
     using FuncParameterItemStruct = struct _FuncParameterItemStruct {
         NODE_HEADER;
-        AssignStatementNodeStruct *assignStatementNodeStruct;
+        AssignmentNodeStruct *assignmentNodeStruct;
         SymbolTokenStruct  followingComma;
         bool hasComma;
     };
@@ -404,7 +404,7 @@ namespace cshort {
         const utf8byte *chars;
 
         ClassNodeStruct *unusedClassNode;
-        AssignStatementNodeStruct *unusedAssignment;
+        AssignmentNodeStruct *unusedAssignment;
         CodeLine *baseCodeLine; // used for storing the code line with base indent, used for calculating indent for other lines.
         int baseindentDepth;
         bool baseIncrementMode;
@@ -575,7 +575,7 @@ namespace cshort {
         Func = 17,
         Body = 19,
         Type = 18,
-        AssignStatement = 20,
+        Assignment = 20,
         ReturnStatement = 24,
         Parentheses = 26,
         FuncCall = 27,
@@ -767,7 +767,7 @@ namespace cshort {
                 *FuncBodyVTable,
                 *EndOfFileVTable,
                 *FuncParameterVTable,
-                *AssignStatementVTable,
+                *AssignmentVTable,
                 *ReturnStatementVTable,
                 *TypeVTable,
                 *FixedLiteralVTable,
@@ -1136,8 +1136,8 @@ namespace cshort {
         static void initFuncBodyNode(FuncBodyNodeStruct *node, ParseContext *context, void *parentNode);
         static void initTypeNode(TypeNodeStruct *self, ParseContext *context, void *parent);
 
-        static void initAssignStatement(ParseContext *context, NodeBase *parentNode,
-                                       AssignStatementNodeStruct *assignStatement
+        static void initAssignment(ParseContext *context, NodeBase *parentNode,
+                                       AssignmentNodeStruct *assignment
         );
 
         static void initReturnStatement(ParseContext *context, NodeBase *parentNode,
@@ -1178,7 +1178,7 @@ namespace cshort {
 
         static TypeNodeStruct *newTypeNode(ParseContext *context, NodeBase *parentNode);
 
-        static AssignStatementNodeStruct *newAssignStatement(ParseContext *context, NodeBase *parentNode);
+        static AssignmentNodeStruct *newAssignment(ParseContext *context, NodeBase *parentNode);
         static ReturnStatementNodeStruct *newReturnStatement(ParseContext *context, NodeBase *parentNode);
 
         static FuncDefNodeStruct *newFuncNode(ParseContext *context, NodeBase *parentNode);
@@ -1238,9 +1238,9 @@ namespace cshort {
         static int bodyTokenizer(TokenizerParams_argNode_ch_start_context);
         static int fnTokenizer(TokenizerParams_argNode_ch_start_context);
 
-        static int assignStatementTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int assignStatementWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context);
-        static int tokenizeExpressionFirstAssignStatement(TokenizerParams_argNode_ch_start_context);
+        static int tokenizeAssignment(TokenizerParams_argNode_ch_start_context);
+        static int assignmentWithoutTypeTokenizer(TokenizerParams_argNode_ch_start_context);
+        static int tokenizeExpressionFirstAssignment(TokenizerParams_argNode_ch_start_context);
 
         static int returnStatementTokenizer(TokenizerParams_argNode_ch_start_context);
         static int parenthesesTokenizer(TokenizerParams_argNode_ch_start_context);
