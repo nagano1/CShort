@@ -89,7 +89,7 @@ namespace cshort {
     const struct node_vtable *VTables::ReturnStatementVTable = &_returnVTable;
 
 
-    // -------------------- Implements AssignStatement Allocator --------------------- //
+    // -------------------- Implements Assignment Allocator --------------------- //
     ReturnStatementNodeStruct *Alloc::newReturnStatement(ParseContext *context, NodeBase *parentNode) {
         auto *returnStatement = context->newMem<ReturnStatementNodeStruct>();
 

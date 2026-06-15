@@ -74,13 +74,28 @@ class A { // comment
         let g = func(123, "2342", true)
         let k = 23 + 42
         string m = "weof"  + /*comment*/ "test"
-        ?string nm = null
+        ?string *nm = null
         return true
     }
 }
 )";
 
+// a.k.a equal-let syntax
+constexpr const char *expressionFirstAssignment = u8R"(
+class A {
+    fn method1() {
+        1235 + 3414 + func()
+        =let variableName
 
+        "1235" + "3414" + func()
+        =let *variableName
+
+        "1235" /*comment*/+  /*test*/  "3414" + func() // ok
+        =let/*wow */* /*wow*/variableName //kiken
+
+    }
+}
+)";
 
 const char classCommentText[] = u8"class A \r\n // comment \r\n {}";
 
@@ -117,9 +132,9 @@ void testParsing()
     CheckTextEq(classCommentText);
     CheckTextEq(multipleRowsComment);
     CheckTextEq(namedTagCommentText);
+    CheckTextEq(expressionFirstAssignment);
     CheckTextEq(""); // empty text
     CheckTextEq(" \r\n \n\n  ");
-
 }
 
 #if defined(_MSC_VER)

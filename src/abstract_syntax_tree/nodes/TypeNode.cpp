@@ -28,6 +28,9 @@ namespace cshort
     static CodeLine *appendToLine(TypeNodeStruct *self, CodeLine *currentCodeLine)
     {
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->typeTextToken, currentCodeLine);
+        if (self->pointerAsterisk.foundPos > -1) {
+            currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->pointerAsterisk, currentCodeLine);
+        }
         return currentCodeLine;
     }
 
@@ -42,8 +45,22 @@ namespace cshort
     }
 
 
+    int asteriskTokenizer(TokenizerParams_argNode_ch_start_context) {
+        if (ch == '*') {
+            auto *token = Cast::downcast<SymbolTokenStruct *>(argNode);
+            token->foundPos = start;
+            token->symbol[0] = '*';
+            token->symbol[1] = '\0';
+            context->mostLeftToken = Cast::upcastToken(token);
+            return start + 1;
+        }
+
+        return Search::NOTFOUND;
+    }
 
 
+    // include ? or # as leading letter, and include * if it's pointer type, for example:
+    // ?string *
     int Tokenizers::typeTokenizer(TokenizerParams_argNode_ch_start_context) {
         TypeNodeStruct *typeNode  = Cast::downcast<TypeNodeStruct*>(argNode);
 
@@ -81,7 +98,15 @@ namespace cshort
             Init::assignText_SimpleTextToken(&typeNode->typeTextToken, context, context->chars + start, result - start);
 
             context->mostLeftToken = Cast::upcastToken(&typeNode->typeTextToken);
+
+            // find pointer asterisk
+            int res = Scanner::scanOnce(&typeNode->pointerAsterisk, asteriskTokenizer, context, result);
+            if (Search::IsTokenized(res)) {
+                result = res;
+            }
+
             return result;
+
         }
 
         return Search::NOTFOUND;
@@ -123,6 +148,7 @@ namespace cshort
         node->hasNullableMark = false;
         node->isLet = false;
 
+        Init::initSymbolToken(&node->pointerAsterisk, context, node, '*');
         Init::initIdentifierToken(&node->nameNode, context, node);
         Init::initSimpleTextToken(&node->typeTextToken, context, node, 0);
     }
