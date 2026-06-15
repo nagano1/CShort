@@ -252,7 +252,7 @@ namespace cshort {
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
 
-        bool isExpressionFirstMode; // for handling multiple line assign statement
+        bool isExpressionFirstSyntax; // for handling multiple line assign statement
     };
 
     using KeywordAndExpressionStruct = struct _KeywordAndExpressionStruct {

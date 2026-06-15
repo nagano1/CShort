@@ -39,7 +39,7 @@ namespace cshort {
 
     static CodeLine *appendToCodeLine(AssignStatementNodeStruct *self, CodeLine *currentCodeLine)
     {
-        if (self->isExpressionFirstMode) {
+        if (self->isExpressionFirstSyntax) {
             // In expression-first assignment, adding same tokens but the order is different.
             // for example:
             // 254 + 5123 - func()
@@ -139,7 +139,7 @@ namespace cshort {
         assignStatement->hasTypeDecl = false;
         assignStatement->expressionNode = nullptr;
         assignStatement->stackOffset = 0;
-        assignStatement->isExpressionFirstMode = false;
+        assignStatement->isExpressionFirstSyntax = false;
 
 
         Init::initIdentifierToken(&assignStatement->variableNameToken, context, assignStatement);
@@ -291,30 +291,29 @@ namespace cshort {
 
         assignment->equalSymbol = equalSymbol;
         assignment->equalSymbol.parentNode = Cast::upcast(assignment);
-        assignment->isExpressionFirstMode = true;
+        assignment->isExpressionFirstSyntax = true;
         assignment->expressionNode = expressionNode;
 
-        // Type name must be right after = symbol, no line break or comment allowed in between
+        // Type name must be right after = symbol without spaces, no line break or comment allowed in between
         nextPos = Tokenizers::typeTokenizer(&assignment->typeOrLet, ch, nextPos, context);
         if (!Search::IsTokenized(nextPos)) {
-            assignment->isExpressionFirstMode = false;
             context->unusedAssignment = assignment;
             return Search::NOTFOUND;
         }
+
+        assignment->hasTypeDecl = true;
 
         // spaces and comments are allowed between type declaration and variable name,
         // so we need to use scanOnce until we find the variable name token.
         nextPos = Scanner::scanOnce(&assignment->variableNameToken, Tokenizers::identifierTokenizer, context, nextPos);
         if (Search::IsTokenized(nextPos)) {
-            assignment->hasTypeDecl = true;
             context->mostLeftToken = mostLeftToken;
             context->generatedPrimaryNode = Cast::upcast(assignment);
-
             return nextPos;
         }
 
         // if no variable name found, it can be just type declaration without assignment, e.g.
-        assignment->isExpressionFirstMode = false;
+        assignment->isExpressionFirstSyntax = false;
         context->unusedAssignment = assignment;
         return Search::NOTFOUND;
     }
