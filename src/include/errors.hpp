@@ -69,6 +69,7 @@ namespace cshort {
         assign_to_immutable,
         cant_put_immutable_mark_for_non_value_assignment,
         type_is_not_assignable,
+        internal_error,
 
 
         last_keeper
@@ -168,6 +169,7 @@ namespace cshort {
             ErrorInfo{ErrorIndex::assign_to_immutable,  57770004, "assign to immutable"},
             ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770005, "cant put immutable mark for non value assignment"},
             ErrorInfo{ErrorIndex::type_is_not_assignable, 57770006, "type is not assignable"},
+            ErrorInfo{ErrorIndex::internal_error, 57770007, "internal error"},
 
 
             ErrorInfo{ ErrorIndex::last_keeper, 99999999, "end" },

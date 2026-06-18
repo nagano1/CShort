@@ -332,32 +332,52 @@ namespace cshort {
         FuncCallArgItemStruct *lastArgumentItem;
     };
 
-    
 
-    enum BinaryOperationGroup {
+    enum BinaryOperator {
+        Add, // +
+        Subtract, // -
+        Multiply, // *
+        Divide, // /
+        Modulo, // %
+        And, // &&
+        Or, // ||
+        BitwiseAnd, // &
+        BitwiseOr, // |
+    };
+
+    enum BinaryOperationGroup { // group by priority of operators
         Add_Subtract, // +, - 
         Multiply_Divide_Modulo, // *,/,%
         And_Or, // &&, ||
         BitwiseAnd_BitwiseOr, // &, |
+        None, // no found
     };
 
-    // a + 
-    using OpItemNodeStruct = struct _OpItemNodeStruct {
+    const BinaryOperationGroup LowestBinaryOperationGroup = BinaryOperationGroup::Add_Subtract; // the group with lowest priority
+
+    // + a 
+    using TempOpItem = struct _OpItemNodeStruct {
         NODE_HEADER;
 
         NodeBase *rightExprNode;
-        SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
-        bool isFirstOp; // first op item has opToken
-
-
-        struct _OpItemNodeStruct *nextOpNode; // for handling multiple binary operations with same precedence, like a + b + c, leftExprNode will be a, opToken will be +, nextOpNode->leftExprNode will be b, nextOpNode->opToken will be +, nextOpNode->nextOpNode will be nullptr, and the rightExprNode of the last OpItemNodeStruct will be c.
-    };
-
-    using BinaryOperationNodeStruct = struct _BinaryOperationNodeStruct {
-        NODE_HEADER;
+        SymbolTokenStruct opToken; // left operator token
 
         BinaryOperationGroup opGroup;
-        struct _OpItemNodeStruct *firstOpNode;
+        BinaryOperator binaryOp; // specific operator like Add, Subtract, etc.. used for code generation and type checking.
+
+        struct _OpItemNodeStruct *nextOpNode;
+    };
+
+    
+    using BinaryOperationNodeStruct = struct _BinaryOperationNodeStruct {
+        NODE_HEADER;
+        
+        SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
+        BinaryOperationGroup opGroup;
+        BinaryOperator binaryOp; 
+
+        NodeBase *leftExprNode;
+        NodeBase *rightExprNode;
     };
 
 
@@ -776,8 +796,8 @@ namespace cshort {
                 *IdentifiersAccessVTable,
                 *FuncCallArgVTable,
                 *FuncCallVTable,
-                *BinaryOperationVTable,
-                *OpItemVTable
+                *BinaryOperationVTable
+                //*OpItemVTable
                 ;
 
         static const token_vtable
@@ -1192,8 +1212,8 @@ namespace cshort {
         static FuncCallNodeStruct *newFuncCallNode(ParseContext *context, NodeBase *parentNode);
 
         // operations
-        static BinaryOperationNodeStruct *newBinaryOperationNode(ParseContext *context, NodeBase *parentNode, char op);
-        static OpItemNodeStruct *newOpItemNode(ParseContext *context, NodeBase *parentNode, char op);
+        static BinaryOperationNodeStruct *newBinaryOperationNode(ParseContext *context, NodeBase *parentNode);
+        //static TempOpItem *newOpItemNode(ParseContext *context, NodeBase *parentNode, char op);
 
     };
 
