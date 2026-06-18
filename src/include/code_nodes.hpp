@@ -355,7 +355,7 @@ namespace cshort {
 
     const BinaryOperationGroup LowestBinaryOperationGroup = BinaryOperationGroup::Add_Subtract; // the group with lowest priority
 
-    // + a 
+    // temporary node used for parsing binary expression, converted to BinaryOperationNodeStruct after parsing is finished.
     using TempOpItem = struct _OpItemNodeStruct {
         NODE_HEADER;
 
@@ -379,8 +379,6 @@ namespace cshort {
         NodeBase *leftExprNode;
         NodeBase *rightExprNode;
     };
-
-
 
     enum DocumentType {
         CodeDocument,

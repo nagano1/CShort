@@ -117,6 +117,19 @@ namespace cshort
     const node_vtable *VTables::BinaryOperationVTable = &binaryop_VTable;
 
 
+    
+    
+    // the next operator group has higher priority than the current operator group
+    static BinaryOperationGroup GetNextOpGroup(BinaryOperationGroup currentGroup) {
+        switch (currentGroup) {
+            case BinaryOperationGroup::Add_Subtract: return BinaryOperationGroup::Multiply_Divide_Modulo;
+            case BinaryOperationGroup::Multiply_Divide_Modulo: return BinaryOperationGroup::And_Or;
+            case BinaryOperationGroup::And_Or: return BinaryOperationGroup::BitwiseAnd_BitwiseOr;
+            default: return BinaryOperationGroup::None;
+        }
+        return BinaryOperationGroup::None;
+    }
+
 
     struct BinaryOpInfo {
         BinaryOperationGroup operatingGroup;
@@ -209,24 +222,13 @@ namespace cshort
         struct _OpItemTempNodeStruct *nextOpNode;
     };
 
-    
-    // the next operator group has higher priority than the current operator group
-    static BinaryOperationGroup GetNextOpGroup(BinaryOperationGroup currentGroup) {
-        switch (currentGroup) {
-            case BinaryOperationGroup::Add_Subtract: return BinaryOperationGroup::Multiply_Divide_Modulo;
-            case BinaryOperationGroup::Multiply_Divide_Modulo: return BinaryOperationGroup::And_Or;
-            case BinaryOperationGroup::And_Or: return BinaryOperationGroup::BitwiseAnd_BitwiseOr;
-            default: return BinaryOperationGroup::None;
-        }
-        return BinaryOperationGroup::None;
-    }
 
-
-    static NodeBase* buildBinaryOperationNodeTree(TempOpItem *firstOpItem,
-        ParseContext *context, NodeBase *parent, BinaryOperationGroup opGroup
+    static NodeBase* buildBinaryOperationNodeTree(
+        TempOpItem *firstOpItem,
+        ParseContext *context,
+        NodeBase *parent,
+        BinaryOperationGroup opGroup
     );
-
-
 
     // create binary operation node for the given left op item and right op item
     static BinaryOperationNodeStruct* createBinaryOperationNode(ParseContext *context,
