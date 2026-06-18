@@ -227,17 +227,6 @@ static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, cha
     }
 
 
-    using OpItemTempNodeStruct = struct _OpItemTempNodeStruct{
-        NODE_HEADER;
-
-        NodeBase *rightExprNode;
-        SymbolTokenStruct opToken; // +, -, *, /, %, etc..
-        BinaryOperationGroup opGroup;
-        BinaryOperator binaryOp; // specific operator like Add, Subtract, etc.. used for code generation and type checking.
-
-        struct _OpItemTempNodeStruct *nextOpNode;
-    };
-
 
     static NodeBase* buildBinaryOperationNodeTree(
         TempOpItem *firstOpItem,
@@ -266,7 +255,8 @@ static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, cha
             }
             else { // the first binary operation node for this operator group
                 NodeBase *leftBinaryOpNode = buildBinaryOperationNodeTree(startOpItem, context, Cast::upcast(newBinaryOpNode), GetNextOpGroup(opGroup));
-        newBinaryOpNode->opToken.parentNode = Cast::upcast(newBinaryOpNode);
+        newBinaryOpNode->opToken.parentNode = Cast::upcast(newBinaryOpNode);
+
                 newBinaryOpNode->leftExprNode = Cast::upcast(leftBinaryOpNode);
             }
         }
