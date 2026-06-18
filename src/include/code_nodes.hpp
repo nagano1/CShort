@@ -797,7 +797,6 @@ namespace cshort {
                 *FuncCallArgVTable,
                 *FuncCallVTable,
                 *BinaryOperationVTable
-                //*OpItemVTable
                 ;
 
         static const token_vtable
@@ -1211,10 +1210,7 @@ namespace cshort {
         static FuncCallArgItemStruct *newFuncCallArgItem(ParseContext *context, NodeBase *parentNode);
         static FuncCallNodeStruct *newFuncCallNode(ParseContext *context, NodeBase *parentNode);
 
-        // operations
         static BinaryOperationNodeStruct *newBinaryOperationNode(ParseContext *context, NodeBase *parentNode);
-        //static TempOpItem *newOpItemNode(ParseContext *context, NodeBase *parentNode, char op);
-
     };
 
 
