@@ -63,6 +63,7 @@ namespace cshort
         assert(self->rightExprNode != nullptr);
 
         currentCodeLine = VTableCall::callAppendNodeToLine(self->leftExprNode, currentCodeLine);
+        self->context->incrementDepthOnNextLine = true;
         currentCodeLine = TokenVTableCall::callAppendTokenToLine(&self->opToken, currentCodeLine);
         currentCodeLine = VTableCall::callAppendNodeToLine(self->rightExprNode, currentCodeLine);
 
