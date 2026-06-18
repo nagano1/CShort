@@ -173,15 +173,19 @@ namespace cshort
     }
     
 
-    TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, char op) {
-                auto *node = context->newMem<TempOpItem>();
-        INIT_NODE(node, context, parentNode, nullptr);
+static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, char op) {
+    auto *node = context->newMem<TempOpItem>();
+    INIT_NODE(node, context, parentNode, nullptr);
 
-        node->rightExprNode = nullptr;
-        Init::initSymbolToken(&node->opToken, context, node, op);
-        return node;
-    }
+    node->rightExprNode = nullptr;
+    node->nextOpNode = nullptr;
+    node->opGroup = BinaryOperationGroup::None;
+    node->binaryOp = BinaryOperator::Add; // overwritten for real operators
 
+    Init::initSymbolToken(&node->opToken, context, node, op);
+    return node;
+}
+
     static int binaryOpTokenizerInternal(TokenizerParams_argNode_ch_start_context)
     {
         BinaryOpInfo opInfo = getBinaryOpInfo(ch);
