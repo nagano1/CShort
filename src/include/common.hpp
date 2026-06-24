@@ -111,9 +111,4 @@ struct MemBuffer {
     utf8byte *newText(unsigned int count);
 
     void *newBytesMem(unsigned int bytes);
-
-    // Extension for heap malloc, which will be freed all together after script execution finishes, this is more efficient than malloc/free for each object, and also easier to manage memory in the script engine.
-    void* mallocHeapEntry(int bytes);
-    void freeHeapEntry(void *ptr);
-    void freeAllHeapEntries();
 };
