@@ -43,7 +43,7 @@ TestCl
     fn est() {}
     fn func(int a, int b) {
 
-        var a = 314}
+        let a = 314}
     fn a() {
         
     

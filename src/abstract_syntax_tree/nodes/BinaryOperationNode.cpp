@@ -172,30 +172,19 @@ namespace cshort
          return  opInfo;
     }
     
+    static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, char op) {
+        auto *node = context->newMem<TempOpItem>();
+        INIT_NODE(node, context, parentNode, nullptr);
 
-static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, char op) {
+        node->rightExprNode = nullptr;
+        node->nextOpNode = nullptr;
+        node->opGroup = BinaryOperationGroup::None;
+        node->binaryOp = BinaryOperator::Add; // overwritten for real operators
 
-    auto *node = context->newMem<TempOpItem>();
+        Init::initSymbolToken(&node->opToken, context, node, op);
 
-    INIT_NODE(node, context, parentNode, nullptr);
-
-
-    node->rightExprNode = nullptr;
-
-    node->nextOpNode = nullptr;
-
-    node->opGroup = BinaryOperationGroup::None;
-
-    node->binaryOp = BinaryOperator::Add; // overwritten for real operators
-
-
-    Init::initSymbolToken(&node->opToken, context, node, op);
-
-    return node;
-
-}
-
-
+        return node;
+    }
 
     static int binaryOpTokenizerInternal(TokenizerParams_argNode_ch_start_context)
     {
@@ -226,14 +215,23 @@ static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, cha
         }
     }
 
+    using OpItemTempNodeStruct = struct _OpItemTempNodeStruct{
+        NODE_HEADER;
 
+        NodeBase *rightExprNode;
+        SymbolTokenStruct opToken; // +, -, *, /, %, etc..
+        BinaryOperationGroup opGroup;
+        BinaryOperator binaryOp; // specific operator like Add, Subtract, etc.. used for code generation and type checking.
 
-    static NodeBase* buildBinaryOperationNodeTree(
-        TempOpItem *firstOpItem,
-        ParseContext *context,
-        NodeBase *parent,
-        BinaryOperationGroup opGroup
+        struct _OpItemTempNodeStruct *nextOpNode;
+    };
+
+    static NodeBase* buildBinaryOperationNodeTree(TempOpItem *firstOpItem,
+        ParseContext *context, NodeBase *parent, BinaryOperationGroup opGroup
     );
+
+
+
 
     // create binary operation node for the given left op item and right op item
     static BinaryOperationNodeStruct* createBinaryOperationNode(ParseContext *context,
@@ -255,8 +253,7 @@ static TempOpItem *CreateOpItem(ParseContext *context, NodeBase *parentNode, cha
             }
             else { // the first binary operation node for this operator group
                 NodeBase *leftBinaryOpNode = buildBinaryOperationNodeTree(startOpItem, context, Cast::upcast(newBinaryOpNode), GetNextOpGroup(opGroup));
-        newBinaryOpNode->opToken.parentNode = Cast::upcast(newBinaryOpNode);
-
+                newBinaryOpNode->opToken.parentNode = Cast::upcast(newBinaryOpNode);
                 newBinaryOpNode->leftExprNode = Cast::upcast(leftBinaryOpNode);
             }
         }

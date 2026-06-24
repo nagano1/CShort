@@ -94,7 +94,7 @@ namespace cshort {
 
     static constexpr const char parenthesesNodeTypeText[] = "<parentheses>";
 
-    static int tokenizeExpressionForParenthesesInternalLoop(TokenizerParams_argNode_ch_start_context) {
+    static int tokenizeExpressionForParenthesesLoop(TokenizerParams_argNode_ch_start_context) {
         auto *parenthesesNode = Cast::downcast<ParenthesesNodeStruct *>(argNode);
 
         if (ch == ')') {
@@ -130,11 +130,12 @@ namespace cshort {
         if ('(' == ch) {
             auto *parenthesesNode = Alloc::newParenthesesNode(context, Cast::upcast(argNode));
             parenthesesNode->openNode.foundPos = start;
-            int currentPos = start + 1;
-            bool prevBinaryMode = context->skipBinaryExpressionTokenizer;
-            context->skipBinaryExpressionTokenizer = false;
-            int resultPos =  Scanner::scanLoop(parenthesesNode, tokenizeExpressionForParenthesesInternalLoop, context, currentPos);
-            context->skipBinaryExpressionTokenizer = prevBinaryMode;
+
+            int resultPos =  Scanner::scanLoop(parenthesesNode,
+                                               tokenizeExpressionForParenthesesLoop,
+                                               context,
+                                               start + 1);
+
             if (Search::IsTokenized(resultPos)) {
                 context->generatedPrimaryNode = Cast::upcast(parenthesesNode);
                 context->mostLeftToken = Cast::upcastToken(&parenthesesNode->openNode);

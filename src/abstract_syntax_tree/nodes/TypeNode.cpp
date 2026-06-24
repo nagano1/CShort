@@ -88,12 +88,22 @@ namespace cshort
 
         typeNode->hasNullableMark = hasNullableMark;
         typeNode->hasImmutableMark = hasImmutableMark;
-        int result = Tokenizers::identifierTokenizer(Cast::upcastToken(&typeNode->nameNode), context->chars[currentPos], currentPos, context);
+        int result = Tokenizers::identifierTokenizer(Cast::upcastToken(&typeNode->nameNode), context->chars[currentPos],  currentPos, context);
+
+        bool isLet = false;
+        if (result == Search::NOTFOUND) {
+            // find let
+            bool found = ParseUtil::matchWordWithTerminatableEnd(context->chars, context->length, currentPos, let_chars);
+            if (found) {
+                isLet = true;
+                result = currentPos + size_of_let;
+            }
+        }
 
         if (Search::IsTokenized(result)) {
             typeNode->typeTextToken.foundPos = start;
             typeNode->nameNode.foundPos = currentPos;
-             typeNode->isLet = ParseUtil::equals(typeNode->nameNode.name, typeNode->nameNode.nameLength, let_chars, size_of_let);
+            typeNode->isLet = isLet;
 
             Init::assignText_SimpleTextToken(&typeNode->typeTextToken, context, context->chars + start, result - start);
 

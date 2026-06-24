@@ -84,7 +84,7 @@ class A { // comment
 constexpr const char *expressionFirstAssignment = u8R"(
 class A {
     fn method1() {
-        1235 + 3414 + func()
+        1235 + 3414 * func(52 + 32) + (1234 + 423)
         =let variableName
 
         "1235" + "3414" + func()

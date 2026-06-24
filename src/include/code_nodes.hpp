@@ -244,7 +244,10 @@ namespace cshort {
         NODE_HEADER;
 
         TypeNodeStruct typeOrLet; // #let, int, ?string, etc..
-        bool hasTypeDecl; // only assignment: a = 3
+        bool hasTypeOrLet; // only assignment: a = 3
+        bool hasTypeDecl() {
+            return hasTypeOrLet && !typeOrLet.isLet;
+        }
         //SymbolTokenStruct pointerAsterisk; // *
 
         int stackOffset;
@@ -428,6 +431,8 @@ namespace cshort {
         bool baseIncrementMode;
 
         bool skipBinaryExpressionTokenizer;
+         // used for tokenizer to indicate that it is inside parentheses expression, so that it can parse binary expression inside parentheses even if skipBinaryExpressionTokenizer is true.
+        bool insideParenthesisExpression;
 
         LineBreakTokenStruct *remainedLineBreakToken;
         void *remainedCommentToken;
