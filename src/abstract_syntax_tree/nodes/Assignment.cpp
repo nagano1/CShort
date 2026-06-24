@@ -46,7 +46,7 @@ namespace cshort {
             // =int varName
             int depth = self->context->currentIndentDepth;
             
-            assert(self->hasTypeDecl);
+            assert(self->hasTypeOrLet);
             assert(self->expressionNode);
             assert(self->equalSymbol.foundPos > -1);
 
@@ -68,7 +68,7 @@ namespace cshort {
 
             // normal mode . e.g.
             // int varName = 254
-            if (self->hasTypeDecl) {
+            if (self->hasTypeOrLet) {
                 currentCodeLine = VTableCall::callAppendNodeToLine(&self->typeOrLet, currentCodeLine);
             }
 
@@ -136,7 +136,7 @@ namespace cshort {
     void Init::initAssignment(ParseContext *context, NodeBase *parentNode, AssignmentNodeStruct *assignment) {
         INIT_NODE(assignment, context, parentNode, &_assignVTable);
 
-        assignment->hasTypeDecl = false;
+        assignment->hasTypeOrLet = false;
         assignment->expressionNode = nullptr;
         assignment->stackOffset = 0;
         assignment->isExpressionFirstSyntax = false;
@@ -171,7 +171,7 @@ namespace cshort {
                 return start + 1;
             }
             else {
-                if (assignment->hasTypeDecl) {
+                if (assignment->hasTypeOrLet) {
                     // if has type declaration, it can be just declaration without assignment. e.g. int a
                     context->scanEnd = true;
                     return Search::DONE_WITH_PREVIOUS_POSITION;
@@ -219,7 +219,7 @@ namespace cshort {
 
         int resultPos = Scanner::scanLoop(assignment, tokenizeAssignmentLoop, context, start);
         if (Search::IsTokenized(resultPos)) {
-            assignment->hasTypeDecl = false;
+            assignment->hasTypeOrLet = false;
             assignment->typeOrLet.isLet = false;
 
             context->mostLeftToken = Cast::upcastToken(&assignment->variableNameToken);
@@ -301,7 +301,7 @@ namespace cshort {
             return Search::NOTFOUND;
         }
 
-        assignment->hasTypeDecl = true;
+        assignment->hasTypeOrLet = true;
 
         // spaces and comments are allowed between type declaration and variable name,
         // so we need to use scanOnce until we find the variable name token.
@@ -336,7 +336,7 @@ namespace cshort {
 
         int result = Tokenizers::typeTokenizer(Cast::upcast(&assignment->typeOrLet), ch, start, context);
         if (Search::IsTokenized(result)) {
-            assignment->hasTypeDecl = true;
+            assignment->hasTypeOrLet = true;
 
             int resultPos;
             if (Search::IsTokenized(resultPos = Scanner::scanLoop(assignment, tokenizeAssignmentLoop, context, result)))

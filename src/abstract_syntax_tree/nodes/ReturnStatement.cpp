@@ -61,7 +61,7 @@ namespace cshort {
                 func(Cast::upcast(node), ApplyFunc_pass);
             }
         }
-        if (node->expressionNode) {
+        if (node->expressionNode != nullptr) {
             node->expressionNode->vtable->applyFuncToDescendants(node->expressionNode, ApplyFunc_pass2);
         }
 
