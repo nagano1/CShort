@@ -82,6 +82,16 @@ utf8byte * MemBuffer::newText(unsigned int count) {
     auto bytes = st_size_of(utf8byte) * (count + 1); // 1 for null terminator
     return (utf8byte*)this->newBytesMem(bytes);
 }
+utf8byte * MemBuffer::newTextAssign(const utf8byte *text, unsigned int count) {
+    assert(text != nullptr || count == 0);
+    auto bytes = st_size_of(utf8byte) * (count + 1); // 1 for null terminator
+    utf8byte *newText = (utf8byte*)this->newBytesMem(bytes);
+    for (unsigned int i = 0; i < count; i++) {
+        newText[i] = text[i];
+    }
+    newText[count] = '\0';
+    return newText;
+}
 
 
 // Align header so that the returned pointer is aligned to max_align_t.
