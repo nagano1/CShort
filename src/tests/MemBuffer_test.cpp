@@ -138,9 +138,9 @@ void testHashMap() {
             auto *node2 = hashMap->get_x("empty");
             assert(node2 == nullptr);
         }
-        return;
-
     }
+
+    return;
     context->dispose();
     free(context);
 }
