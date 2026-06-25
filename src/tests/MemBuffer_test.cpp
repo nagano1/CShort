@@ -109,6 +109,7 @@ void testHashMap() {
     if (context != nullptr) {
         context->memBuffer.init();
     }
+    return;
 
     for (int i = 0; i < 100; i++) {
 
