@@ -109,6 +109,51 @@ struct MemBuffer {
     }
     
     utf8byte *newText(unsigned int count);
+    utf8byte *newTextAssign(utf8byte *text, unsigned int count);
 
     void *newBytesMem(unsigned int bytes);
+};
+
+
+#define HashNode_TABLE_SIZE 104
+
+struct VoidHashNode {
+    VoidHashNode *next;
+    char *key;
+    int keyLength;
+    void *voidPtrItem;
+};
+
+struct VoidHashMap {
+    // entries is an array of pointers to the first node in each linked list (bucket) of the hash table.
+    VoidHashNode **entries;
+    size_t entries_length; // number of entries in the hash table
+    MemBuffer *memBuffer;
+
+    void init(MemBuffer *memBuffer1);
+
+    template<std::size_t SIZE>
+    static int calc_hash_x(const char(&f4)[SIZE], size_t max) {
+        return VoidHashMap::calc_hash_impl((const char *) f4, SIZE - 1, max);
+    }
+    int calc_hash(const char *key, int keyLength) {
+        return VoidHashMap::calc_hash_impl(key, keyLength, this->entries_length);
+    }
+    // Calculate the hash value of a key, given the key and its length,
+    // and the maximum value for the hash (usually the size of the hash table).
+    static int calc_hash_impl(const char *key, int keyLength, size_t max);
+    
+    void put(const char *keyA, int keyLength, void *val) const;
+    void *get(const char *key, int keyLength);
+    bool hasKey(const char *key, int keyLength);
+    void deleteKey(const char *key, int keyLength);
+
+    template<std::size_t SIZE>
+    void *get_x(const char(&f4)[SIZE]) {
+        return this->get((const char *) f4, SIZE - 1);
+    }
+    template<std::size_t SIZE>
+    void put_x(const char(&f4)[SIZE], void *val) {
+        return this->put((const char *) f4, SIZE - 1, val);
+    }
 };

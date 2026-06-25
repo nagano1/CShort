@@ -7,6 +7,9 @@
 #include <cstring>
 
 #include "common.hpp"
+#include "code_nodes.hpp"
+
+using namespace cshort;
 
 void testNewTextHasNullTerminator()
 {
@@ -88,12 +91,66 @@ void testLastBlockStaysAvailableAfterDelete()
     buffer.freeAll();
 }
 
+void testHashMap() {
+    {
+        auto hashKey = VoidHashMap::calc_hash_x("ak", 10000);
+        auto hashKey2 = VoidHashMap::calc_hash_x("ka", 10000);
+        assert(hashKey != hashKey2);
+    }
+
+    {
+        auto hashKey = VoidHashMap::calc_hash_x("N01", 10000);
+        auto hashKey2 = VoidHashMap::calc_hash_x("N01234C", 10000);
+        assert(hashKey != hashKey2);
+    }
+
+
+    auto *context = (ParseContext *)malloc(sizeof(ParseContext));
+    if (context != nullptr) {
+        context->memBuffer.init();
+    }
+
+    for (int i = 0; i < 100; i++) {
+
+        auto *hashMap = context->newMem<VoidHashMap>();
+        if (hashMap != nullptr) {
+            hashMap->init(&context->memBuffer);
+        }
+
+        auto *firstItem = (void*)(context->newMem<DocumentStruct>());
+        const char firstItemKey[] = "firstAA";
+        const char secondItemKey[] = "secondB";
+        const char thirdItemKey[] = "thirdC";
+        hashMap->put_x(firstItemKey, context->newMem<DocumentStruct>());
+        hashMap->put_x(firstItemKey, firstItem); // replace
+
+        hashMap->put_x(secondItemKey, context->newMem<DocumentStruct>());
+        hashMap->put_x(thirdItemKey, context->newMem<DocumentStruct>());
+        hashMap->put_x(thirdItemKey, context->newMem<DocumentStruct>());
+
+        auto *node = (NodeBase*)hashMap->get_x(firstItemKey);
+        assert(node == firstItem);
+
+        node = (NodeBase*)hashMap->get_x(thirdItemKey);
+        assert(node != nullptr);
+        
+        {
+            auto *node2 = hashMap->get_x("empty");
+            assert(node2 == nullptr);
+        }
+    }
+    context->dispose();
+    free(context);
+}
+
 int main()
 {
     testNewTextHasNullTerminator();
     testAllocationsReuseCurrentBlock();
     testDeletedNonLastBlockIsReleased();
     testLastBlockStaysAvailableAfterDelete();
+
+    testHashMap();
     return 0;
 }
 
