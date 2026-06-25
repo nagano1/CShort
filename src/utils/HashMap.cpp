@@ -8,37 +8,19 @@
 //                               HashMap
 // 
 // --------------------------------------------------------------------------
-
 int VoidHashMap::calc_hash_impl(const char *key, int keyLength, size_t max)
 {
     assert(key != nullptr);
     assert(keyLength >= 0);
     assert(max > 0);
-
-    // this is a simple hash function for string keys,
-    // it may cause more hash collision than more complex hash functions,
-    // but it is faster and the performance is acceptable for our use case.
-    unsigned int sum = keyLength;
-    int border = 128;
-
-    int salt = 0; // prevent same result from only order different of letters
-    for (int i = 0; i < keyLength && i < border; i++) {
-        unsigned char unsignedValue = key[i];
-        sum += unsignedValue;
-        // use different salt for different order of letters, e.g. "ab" and "ba"
-        salt += i % 2 == 0 ? unsignedValue * i : -unsignedValue * i;
+    
+    // FNV-1a hash - simple, fast, good distribution
+    uint32_t hash = 2166136261u; // FNV offset basis
+    for (int i = 0; i < keyLength; i++) {
+        hash ^= static_cast<uint8_t>(key[i]);
+        hash *= 16777619u; // FNV prime
     }
-
-    for (int i = keyLength-1,j=0; i >= border && j < border; i--,j++) {
-        unsigned char unsignedValue = key[i];// (key[i] < 0 ? -key[i] : key[i]);
-        sum += unsignedValue;
-        // use different salt for different order of letters, e.g. "ab" and "ba"
-        salt += j % 2 == 0 ? unsignedValue * j : -unsignedValue * j;
-    }
-    if (salt < 0) {
-        salt = -(salt);
-    }
-    return (sum + salt) % max; // use modulo to fit the hash into the table size
+    return hash % max;
 }
 
 
