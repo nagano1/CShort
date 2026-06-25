@@ -109,7 +109,7 @@ struct MemBuffer {
     }
     
     utf8byte *newText(unsigned int count);
-    utf8byte *newTextAssign(utf8byte *text, unsigned int count);
+    utf8byte *newTextAssign(const utf8byte *text, unsigned int count);
 
     void *newBytesMem(unsigned int bytes);
 };
@@ -143,7 +143,7 @@ struct VoidHashMap {
     // and the maximum value for the hash (usually the size of the hash table).
     static int calc_hash_impl(const char *key, int keyLength, size_t max);
     
-    void put(const char *keyA, int keyLength, void *val) const;
+    void put(const char *keyA, int keyLength, void *val);
     void *get(const char *key, int keyLength);
     bool hasKey(const char *key, int keyLength);
     void deleteKey(const char *key, int keyLength);

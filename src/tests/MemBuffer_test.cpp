@@ -107,7 +107,7 @@ void testHashMap() {
 
     auto *context = (ParseContext *)malloc(sizeof(ParseContext));
     if (context != nullptr) {
-        context->memBuffer.init();
+        context->init();
     }
 
     for (int i = 0; i < 100; i++) {
@@ -131,6 +131,10 @@ void testHashMap() {
         auto *node = (NodeBase*)hashMap->get_x(firstItemKey);
         assert(node == firstItem);
 
+        assert(hashMap->hasKey(firstItemKey, sizeof(firstItemKey) - 1));
+        hashMap->deleteKey(firstItemKey, sizeof(firstItemKey) - 1);
+        assert(hashMap->get_x(firstItemKey) == nullptr);
+
         node = (NodeBase*)hashMap->get_x(thirdItemKey);
         assert(node != nullptr);
         
@@ -140,7 +144,6 @@ void testHashMap() {
         }
     }
 
-    return;
     context->dispose();
     free(context);
 }

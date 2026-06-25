@@ -52,7 +52,7 @@ static bool isSameKey(VoidHashNode *hashNode, int keyLength, const char *key) {
     return true;
 }
 
-void VoidHashMap::put(const char *key, int keyLength, void* val) const
+void VoidHashMap::put(const char *key, int keyLength, void* val)
 {
     auto hashInt = this->calc_hash_impl(key, keyLength, this->entries_length);
     VoidHashNode* hashNode = this->entries[hashInt];
@@ -63,7 +63,7 @@ void VoidHashMap::put(const char *key, int keyLength, void* val) const
         newHashNode->next = nullptr;
         this->entries[hashInt] = newHashNode;
 
-        newHashNode->key = this->memBuffer->newTextAssign((utf8byte*)key, keyLength);
+        newHashNode->key = this->memBuffer->newTextAssign(key, static_cast<unsigned int>(keyLength));
         newHashNode->keyLength = keyLength;
         newHashNode->voidPtrItem = val;
         return;
@@ -87,7 +87,7 @@ void VoidHashMap::put(const char *key, int keyLength, void* val) const
 
     // if the key does not exist, create a new hash node and add it to the end of the linked list
     auto *newHashNode = this->memBuffer->newMem<VoidHashNode>(1);
-    newHashNode->key = this->memBuffer->newTextAssign((utf8byte*)key, keyLength);
+    newHashNode->key = this->memBuffer->newTextAssign(key, static_cast<unsigned int>(keyLength));
     newHashNode->keyLength = keyLength;
     newHashNode->voidPtrItem = val;
     newHashNode->next = nullptr;
@@ -99,10 +99,10 @@ void VoidHashMap::put(const char *key, int keyLength, void* val) const
 void VoidHashMap::init(MemBuffer* membuffer)
 {
     this->memBuffer = membuffer;
-    this->entries = (VoidHashNode**)this->memBuffer->newMemArray<VoidHashNode>(HashNode_TABLE_SIZE);
+    this->entries = this->memBuffer->newMemArray<VoidHashNode*>(HashNode_TABLE_SIZE);
     this->entries_length = HashNode_TABLE_SIZE;
     // initialize all entries to nullptr
-    memset(this->entries, 0, sizeof(VoidHashNode*)*this->entries_length);
+    memset(this->entries, 0, sizeof(VoidHashNode*) * this->entries_length);
     //// or you can use a loop to set each entry to nullptr
     // for (unsigned int i = 0; i < this->entries_length; i++) {
     //     this->entries[i] = nullptr;
@@ -111,7 +111,15 @@ void VoidHashMap::init(MemBuffer* membuffer)
 
 bool VoidHashMap::hasKey(const char * key, int keyLength)
 {
-    return this->entries[calc_hash(key, keyLength)] != nullptr;
+    auto hashKey = calc_hash(key, keyLength);
+    auto *hashNode = this->entries[hashKey];
+    while (hashNode != nullptr) {
+        if (isSameKey(hashNode, keyLength, key)) {
+            return true;
+        }
+        hashNode = hashNode->next;
+    }
+    return false;
 }
 
 void VoidHashMap::deleteKey(const char *key, int keyLength)
