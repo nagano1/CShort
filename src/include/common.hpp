@@ -154,6 +154,6 @@ struct VoidHashMap {
     }
     template<std::size_t SIZE>
     void put_x(const char(&f4)[SIZE], void *val) {
-        return this->put(f4, static_cast<int>(SIZE - 1), val);
+        this->put(f4, static_cast<int>(SIZE - 1), val);
     }
 };
