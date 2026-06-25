@@ -109,7 +109,6 @@ void testHashMap() {
     if (context != nullptr) {
         context->memBuffer.init();
     }
-    return;
 
     for (int i = 0; i < 100; i++) {
 
@@ -139,6 +138,8 @@ void testHashMap() {
             auto *node2 = hashMap->get_x("empty");
             assert(node2 == nullptr);
         }
+        return;
+
     }
     context->dispose();
     free(context);
