@@ -11,6 +11,10 @@
 
 int VoidHashMap::calc_hash_impl(const char *key, int keyLength, size_t max)
 {
+    assert(key != nullptr);
+    assert(keyLength >= 0);
+    assert(max > 0);
+
     // this is a simple hash function for string keys,
     // it may cause more hash collision than more complex hash functions,
     // but it is faster and the performance is acceptable for our use case.

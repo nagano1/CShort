@@ -134,7 +134,7 @@ struct VoidHashMap {
 
     template<std::size_t SIZE>
     static int calc_hash_x(const char(&f4)[SIZE], size_t max) {
-        return VoidHashMap::calc_hash_impl((const char *) f4, SIZE - 1, max);
+        return VoidHashMap::calc_hash_impl(f4, static_cast<int>(SIZE - 1), max);
     }
     int calc_hash(const char *key, int keyLength) {
         return VoidHashMap::calc_hash_impl(key, keyLength, this->entries_length);
@@ -150,10 +150,10 @@ struct VoidHashMap {
 
     template<std::size_t SIZE>
     void *get_x(const char(&f4)[SIZE]) {
-        return this->get((const char *) f4, SIZE - 1);
+        return this->get(f4, static_cast<int>(SIZE - 1));
     }
     template<std::size_t SIZE>
     void put_x(const char(&f4)[SIZE], void *val) {
-        return this->put((const char *) f4, SIZE - 1, val);
+        return this->put(f4, static_cast<int>(SIZE - 1), val);
     }
 };
