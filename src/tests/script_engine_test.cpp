@@ -108,11 +108,12 @@ void testStackMemoryCallRet2 () {
     stackMemory.call();
     stackMemory.localVariables(8*4);
 
-    //stackMemory.localVariables(1);
     uint32_t a = 100;
     uint32_t b;
+    // copy the value of a to the stack at offset -4 from the base pointer, then read it back into b
     stackMemory.moveTo(-4, 4, (st_byte*)&a);
     stackMemory.moveFrom(-4, 4, (st_byte*)&b);
+
     assert(100 == b);
     stackMemory.ret();
 
@@ -122,34 +123,56 @@ void testStackMemoryCallRet2 () {
 }
 
 
-void testStackMemoryCallRet3() {
+void testStackMemoryFuncCall() {
+    /*
+    Consider the following C code:
+    int main(void) {
+        foo(1, 2);
+    }
+
+    void foo(int a, int b) {
+        return a + b;
+    }
+    */
     StackMemory stackMemory;
     stackMemory.init();
 
     auto* basePointer0 = stackMemory.stackBasePointer;
     auto* stackPointer0 = stackMemory.stackPointer;
 
-    // call func1
+
+    // call main()
     stackMemory.call();
 
-    stackMemory.push(8);
+    stackMemory.push(2);
+    stackMemory.push(1);
+
     auto* stackPointer1 = stackMemory.stackPointer;
     auto* basePointer1 = stackMemory.stackBasePointer;
-
-
-    // call func2
+    
+    // call foo()
     stackMemory.call();
 
-    stackMemory.localVariables(8 * 4);
+    uint64_t arg1 = 0, arg2 = 0;
+    stackMemory.moveFrom(8, 8, (st_byte*)&arg1); // get argument 1
+    stackMemory.moveFrom(16, 8, (st_byte*)&arg2); // get argument 2
+    printf("arg1: %d, arg2: %d\n", arg1, arg2);
+    assert(arg1 == 1);
+    assert(arg2 == 2);
+    stackMemory.returnValue = arg1 + arg2; // return a + b
+
+    stackMemory.localVariables(8 * 4); // allocate space for local variables in func2
 
     stackMemory.ret();
-    // returned from func2
+    // returned from foo()
 
     assert((uint64_t)basePointer1 == (uint64_t)stackMemory.stackBasePointer);
     assert((uint64_t)stackPointer1 == (uint64_t)stackMemory.stackPointer);
 
+    assert(stackMemory.returnValue == 3);
+
     stackMemory.ret();
-    // returned from func1
+    // returned from main()
 
     assert((uint64_t)basePointer0 == (uint64_t)stackMemory.stackBasePointer);
     assert((uint64_t)stackPointer0 == (uint64_t)stackMemory.stackPointer);
@@ -199,7 +222,7 @@ void callTests()
     testStackMemoryMoveToFrom();
     testStackMemoryCallRet();
     testStackMemoryCallRet2();
-    testStackMemoryCallRet3();
+    testStackMemoryFuncCall();
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
