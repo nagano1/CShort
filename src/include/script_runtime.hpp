@@ -120,7 +120,7 @@ namespace cshort
     using StackMemory = struct _StackMemory {
         int baseBytes; // 8 for 64bit, 4 for 32bit; 8 is used for alignment of local variables, return address, base pointer, and arguments
 
-        st_byte *chunk;
+        st_byte *stackChunk;
         int stackSize; // 2MB
 
         bool isOverflowed;

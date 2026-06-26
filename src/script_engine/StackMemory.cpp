@@ -37,26 +37,26 @@ namespace cshort {
         this->isOverflowed = false;
 
         this->stackSize = 2 * 1024 * 1024; // 2MB
-        this->chunk = (st_byte *)malloc(this->stackSize);
+        this->stackChunk = (st_byte *)malloc(this->stackSize);
 
-        // stack grows downwards, so the initial stack pointer is at the end of the allocated chunk.
-        this->stackPointer = this->chunk + this->stackSize;
+        // stack grows downwards, so the initial stack pointer is at the end of the allocated stackChunk.
+        this->stackPointer = this->stackChunk + this->stackSize;
         // stack base pointer is used to keep track of the base of the current stack frame.
         // in function calls, the base pointer is typically saved and restored to manage local variables and function arguments.
-        this->stackBasePointer = this->chunk + this->stackSize;
+        this->stackBasePointer = this->stackChunk + this->stackSize;
     }
 
     void StackMemory::freeAll()
     {
-        if (this->chunk != nullptr) {
-            free(this->chunk);
-            this->chunk = nullptr;
+        if (this->stackChunk != nullptr) {
+            free(this->stackChunk);
+            this->stackChunk = nullptr;
         }
     }
     
     void StackMemory::push(uint64_t data)
     {
-        if (this->stackPointer - this->baseBytes <= this->chunk) {
+        if (this->stackPointer - this->baseBytes <= this->stackChunk) {
             overflowed();
             return;
         }
@@ -68,7 +68,7 @@ namespace cshort {
     // this method is used for allocating space for local variables on the stack.
     void StackMemory::localVariables(int bytes)
     {
-        if (this->stackPointer - bytes <= this->chunk) {
+        if (this->stackPointer - bytes <= this->stackChunk) {
             overflowed();
             return;
         }
@@ -89,7 +89,7 @@ namespace cshort {
     // this is used for writing values to the stack, such as local variables or function arguments. 
     void StackMemory::moveTo(int offsetFromBase, int byteCount, st_byte*ptr)
     {
-        if (this->stackBasePointer + offsetFromBase <= this->chunk) {
+        if (this->stackBasePointer + offsetFromBase <= this->stackChunk) {
             overflowed();
             return;
         }
