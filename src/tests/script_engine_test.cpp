@@ -20,7 +20,7 @@ int main()
 }
 
 void testCPURegister() {
-    CPURegister reg{};
+    CPUSim reg{};
     assert(EAX(&reg) == 0);
     assert(sizeof(reg.rax) == 8);
     assert(sizeof(bool) == 1);

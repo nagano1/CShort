@@ -8,24 +8,29 @@
 
 namespace cshort
 {
-    enum class PrimitiveCalcRegisterEnum {
+
+    // general-purpose register	GPR
+    enum class GRPRegisterEnum {
         eax, ebx, ecx, edx
     };
 
-    // macros for CalcRegister
+    // macros for general-purpose register	GPR
+    // pointer access to different parts of the register
     #define __RX(reg) (reg)->r_x
     #define __EX(reg) (reg)->e_x.e_x
     #define __X(reg) (reg)->e_x.ax.ax
     #define __H(reg) (reg)->e_x.ax.ahal.ah
     #define __L(reg) (reg)->e_x.ax.ahal.al
 
+    // direct access to different parts of the register
     #define __RAX(reg) (reg).r_x
     #define __EAX(reg) (reg).e_x.e_x
     #define __AX(reg) (reg).e_x.ax.ax
     #define __AH(reg) (reg).e_x.ax.ahal.ah
     #define __AL(reg) (reg).e_x.ax.ahal.al
 
-    // macros for CPU Register
+    // macros for CPU simulation
+    // pointer access from CPUSim to different parts of the register
     #define RAX(cpu) __RAX((cpu)->rax)
     #define EAX(cpu) __EAX((cpu)->rax)
     #define AX(cpu) __AX((cpu)->rax)
@@ -73,7 +78,7 @@ namespace cshort
     */
 
 
-    using CPURegister = struct _CPURegister {
+    using CPUSim = struct _CPUSim {
         CalcRegister rax;
         CalcRegister rbx;
         CalcRegister rcx;
@@ -86,18 +91,18 @@ namespace cshort
     };
 
 
-    static inline const CalcRegister* CalcEnumToCalcRegister(PrimitiveCalcRegisterEnum regTypeEnum, const CPURegister* cpu)
+    static inline const CalcRegister* CalcEnumToCalcRegister(GRPRegisterEnum regTypeEnum, const CPUSim* cpu)
     {
-        if (regTypeEnum == PrimitiveCalcRegisterEnum::eax) {
+        if (regTypeEnum == GRPRegisterEnum::eax) {
             return &cpu->rax;
         }
-        else if (regTypeEnum == PrimitiveCalcRegisterEnum::ebx) {
+        else if (regTypeEnum == GRPRegisterEnum::ebx) {
             return &cpu->rbx;
         }
-        else if (regTypeEnum == PrimitiveCalcRegisterEnum::ecx) {
+        else if (regTypeEnum == GRPRegisterEnum::ecx) {
             return &cpu->rcx;
         }
-        else if (regTypeEnum == PrimitiveCalcRegisterEnum::edx) {
+        else if (regTypeEnum == GRPRegisterEnum::edx) {
             return  &cpu->rdx;
         }
         return nullptr;
