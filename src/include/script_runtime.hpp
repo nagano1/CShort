@@ -14,7 +14,7 @@ namespace cshort
         eax, ebx, ecx, edx
     };
 
-    // macros for general-purpose register	GPR
+    // macros
     // pointer access to different parts of the register
     #define __RX(reg) (reg)->r_x
     #define __EX(reg) (reg)->e_x.e_x
@@ -29,7 +29,6 @@ namespace cshort
     #define __AH(reg) (reg).e_x.ax.ahal.ah
     #define __AL(reg) (reg).e_x.ax.ahal.al
 
-    // macros for CPU simulation
     // pointer access from CPUSim to different parts of the register
     #define RAX(cpu) __RAX((cpu)->rax)
     #define EAX(cpu) __EAX((cpu)->rax)
@@ -55,7 +54,7 @@ namespace cshort
     #define DH(cpu) __AH((cpu)->rdx)
     #define DL(cpu) __AL((cpu)->rdx)
 
-    union CalcRegister {
+    union GPRRegister {
         uint64_t r_x; // rax, rbx, rcx
         union {
             uint32_t e_x; // eax, ebx, ecx
@@ -79,19 +78,14 @@ namespace cshort
 
 
     using CPUSim = struct _CPUSim {
-        CalcRegister rax;
-        CalcRegister rbx;
-        CalcRegister rcx;
-        CalcRegister rdx;
-
-        void add(int num) {
-            auto *reg = this;
-            RAX(reg) = RAX(reg) + num;
-        }
+        GPRRegister rax;
+        GPRRegister rbx;
+        GPRRegister rcx;
+        GPRRegister rdx;
     };
 
 
-    static inline const CalcRegister* CalcEnumToCalcRegister(GRPRegisterEnum regTypeEnum, const CPUSim* cpu)
+    static inline const GPRRegister* GetGPRRegisterByEnum(GRPRegisterEnum regTypeEnum, const CPUSim* cpu)
     {
         if (regTypeEnum == GRPRegisterEnum::eax) {
             return &cpu->rax;
@@ -108,18 +102,21 @@ namespace cshort
         return nullptr;
     }
 
-    static inline st_byte* GetDataPointerFromCalcRegister(const CalcRegister* calcRegister, int dataSize)
+    static inline st_byte* GetDataPointerFromGPRRegister(const GPRRegister* gpr, int dataSize)
     {
         if (dataSize == 4) {
-            return (st_byte*)&__EX(calcRegister);
+            return (st_byte*)&__EX(gpr);
         }
         else if (dataSize == 8) {
-            return (st_byte*)&__RX(calcRegister);
+            return (st_byte*)&__RX(gpr);
         }
 
         return nullptr;
     }
 
+    ///
+    /// Simulation of stack memory for the script engine.
+    ///
     using StackMemory = struct _StackMemory {
         int baseBytes; // 8 for 64bit, 4 for 32bit; 8 is used for alignment of local variables, return address, base pointer, and arguments
 
@@ -133,20 +130,19 @@ namespace cshort
 
         uint64_t returnValue; // EAX, Accumulator Register
 
-        // methods
         void init();
         void freeAll();
         void push(uint64_t bytes);
-        void localVariables(int bytes); // assign variable on local
         uint64_t pop();
+        void localVariables(int bytes); // assign variable on local
         void call();
         void ret();
+
+        void moveTo(int offsetFromBase, int byteCount, st_byte* ptr);
+        void moveFrom(int offsetFromBase, int byteCount, st_byte* ptr) const;
 
         void overflowed() {
             this->isOverflowed = true;
         }
-
-        void moveTo(int offsetFromBase, int byteCount, st_byte* ptr);
-        void moveFrom(int offsetFromBase, int byteCount, st_byte* ptr) const;
     };
 }
