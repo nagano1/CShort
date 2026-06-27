@@ -132,7 +132,7 @@ namespace cshort
 
         void init();
         void freeAll();
-        void push(uint64_t bytes);
+        void push(uint64_t date);
         uint64_t pop();
         void localVariables(int bytes); // assign variable on local
         void call();

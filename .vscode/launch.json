@@ -8,7 +8,7 @@
             "name": "(gdb) build and debug active file on Linux",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/tests/syntax_valid_test_run",
+            "program": "${workspaceFolder}/build/src/tests/script_engine_test_run",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

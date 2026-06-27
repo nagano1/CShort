@@ -195,9 +195,9 @@ void testStackMemoryOverflowLocalVariables() {
     StackMemory stackMemory;
     stackMemory.init();
 
-    stackMemory.localVariables(stackMemory.stackSize - 1);
+    stackMemory.localVariables(stackMemory.stackSize - stackMemory.baseBytes);
     assert(stackMemory.isOverflowed == false);
-    stackMemory.localVariables(1);
+    stackMemory.localVariables(stackMemory.baseBytes);
     assert(stackMemory.isOverflowed == true);
 }
 
