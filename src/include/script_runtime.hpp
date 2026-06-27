@@ -16,43 +16,43 @@ namespace cshort
 
     // macros
     // pointer access to different parts of the register
-    #define __RX(reg) (reg)->r_x
-    #define __EX(reg) (reg)->e_x.e_x
-    #define __X(reg) (reg)->e_x.ax.ax
-    #define __H(reg) (reg)->e_x.ax.ahal.ah
-    #define __L(reg) (reg)->e_x.ax.ahal.al
+    #define CS_RX(reg) (reg)->r_x
+    #define CS_EX(reg) (reg)->e_x.e_x
+    #define CS_X(reg) (reg)->e_x.ax.ax
+    #define CS_H(reg) (reg)->e_x.ax.ahal.ah
+    #define CS_L(reg) (reg)->e_x.ax.ahal.al
 
     // direct access to different parts of the register
-    #define __RAX(reg) (reg).r_x
-    #define __EAX(reg) (reg).e_x.e_x
-    #define __AX(reg) (reg).e_x.ax.ax
-    #define __AH(reg) (reg).e_x.ax.ahal.ah
-    #define __AL(reg) (reg).e_x.ax.ahal.al
+    #define CS_RAX(reg) (reg).r_x
+    #define CS_EAX(reg) (reg).e_x.e_x
+    #define CS_AX(reg) (reg).e_x.ax.ax
+    #define CS_AH(reg) (reg).e_x.ax.ahal.ah
+    #define CS_AL(reg) (reg).e_x.ax.ahal.al
 
     // pointer access from CPUSim to different parts of the register
-    #define RAX(cpu) __RAX((cpu)->rax)
-    #define EAX(cpu) __EAX((cpu)->rax)
-    #define AX(cpu) __AX((cpu)->rax)
-    #define AH(cpu) __AH((cpu)->rax)
-    #define AL(cpu) __AL((cpu)->rax)
+    #define RAX(cpu) CS_RAX((cpu)->rax)
+    #define EAX(cpu) CS_EAX((cpu)->rax)
+    #define AX(cpu) CS_AX((cpu)->rax)
+    #define AH(cpu) CS_AH((cpu)->rax)
+    #define AL(cpu) CS_AL((cpu)->rax)
 
-    #define RBX(cpu) __RAX((cpu)->rbx)
-    #define EBX(cpu) __EAX((cpu)->rbx)
-    #define BX(cpu) __AX((cpu)->rbx)
-    #define BH(cpu) __AH((cpu)->rbx)
-    #define BL(cpu) __AL((cpu)->rbx)
+    #define RBX(cpu) CS_RAX((cpu)->rbx)
+    #define EBX(cpu) CS_EAX((cpu)->rbx)
+    #define BX(cpu) CS_AX((cpu)->rbx)
+    #define BH(cpu) CS_AH((cpu)->rbx)
+    #define BL(cpu) CS_AL((cpu)->rbx)
 
-    #define RCX(cpu) __RAX((cpu)->rcx)
-    #define ECX(cpu) __EAX((cpu)->rcx)
-    #define CX(cpu) __AX((cpu)->rcx)
-    #define CH(cpu) __AH((cpu)->rcx)
-    #define CL(cpu) __AL((cpu)->rcx)
+    #define RCX(cpu) CS_RAX((cpu)->rcx)
+    #define ECX(cpu) CS_EAX((cpu)->rcx)
+    #define CX(cpu) CS_AX((cpu)->rcx)
+    #define CH(cpu) CS_AH((cpu)->rcx)
+    #define CL(cpu) CS_AL((cpu)->rcx)
 
-    #define RDX(cpu) __RAX((cpu)->rdx)
-    #define EDX(cpu) __EAX((cpu)->rdx)
-    #define DX(cpu) __AX((cpu)->rdx)
-    #define DH(cpu) __AH((cpu)->rdx)
-    #define DL(cpu) __AL((cpu)->rdx)
+    #define RDX(cpu) CS_RAX((cpu)->rdx)
+    #define EDX(cpu) CS_EAX((cpu)->rdx)
+    #define DX(cpu) CS_AX((cpu)->rdx)
+    #define DH(cpu) CS_AH((cpu)->rdx)
+    #define DL(cpu) CS_AL((cpu)->rdx)
 
     union GPRRegister {
         uint64_t r_x; // rax, rbx, rcx
@@ -105,10 +105,10 @@ namespace cshort
     static inline st_byte* GetDataPointerFromGPRRegister(const GPRRegister* gpr, int dataSize)
     {
         if (dataSize == 4) {
-            return (st_byte*)&__EX(gpr);
+            return (st_byte*)&CS_EX(gpr);
         }
         else if (dataSize == 8) {
-            return (st_byte*)&__RX(gpr);
+            return (st_byte*)&CS_RX(gpr);
         }
 
         return nullptr;
