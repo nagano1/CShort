@@ -102,7 +102,9 @@ namespace cshort {
     // this is used for writing values to the stack, such as local variables or function arguments. 
     void StackMemory::moveTo(int offsetFromBase, int byteCount, st_byte*ptr)
     {
-        if (this->stackBasePointer + offsetFromBase <= this->stackChunk) {
+         auto* target = this->stackBasePointer + offsetFromBase;
+         auto* stackEnd = this->stackChunk + this->stackSize;
+         if (this->stackChunk == nullptr || byteCount <= 0 || target < this->stackPointer || target < this->stackChunk || target + byteCount > stackEnd) {
             overflowed();
             return;
         }
