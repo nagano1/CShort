@@ -109,13 +109,14 @@ void testStackMemoryCallRet2 () {
     auto *stackPointer0 = stackMemory.stackPointer;
 
     stackMemory.call();
-    stackMemory.localVariables(8*4);
+    stackMemory.localVariables(8);
+    assert((uint64_t)stackMemory.stackPointer == (uint64_t)stackMemory.stackBasePointer - 8);
 
-    uint32_t a = 100;
-    uint32_t b;
-    // copy the value of a to the stack at offset -4 from the base pointer, then read it back into b
-    stackMemory.moveTo(-4, 4, (st_byte*)&a);
-    stackMemory.moveFrom(-4, 4, (st_byte*)&b);
+    uint64_t a = 100;
+    uint64_t b;
+    // copy the value of a to the stack at offset -8 from the base pointer, then read it back into b
+    stackMemory.moveTo(-8, 8, (st_byte*)&a);
+    stackMemory.moveFrom(-8, 8, (st_byte*)&b);
 
     assert(100 == b);
     stackMemory.ret();
@@ -147,24 +148,24 @@ void testStackMemoryFuncCall() {
     // call main()
     stackMemory.call();
 
-    stackMemory.push(2);
-    stackMemory.push(1);
+    stackMemory.push(2); // push argument 2
+    stackMemory.push(1); // push argument 1
 
     auto* stackPointer1 = stackMemory.stackPointer;
     auto* basePointer1 = stackMemory.stackBasePointer;
     
     // call foo()
     stackMemory.call();
+    stackMemory.localVariables(8 * 2); // allocate space for local variables in func2
 
     uint64_t arg1 = 0, arg2 = 0;
     stackMemory.moveFrom(8, 8, (st_byte*)&arg1); // get argument 1
     stackMemory.moveFrom(16, 8, (st_byte*)&arg2); // get argument 2
-    printf("arg1: %d, arg2: %d\n", arg1, arg2);
+    printf("arg1: %llu, arg2: %llu\n", (unsigned long long)arg1, (unsigned long long)arg2);
     assert(arg1 == 1);
     assert(arg2 == 2);
     stackMemory.returnValue = arg1 + arg2; // return a + b
 
-    stackMemory.localVariables(8 * 4); // allocate space for local variables in func2
 
     stackMemory.ret();
     // returned from foo()

@@ -104,7 +104,7 @@ namespace cshort {
     {
          auto* target = this->stackBasePointer + offsetFromBase;
          auto* stackEnd = this->stackChunk + this->stackSize;
-         if (this->stackChunk == nullptr || byteCount <= 0 || target < this->stackChunk || target + byteCount > stackEnd) {
+         if (this->stackChunk == nullptr || byteCount <= 0 || target < this->stackPointer || target < this->stackChunk || target + byteCount > stackEnd) {
             overflowed();
             return;
         }
@@ -143,6 +143,7 @@ namespace cshort {
         assert(byteCount > 0);
         // https://tamaron.hatenablog.com/entry/2020/04/02/003805
         // https://zenn.dev/yasu01/articles/1f92df34f54c31
+        assert(target >= this->stackPointer);
         assert(target >= this->stackChunk);
         assert(target + byteCount <= stackEnd);
 
