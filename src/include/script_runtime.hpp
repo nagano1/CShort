@@ -138,8 +138,8 @@ namespace cshort
         void call();
         void ret();
 
-        void moveTo(int offsetFromBase, int byteCount, st_byte* ptr);
-        void moveFrom(int offsetFromBase, int byteCount, st_byte* ptr) const;
+        bool moveToStack(int offsetFromBase, int byteCount, st_byte* ptr);
+        bool moveFromStack(int offsetFromBase, int byteCount, st_byte* ptr) const;
 
         void overflowed() {
             this->isOverflowed = true;

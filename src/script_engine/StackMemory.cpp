@@ -60,6 +60,8 @@ namespace cshort {
             free(this->stackChunk);
             this->stackChunk = nullptr;
         }
+        this->stackPointer = nullptr;
+        this->stackBasePointer = nullptr;
     }
     
     void StackMemory::push(uint64_t data)
@@ -77,10 +79,10 @@ namespace cshort {
     void StackMemory::localVariables(int bytes)
     {
         // Round up to baseBytes alignment
-        int ALIGNMENT = this->baseBytes;
-        int alignedBytes = (bytes + ALIGNMENT - 1) & ~(ALIGNMENT - 1);
-        assert(bytes % this->baseBytes == 0 && "localVariables: bytes should be pre-aligned");
-        if (this->stackPointer - alignedBytes <= this->stackChunk) {
+        const int alignment = this->baseBytes;
+        const int alignedBytes = (bytes + alignment - 1) & ~(alignment - 1);
+        assert(alignedBytes == bytes && "localVariables: bytes should be pre-aligned to baseBytes");
+        if (this->stackPointer <= this->stackChunk + alignedBytes) {
             overflowed();
             return;
         }
@@ -102,13 +104,15 @@ namespace cshort {
 
     // moveTo copies data from the provided pointer to the stack at the specified offset from the base pointer.
     // this is used for writing values to the stack, such as local variables or function arguments. 
-    void StackMemory::moveTo(int offsetFromBase, int byteCount, st_byte*ptr)
+    bool StackMemory::moveToStack(int offsetFromBase, int byteCount, st_byte*ptr)
     {
-         auto* target = this->stackBasePointer + offsetFromBase;
-         auto* stackEnd = this->stackChunk + this->stackSize;
-         if (this->stackChunk == nullptr || byteCount <= 0 || target < this->stackPointer || target < this->stackChunk || target + byteCount > stackEnd) {
+        assert(!this->isOverflowed && "moveTo: stack is overflowed");
+
+        auto* stackEnd = this->stackChunk + this->stackSize;
+        auto* target = this->stackBasePointer + offsetFromBase;
+        if (target < this->stackPointer || target < this->stackChunk || target + byteCount > stackEnd) {
             overflowed();
-            return;
+            return false;
         }
 
         // copy the data from the provided pointer to the stack at the specified offset
@@ -131,12 +135,13 @@ namespace cshort {
             // to the stack.
             memcpy(this->stackBasePointer + offsetFromBase, ptr, byteCount);
         }
+        return true;
     }
 
     // moveFrom retrieves data from the stack at the specified offset from the base pointer
     // and copies it to the provided pointer.
     // this is used for reading values from the stack, such as local variables or function arguments without popping them.
-    void StackMemory::moveFrom(int offsetFromBase, int byteCount, st_byte* ptr) const
+    bool StackMemory::moveFromStack(int offsetFromBase, int byteCount, st_byte* ptr) const
     {
         auto* target = this->stackBasePointer + offsetFromBase;
         auto* stackEnd = this->stackChunk + this->stackSize;
@@ -166,6 +171,7 @@ namespace cshort {
             // for larger data sizes, use memcpy to copy the data from the stack to the provided pointer
             memcpy(ptr, this->stackBasePointer + offsetFromBase, byteCount);
         }
+        return true;
     }
 
     // call simulates a function call by saving the current base pointer onto

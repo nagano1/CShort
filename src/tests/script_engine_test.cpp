@@ -64,6 +64,7 @@ void testStackMemoryPushPopTest() {
     assert(5 == stackMemory.pop());
 
     assert((uint64_t)stackPointer1 == (uint64_t)stackMemory.stackPointer);
+    stackMemory.freeAll();
 }
 
 void testStackMemoryMoveToFrom() {
@@ -74,12 +75,13 @@ void testStackMemoryMoveToFrom() {
     stackMemory.push(0xFFFFFFFFFFFFFFFF);
 
     uint32_t value = 0x12345678;
-    stackMemory.moveTo(-4, 4, (st_byte*)&value);
+    stackMemory.moveToStack(-4, 4, (st_byte*)&value);
 
     uint32_t readValue = 0;
-    stackMemory.moveFrom(-4, 4, (st_byte*)&readValue);
+    stackMemory.moveFromStack(-4, 4, (st_byte*)&readValue);
 
     assert(value == readValue);
+    stackMemory.freeAll();
 }
 
 void testStackMemoryCallRet() {
@@ -99,6 +101,8 @@ void testStackMemoryCallRet() {
 
     assert((uint64_t)stackPointer1 == (uint64_t)stackMemory.stackPointer);
     assert((uint64_t)stackBasePointer1 == (uint64_t)stackMemory.stackBasePointer);
+
+    stackMemory.freeAll();
 }
 
 void testStackMemoryCallRet2 () {
@@ -115,8 +119,8 @@ void testStackMemoryCallRet2 () {
     uint64_t a = 100;
     uint64_t b;
     // copy the value of a to the stack at offset -8 from the base pointer, then read it back into b
-    stackMemory.moveTo(-8, 8, (st_byte*)&a);
-    stackMemory.moveFrom(-8, 8, (st_byte*)&b);
+    stackMemory.moveToStack(-8, 8, (st_byte*)&a);
+    stackMemory.moveFromStack(-8, 8, (st_byte*)&b);
 
     assert(100 == b);
     stackMemory.ret();
@@ -124,6 +128,7 @@ void testStackMemoryCallRet2 () {
     assert((uint64_t)basePointer0 == (uint64_t)stackMemory.stackBasePointer);
     assert((uint64_t)stackPointer0 == (uint64_t)stackMemory.stackPointer);
 
+    stackMemory.freeAll();
 }
 
 
@@ -159,8 +164,8 @@ void testStackMemoryFuncCall() {
     stackMemory.localVariables(8 * 2); // allocate space for local variables in func2
 
     uint64_t arg1 = 0, arg2 = 0;
-    stackMemory.moveFrom(8, 8, (st_byte*)&arg1); // get argument 1
-    stackMemory.moveFrom(16, 8, (st_byte*)&arg2); // get argument 2
+    stackMemory.moveFromStack(8, 8, (st_byte*)&arg1); // get argument 1
+    stackMemory.moveFromStack(16, 8, (st_byte*)&arg2); // get argument 2
     printf("arg1: %llu, arg2: %llu\n", (unsigned long long)arg1, (unsigned long long)arg2);
     assert(arg1 == 1);
     assert(arg2 == 2);
