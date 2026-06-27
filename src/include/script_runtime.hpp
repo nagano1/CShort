@@ -125,14 +125,14 @@ namespace cshort
 
         bool isOverflowed;
 
-        st_byte *stackPointer; // esp, stack pointer
-        st_byte *stackBasePointer; // ebp, stack base pointer
+        st_byte *stackPointer; // esp, stack pointer, this points to the top of the stack
+        st_byte *stackBasePointer; // ebp, stack base pointer. this points to the base of the current stack frame (function call)
 
         uint64_t returnValue; // EAX, Accumulator Register
 
         void init();
         void freeAll();
-        void push(uint64_t date);
+        void push(uint64_t data);
         uint64_t pop();
         void localVariables(int bytes); // assign variable on local
         void call();

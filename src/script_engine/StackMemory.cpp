@@ -141,6 +141,7 @@ namespace cshort {
         // ensure that the stackChunk is not null, the byteCount is positive, and the target address is within the valid stack range.
         assert(this->stackChunk != nullptr);
         assert(byteCount > 0);
+        // https://tamaron.hatenablog.com/entry/2020/04/02/003805
         // https://zenn.dev/yasu01/articles/1f92df34f54c31
         assert(target >= this->stackChunk);
         assert(target + byteCount <= stackEnd);
