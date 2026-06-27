@@ -76,13 +76,15 @@ namespace cshort {
     // this method is used for allocating space for local variables on the stack.
     void StackMemory::localVariables(int bytes)
     {
-        assert(bytes % this->baseBytes == 0); // ensure that the requested bytes is a multiple of baseBytes for alignment
-        if (this->stackPointer - bytes <= this->stackChunk) {
+        // Round up to baseBytes alignment
+        int ALIGNMENT = this->baseBytes;
+        int alignedBytes = (bytes + ALIGNMENT - 1) & ~(ALIGNMENT - 1);
+        assert(bytes % this->baseBytes == 0 && "localVariables: bytes should be pre-aligned");
+        if (this->stackPointer - alignedBytes <= this->stackChunk) {
             overflowed();
             return;
         }
-
-        this->stackPointer -= bytes;
+        this->stackPointer -= alignedBytes;
     }
 
     // pop retrieves the value at the current stack pointer location and
