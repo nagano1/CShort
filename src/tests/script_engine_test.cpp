@@ -70,7 +70,8 @@ void testStackMemoryMoveToFrom() {
     StackMemory stackMemory;
     stackMemory.init();
 
-    stackMemory.localVariables(8 * 4);
+    stackMemory.push(0xFFFFFFFFFFFFFFFF);
+    stackMemory.push(0xFFFFFFFFFFFFFFFF);
 
     uint32_t value = 0x12345678;
     stackMemory.moveTo(-4, 4, (st_byte*)&value);
