@@ -5,7 +5,7 @@ file(GLOB cpp_lib_files CONFIGURE_DEPENDS
     "${SRC_ROOT}/abstract_syntax_tree/*.cpp"
     "${SRC_ROOT}/abstract_syntax_tree/nodes/*.cpp"
     "${SRC_ROOT}/abstract_syntax_tree/tokens/*.cpp"
-    "${SRC_ROOT}/script_runtime/*.cpp"
+    "${SRC_ROOT}/script_engine/*.cpp"
 )
 
 file(GLOB test_files CONFIGURE_DEPENDS
