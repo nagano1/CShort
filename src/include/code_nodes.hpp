@@ -259,9 +259,10 @@ namespace cshort {
         bool hasTypeDecl() {
             return hasTypeOrLet && !typeOrLet.isLet;
         }
+
         //SymbolTokenStruct pointerAsterisk; // *
 
-        int stackOffset;
+        int stackOffset; // stack offset for this variable, used for code generation and runtime stack memory management.
         IdentifierTokenStruct variableNameToken; // variable name
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32

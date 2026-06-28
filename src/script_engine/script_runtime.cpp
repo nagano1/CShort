@@ -1172,15 +1172,15 @@ namespace cshort {
                 }
             }
 
-            // assign: int a = 3
+            // assignment: int a = 3
             if (statementNode->vtable == VTables::AssignmentVTable) {
                 auto* assignStatement = Cast::downcast<AssignmentNodeStruct *>(statementNode);
                 if (assignStatement->expressionNode != nullptr) {
                     env->context->evaluateExprNode(assignStatement->expressionNode);
                     auto *typeEntry = env->getTypeEntryByIndex(assignStatement->typeIndex);
-                    auto dataSize = typeEntry->isReferenceType ? 8 : typeEntry->dataSize;
 
-                    //env->context->stackMemory.moveTo(assignStatement->stackOffset, dataSize,  (char*)valueBase->ptr);
+                    // 
+                    auto dataSize = typeEntry->isReferenceType ? 8 : typeEntry->dataSize;
                     env->context->stackMemory.moveToStack(assignStatement->stackOffset, dataSize,
                                                      assignStatement->expressionNode->calcReg);
                 }
