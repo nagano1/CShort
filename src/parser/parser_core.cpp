@@ -39,6 +39,9 @@ namespace cshort
             semanticErrorInfo.firstErrorItem = nullptr;
             semanticErrorInfo.lastErrorItem = nullptr;
 
+            typeManager = memBuffer.newMem<TypeManager>(1);
+            typeManager->init(this);
+
             memBufferForError.init();
         }
 

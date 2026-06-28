@@ -24,6 +24,7 @@ namespace cshort {
 
     struct ParseContext;
     struct CodeLine;
+    struct TypeManager;
     enum class GRPRegisterEnum;
     
     #define NODE_TYPE_ID 0x123
@@ -481,8 +482,7 @@ namespace cshort {
         MemBuffer memBufferForCodeLines;
         MemBuffer memBufferForError;
 
-
-
+        TypeManager *typeManager;
 
         SemanticErrorInfo semanticErrorInfo;
 
@@ -1171,6 +1171,7 @@ namespace cshort {
 
         static utf8byte *getTextFromTree(DocumentStruct *doc);
     };
+
 
 
     struct Init {

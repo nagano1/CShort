@@ -12,7 +12,7 @@
 #include <ctime>
 #include <stdio.h>
 
-#include "code_nodes.hpp"
+#include "parser.hpp"
 
 namespace cshort {
 
@@ -60,7 +60,6 @@ namespace cshort {
         auto *doc = mallocForType<DocumentStruct>();
         context->init();
 
-
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
         Init::initSimpleTextToken(&doc->endOfFile.eofToken, context, Cast::upcast(&doc->endOfFile), 0);
@@ -82,6 +81,7 @@ namespace cshort {
         free(doc->context);
         free(doc);
     }
+
 
     utf8byte *DocumentUtils::getTextFromTree(DocumentStruct *doc)
     {

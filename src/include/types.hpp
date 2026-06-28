@@ -22,10 +22,21 @@ namespace cshort
 {
 
     struct Types {
-        void registerBuiltInTypes();
+        void registerBuiltInTypes(ParseContext *context);
         TypeEntry *newTypeEntry(ParseContext *context) const;
     };
-    
+
+    struct TypeManager {
+        void registerTypeEntry(TypeEntry* typeEntry);
+
+        void addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length);
+
+        ParseContext *context;
+        void init(ParseContext *context) {
+            this->context = context;
+        }
+    };
+
     // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
     // node->typeIndex is the index of the type entry in the ScriptEnv->typeEntryList, which is used to get the TypeEntry for the node.
     // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
@@ -35,7 +46,7 @@ namespace cshort
         bool isReferenceType; // class rather than struct
 
         //char *(*toString)(ParseContext *context, ValueBase* value);
-        int (*binary_operate)(ParseContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck);
+        int (*binary_operate)(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck);
         int (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
         //void (*evaluateNode)(ParseContext *context, NodeBase *node);
 

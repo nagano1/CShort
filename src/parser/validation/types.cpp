@@ -40,6 +40,24 @@ namespace cshort {
         return emptyTypeEntry;
     }
 
+
+
+
+    void TypeManager::registerTypeEntry(TypeEntry* typeEntry)
+    {
+        expandTypeEntryList(this);
+        typeEntry->typeIndex = this->typeEntryListNextIndex;
+        this->typeEntryList[typeEntry->typeIndex] = typeEntry;
+        this->typeEntryListNextIndex++;
+    }
+
+    void TypeManager::addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length)
+    {
+        this->context->typeNameMap->put(aliasName, length, typeEntry);
+    }
+
+
+
     //------------------------------------------------------------------------------------------
     //
     //                                      TypeEntry
@@ -322,10 +340,8 @@ namespace cshort {
     }
 
     void Types::registerBuiltInTypes(ParseContext *context)
-        // register built-in types
-        // int32, int64, heapString, null
     {
-        context->document->scriptEnv->typeEntryListNextIndex = 0;
+        auto *document = context->document;
         // int
         {
             TypeEntry *int32Type = Types::newTypeEntry(context);
