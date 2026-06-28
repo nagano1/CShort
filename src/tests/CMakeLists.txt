@@ -2,9 +2,9 @@ set(SRC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 file(GLOB cpp_lib_files CONFIGURE_DEPENDS
     "${SRC_ROOT}/utils/*.cpp"
-    "${SRC_ROOT}/abstract_syntax_tree/*.cpp"
-    "${SRC_ROOT}/abstract_syntax_tree/nodes/*.cpp"
-    "${SRC_ROOT}/abstract_syntax_tree/tokens/*.cpp"
+    "${SRC_ROOT}/parser/*.cpp"
+    "${SRC_ROOT}/parser/nodes/*.cpp"
+    "${SRC_ROOT}/parser/tokens/*.cpp"
     "${SRC_ROOT}/script_engine/*.cpp"
 )
 
