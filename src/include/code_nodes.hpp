@@ -66,6 +66,15 @@ namespace cshort {
         Empty = 0,
     };
 
+
+    struct BuiltInTypeIndex {
+        static int int32;
+        static int int64;
+        static int boolIdx;
+        static int null;
+        static int heapString;
+    };
+
     #define INIT_NODE(node, context, parent, argvtable) \
         (node)->vtable = (argvtable); \
         (node)->type_id = NODE_TYPE_ID; \

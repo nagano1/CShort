@@ -182,34 +182,6 @@ namespace cshort
     };
 
 
-    struct BuiltInTypeIndex {
-        static int int32;
-        static int int64;
-        static int boolIdx;
-        static int null;
-        static int heapString;
-    };
-
-
-
-    // logical errors with NodeBase
-    using SemanticErrorItem = struct _ErrorNodeItem {
-        _NodeBase *node;
-        _ErrorNodeItem *next;
-
-        CodeErrorItem codeErrorItem;
-    };
-
-    struct _typeEntry;
-    using SemanticErrorInfo = struct _logicalErrorInfo {
-        bool hasError{false};
-        int count;
-
-        SemanticErrorItem *firstErrorItem;
-        SemanticErrorItem *lastErrorItem;
-        static const int SYNTAX_ERROR_RETURN = -1;
-    };
-
     using ScriptEngineContext = struct _scriptEngineContext {
         _ScriptEnv* scriptEnv;
         CPUSim cpuRegister;
@@ -256,7 +228,7 @@ namespace cshort
         void setErrorPositions();
 
         void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) {
-            printf("logic error: %s\n", getErrorMessage(errorCode));
+            printf("semantic error: %s\n", getErrorMessage(errorCode));
             auto *node = Cast::upcast(nodeArg);
             assert(node->vtable != nullptr);
 

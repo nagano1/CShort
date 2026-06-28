@@ -625,7 +625,8 @@ namespace cshort {
         return GRPRegisterEnum::edx;
     }
 
-    inline static void setCalcRegToNode(NodeBase *node, const ScriptEngineContext *context) {
+    static void assignCalcRegToNode(NodeBase *node, const ScriptEngineContext *context)
+    {
         int typeIndex = node->typeIndex;
         if (typeIndex == -1) {
             typeIndex = BuiltInTypeIndex::int64;
@@ -644,7 +645,9 @@ namespace cshort {
         }
     }
 
-    // parent is first
+    // assigns calculation registers to the left and right expression nodes of a binary operation node, as well as to the value node of a parentheses node, and to the expression node of an assignment or return statement node.
+    // parent comes first
+
     static int applyFunc_assignCalcOpRegister(NodeBase *node, ApplyFunc_params2)
     {
         auto context = (ScriptEngineContext*)scriptEngineContext;
@@ -653,10 +656,10 @@ namespace cshort {
             auto *binary = Cast::downcast<BinaryOperationNodeStruct *>(node);
 
             binary->leftExprNode->calcRegEnum = findUnusedReg1(binary->calcRegEnum);
-            setCalcRegToNode(binary->leftExprNode, context);
+            assignCalcRegToNode(binary->leftExprNode, context);
 
             binary->rightExprNode->calcRegEnum = findUnusedReg2(binary->calcRegEnum, binary->leftExprNode->calcRegEnum);
-            setCalcRegToNode(binary->rightExprNode, context);
+            assignCalcRegToNode(binary->rightExprNode, context);
         }
 
         if (node->vtable == VTables::ParenthesesVTable) {
@@ -664,13 +667,13 @@ namespace cshort {
 
             assert(parentheses->valueNode != nullptr);
             parentheses->valueNode->calcRegEnum = parentheses->calcRegEnum;
-            setCalcRegToNode(parentheses->valueNode, context);
+            assignCalcRegToNode(parentheses->valueNode, context);
         }
 
         if (node->vtable == VTables::AssignmentVTable) {
             auto *assign = Cast::downcast<AssignmentNodeStruct *>(node);
             if (assign->expressionNode != nullptr) {
-                setCalcRegToNode(assign->expressionNode, context);
+                assignCalcRegToNode(assign->expressionNode, context);
             }
         }
 
@@ -678,7 +681,7 @@ namespace cshort {
             auto *returnState = Cast::downcast<ReturnStatementNodeStruct *>(node);
 
             if (returnState->expressionNode) {
-                setCalcRegToNode(returnState->expressionNode, context);
+                assignCalcRegToNode(returnState->expressionNode, context);
             }
         }
 
@@ -687,7 +690,7 @@ namespace cshort {
             //node->calcRegEnum = PrimitiveCalcRegisterEnum::eax;
 //            node->calcReg = (st_byte*)&__EX(&context->cpuRegister.rax);
 
-            setCalcRegToNode(node, context);
+            assignCalcRegToNode(node, context);
         }
 */
         /*

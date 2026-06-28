@@ -292,4 +292,23 @@ namespace cshort {
         CodeErrorItem  errorItem;
         static const int SYNTAX_ERROR_RETURN = -1;
     };
+
+
+    struct _NodeBase;
+    // semantic errors with NodeBase
+    using SemanticErrorItem = struct _ErrorNodeItem {
+        _NodeBase *node;
+        _ErrorNodeItem *next;
+
+        CodeErrorItem codeErrorItem;
+    };
+
+    using SemanticErrorInfo = struct _semanticErrorInfo {
+        bool hasError{false};
+        int count;
+
+        SemanticErrorItem *firstErrorItem;
+        SemanticErrorItem *lastErrorItem;
+        static const int SYNTAX_ERROR_RETURN = -1;
+    };
 }
