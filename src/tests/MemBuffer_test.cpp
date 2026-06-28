@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "common.hpp"
-#include "code_nodes.hpp"
+#include "parser.hpp"
 
 using namespace cshort;
 

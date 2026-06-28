@@ -16,9 +16,8 @@
 //
 #include "ParseUtil.hpp"
 #include "common.hpp"
-#include "code_nodes.hpp"
-//
-
+#include "parser.hpp"
+#include "types.hpp"
 
 namespace cshort
 {
@@ -265,54 +264,6 @@ namespace cshort
     };
 
 
-    enum class BuildinTypeId {
-        Int32 = 1,
-        Int64 = 2,
-        HeapString = 23,
-        Null = 24,
-        Bool = 3,
-    };
-
-    // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
-    // node->typeIndex is the index of the type entry in the ScriptEnv->typeEntryList, which is used to get the TypeEntry for the node.
-    // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
-    using TypeEntry = struct _typeEntry {
-        int typeIndex;
-        int dataSize;
-        bool isReferenceType; // class rather than struct
-
-        char *(*toString)(ScriptEngineContext *context, ValueBase* value);
-        int (*binary_operate)(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck);
-        int (*canAssignTypeImplicitly)(ScriptEngineContext *context, _typeEntry *typeEntry);
-        void (*evaluateNode)(ScriptEngineContext *context, NodeBase *node);
-
-        char *typeChars;
-        int typeCharsLength;
-        bool isBuiltIn;
-        BuildinTypeId typeId;
-
-        template<typename T, std::size_t SIZE>
-        void initAsBuiltInType(decltype(toString) f1, decltype(binary_operate) f2, decltype(canAssignTypeImplicitly) f8,
-                               void(*evaluateNode2)(ScriptEngineContext *context, T *node),
-                               const char(&f3)[SIZE], decltype(typeId) f4, decltype(dataSize) f5, decltype(isReferenceType) f7
-        ) {
-            this->toString = f1;
-            this->binary_operate = f2;
-            this->canAssignTypeImplicitly = f8;
-            this->evaluateNode = (void(*)(ScriptEngineContext *context, NodeBase *node))evaluateNode2;
-            this->typeChars = (char*)f3;
-            this->typeCharsLength = SIZE;
-            this->typeId = f4;
-            this->dataSize = f5;
-            this->isReferenceType = f7;
-            this->isBuiltIn = true;
-        }
-
-        // get the stack size for this type, if it is a reference type, the stack size is 8 bytes (64bit), otherwise it is the data size of the type.
-        int getStackSizeForType() const {
-            return this->isReferenceType ? 8 : this->dataSize;
-        }
-    };
 
 
     using ScriptEnv = struct _ScriptEnv {
@@ -336,7 +287,7 @@ namespace cshort
 
         static void deleteScriptEnv(_ScriptEnv *doc);
         static _ScriptEnv *newScriptEnv();
-        TypeEntry *newTypeEntry() const;
+        //TypeEntry *newTypeEntry() const;
 
         static int startScriptInternal(char* script, int byteLength);
 

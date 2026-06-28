@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <ctime>
 
-#include "code_nodes.hpp"
+#include "parser.hpp"
 namespace cshort {
         /// There's no "ExpressionNodeStruct" defined. Expression node is just a general term for nodes that can be used as expressions, including LiteralValueNode, NumberValueNode, IdentifiersAccessNode, FuncCallNode, BinaryOperationNode, etc. we can just use NodeBase or define an interface for expression nodes if needed.
 

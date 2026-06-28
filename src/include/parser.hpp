@@ -66,6 +66,13 @@ namespace cshort {
         Empty = 0,
     };
 
+    enum class BuildinTypeId {
+        Int32 = 1,
+        Int64 = 2,
+        HeapString = 23,
+        Null = 24,
+        Bool = 3,
+    };
 
     struct BuiltInTypeIndex {
         static int int32;
@@ -435,6 +442,14 @@ namespace cshort {
     };
 
 
+    struct ValidationContext {
+        DocumentStruct *document;
+        MemBuffer memBuffer;
+        void init() {
+            memBuffer.init();
+        }
+    };
+
     struct ParseContext {
         st_uint start;
         int length;
@@ -464,20 +479,20 @@ namespace cshort {
 
         MemBuffer memBuffer;
         MemBuffer memBufferForCodeLines;
+        MemBuffer memBufferForError;
 
-        void init() {
-            memBuffer.init();
-            memBufferForCodeLines.init();
-            appendLineMode = AppendLineMode::Normal;
-            syntaxErrorInfo.hasError = false;
-            syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
-            syntaxErrorInfo.errorItem.errorId = 10000;
-        }
 
-        void dispose() {
-            memBuffer.freeAll();
-            memBufferForCodeLines.freeAll();
-        }
+
+
+        SemanticErrorInfo semanticErrorInfo;
+
+        VoidHashMap *variableMap2;
+        VoidHashMap *typeNameMap;
+
+
+
+        void init();
+        void dispose();
 
         template<typename T>
         T *newMem() {
@@ -511,26 +526,9 @@ namespace cshort {
             return memBuffer.newMem<T>(1);
         }
 
-        static int IncrementIndentDepth(ParseContext *context) {
-            auto formerIndentDepth = context->currentIndentDepth;
-            if (!context->isAfterOpenParenthesis) {
-                context->currentIndentDepth++;
-            }
-            context->isAfterOpenParenthesis = false;
-            return formerIndentDepth;
-        }
-
-        static int IncrementIndentDepthForParenthesis(ParseContext *context) {
-            auto formerIndentDepth = context->currentIndentDepth;
-            context->isAfterOpenParenthesis = true;
-            context->currentIndentDepth++;
-            return formerIndentDepth;
-        }
-
-        static void DecrementIndentDepth(ParseContext *context) {
-            context->currentIndentDepth--;
-        }
-
+        int IncrementIndentDepth(ParseContext *context);
+        int IncrementIndentDepthForParenthesis(ParseContext *context);
+        void DecrementIndentDepth(ParseContext *context);
         
         int baseIndent;
         SyntaxErrorInfo syntaxErrorInfo;
@@ -548,46 +546,44 @@ namespace cshort {
             return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
         }
 
-        void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
-            if (syntaxErrorInfo.hasError) {
-                return;
-            }
-            syntaxErrorInfo.hasError = true;
-            auto &item = syntaxErrorInfo.errorItem;
-            item.errorIndex = errorCode;
-            item.errorId = getErrorCode(errorCode);
-            item.charPosition = startPos;
-            item.charPosition2 = startPos2;
+        void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2);
+        void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1);
+        void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2);
 
-            const char *msg = getErrorMessage(errorCode);
-            if (msg != nullptr) {
-                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
-                item.reasonLength = static_cast<int>(strlen(item.reason));
-            }
-        }
+        void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) {
+            printf("semantic error: %s\n", getErrorMessage(errorCode));
+            auto *node = Cast::upcast(nodeArg);
+            assert(node->vtable != nullptr);
 
-        void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1) {
-            setError3(errorCode, line1, charPos1, line1, charPos1);
-        }
-
-        void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2) {
-            if (syntaxErrorInfo.hasError) {
-                return;
+            auto &errorInfo = this->semanticErrorInfo;
+            errorInfo.count++;
+            errorInfo.hasError = true;
+            auto *mem = this->memBufferForError.newMem<SemanticErrorItem>(1);
+            mem->node = node;
+            mem->codeErrorItem.errorIndex = errorCode;
+            mem->codeErrorItem.linePos1 = -1;
+            mem->next = nullptr;
+            if (errorInfo.firstErrorItem == nullptr) {
+                errorInfo.firstErrorItem = mem;
             }
-            syntaxErrorInfo.hasError = true;
-            auto &item = syntaxErrorInfo.errorItem;
-            item.errorIndex = errorCode;
-            item.errorId = getErrorCode(errorCode);
-            item.linePos1 = line1;
-            item.charPos1 = charPos1;
-            item.linePos2 = line2;
-            item.charPos2 = charPos2;
 
-            const char *msg = getErrorMessage(errorCode);
-            if (msg != nullptr) {
-                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
-                item.reasonLength = static_cast<int>(strlen(item.reason));
+            if (errorInfo.lastErrorItem == nullptr) {
+                errorInfo.lastErrorItem = mem;
             }
+            else {
+                errorInfo.lastErrorItem->next = mem;
+                errorInfo.lastErrorItem = mem;
+            }
+
+            mem->codeErrorItem.errorId = getErrorCode(errorCode);
+            const char* reason = getErrorMessage(errorCode);
+            if (reason == nullptr) {
+                reason = "";
+            }
+            int len = (int)strlen(reason);
+            mem->codeErrorItem.reasonLength = len < MAX_REASON_LENGTH ? len : MAX_REASON_LENGTH;
+            memcpy(mem->codeErrorItem.reason, reason, mem->codeErrorItem.reasonLength);
+            mem->codeErrorItem.reason[mem->codeErrorItem.reasonLength] = '\0';
         }
     };
 
@@ -990,6 +986,7 @@ namespace cshort {
             }
             return true;
         }
+        
         // insert token into this line, if prev is null, insert it into top of the line
         CodeLine *insertToken(TokenBase *token, TokenBase *prev) {
             if (firstToken == nullptr) {
