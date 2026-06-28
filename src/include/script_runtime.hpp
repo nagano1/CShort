@@ -192,8 +192,8 @@ namespace cshort
 
 
 
-    // logic error is with NodeBase
-    using LogicErrorItem = struct _ErrorNodeItem {
+    // logical errors with NodeBase
+    using SemanticErrorItem = struct _ErrorNodeItem {
         _NodeBase *node;
         _ErrorNodeItem *next;
 
@@ -201,12 +201,12 @@ namespace cshort
     };
 
     struct _typeEntry;
-    using LogicalErrorInfo = struct _logicalErrorInfo {
+    using SemanticErrorInfo = struct _logicalErrorInfo {
         bool hasError{false};
         int count;
 
-        LogicErrorItem *firstErrorItem;
-        LogicErrorItem *lastErrorItem;
+        SemanticErrorItem *firstErrorItem;
+        SemanticErrorItem *lastErrorItem;
         static const int SYNTAX_ERROR_RETURN = -1;
     };
 
@@ -214,7 +214,7 @@ namespace cshort
         _ScriptEnv* scriptEnv;
         CPUSim cpuRegister;
 
-        LogicalErrorInfo logicErrorInfo;
+        SemanticErrorInfo semanticErrorInfo;
 
         MemBuffer memBuffer; // for TypeEntry, variable->value map
 
@@ -260,10 +260,10 @@ namespace cshort
             auto *node = Cast::upcast(nodeArg);
             assert(node->vtable != nullptr);
 
-            auto &errorInfo = this->logicErrorInfo;
+            auto &errorInfo = this->semanticErrorInfo;
             errorInfo.count++;
             errorInfo.hasError = true;
-            auto *mem = this->memBufferForError.newMem<LogicErrorItem>(1);
+            auto *mem = this->memBufferForError.newMem<SemanticErrorItem>(1);
             mem->node = node;
             mem->codeErrorItem.errorIndex = errorCode;
             mem->codeErrorItem.linePos1 = -1;

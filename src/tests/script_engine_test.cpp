@@ -335,10 +335,10 @@ fn Main()
         }
 
         env->validateScript();
-        if (env->context->logicErrorInfo.hasError) {
+        if (env->context->semanticErrorInfo.hasError) {
             assert(false);
             env->context->setErrorPositions();
-            return;// env->context->logicErrorInfo.firstErrorItem->codeErrorItem.errorId;
+            return;// env->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
         }
         auto* node = env->mainFunc->bodyNode.firstChildNode;
         while (node) {

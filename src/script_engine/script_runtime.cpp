@@ -23,7 +23,7 @@
 namespace cshort {
     //------------------------------------------------------------------------------------------
     //
-    //                                TypeEntry / Built-in Types
+    //                                      TypeEntry
     //
     //------------------------------------------------------------------------------------------
 
@@ -87,6 +87,14 @@ namespace cshort {
         emptyTypeEntry->typeIndex = (int)TypeIndexEnum::NotAssigned;
         return emptyTypeEntry;
     }
+
+
+
+    //------------------------------------------------------------------------------------------
+    //
+    //                                Built-in Types
+    //
+    //------------------------------------------------------------------------------------------
 
     /// @brief Converts an int32 value to a string.
     char* int32_toString(ScriptEngineContext *context, ValueBase *value)
@@ -362,8 +370,6 @@ namespace cshort {
     int BuiltInTypeIndex::heapString = 0;
     int BuiltInTypeIndex::null = 0;
 
-
-
     //------------------------------------------------------------------------------------------
     //
     //                                 Type Selector from Node (static)
@@ -520,7 +526,7 @@ namespace cshort {
         auto *context = this->scriptEnv->document->context;
         context->appendLineMode = AppendLineMode::DetectErrorSpanNodes;
 
-        auto *errorItem = this->logicErrorInfo.firstErrorItem;
+        auto *errorItem = this->semanticErrorInfo.firstErrorItem;
         while (errorItem) {
             auto *node = errorItem->node;
 
@@ -566,10 +572,10 @@ namespace cshort {
     void ScriptEngineContext::init(ScriptEnv *scriptEnvArg)
     {
         this->scriptEnv = scriptEnvArg;
-        this->logicErrorInfo.hasError = false;
-        this->logicErrorInfo.count = 0;
-        this->logicErrorInfo.firstErrorItem = nullptr;
-        this->logicErrorInfo.lastErrorItem = nullptr;
+        this->semanticErrorInfo.hasError = false;
+        this->semanticErrorInfo.count = 0;
+        this->semanticErrorInfo.firstErrorItem = nullptr;
+        this->semanticErrorInfo.lastErrorItem = nullptr;
 
 
         this->memBuffer.init();
@@ -987,12 +993,12 @@ namespace cshort {
 
     void ScriptEnv::validateFuncDef(FuncDefNodeStruct *func)
     {
-        int errorCount = this->context->logicErrorInfo.count;
+        int errorCount = this->context->semanticErrorInfo.count;
 
         // set typeIndex to all expressions and assignments
         callTypeSelectorsOnExpressions2(context, func);
 
-        if (errorCount == this->context->logicErrorInfo.count) {
+        if (errorCount == this->context->semanticErrorInfo.count) {
             assignCalcOpRegister(context, func);
         }
 
@@ -1215,7 +1221,7 @@ namespace cshort {
     int ScriptEnv::runScript()
     {
         assert(this->document->context->syntaxErrorInfo.hasError == false);
-        assert(this->context->logicErrorInfo.hasError == false);
+        assert(this->context->semanticErrorInfo.hasError == false);
 
         int ret = 0;
         auto *mainFunc = this->mainFunc;
@@ -1264,9 +1270,9 @@ namespace cshort {
 
         // Validate types, values and finding Main(entry) function
         env->validateScript();
-        if (env->context->logicErrorInfo.hasError) {
+        if (env->context->semanticErrorInfo.hasError) {
             env->context->setErrorPositions();
-            return env->context->logicErrorInfo.firstErrorItem->codeErrorItem.errorId;
+            return env->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
         }
 
         // Run script
