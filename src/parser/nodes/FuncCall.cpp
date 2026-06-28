@@ -159,8 +159,8 @@ namespace cshort {
 
     static inline int parseNextValue(TokenizerParams_argNode_ch_start_context, FuncCallNodeStruct* funcCallNode)
     {
-        int result;
-        if (Search::IsTokenized(result = Tokenizers::tokenizeExpression(TokenizerParams_pass))) {
+        int result = Tokenizers::tokenizeExpression(TokenizerParams_pass);
+        if (Search::IsTokenized(result)) {
             auto *nextItem = Alloc::newFuncCallArgItem(context, Cast::upcast(argNode));
 
             nextItem->exprNode = context->generatedPrimaryNode;

@@ -320,7 +320,7 @@ namespace cshort {
     // let a = 3
     // int m = 5
     // int a
-    // ?string *str = null
+    // ?string str = null
     int Tokenizers::tokenizeAssignment(TokenizerParams_argNode_ch_start_context)
     {
         NodeBase *parent = Cast::upcast(argNode);

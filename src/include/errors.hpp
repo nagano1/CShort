@@ -33,6 +33,9 @@ namespace cshort {
         should_break_line,
         indent_error,
 
+        // operator
+        invalid_operator_for_type,
+
         // value
         expect_end_parenthesis,
         expected_expression_after_operator,
@@ -42,6 +45,7 @@ namespace cshort {
         missing_closing_quote2,
         missing_object_delimiter,
         unexpected_line_break_or_null_in_string_literal,
+        invalid_operator_for_string,
 
         // class
         invalid_class_name,
@@ -67,9 +71,17 @@ namespace cshort {
         type_not_found,
         assign_null_to_unnullable,
         assign_to_immutable,
+        let_without_value,
         cant_put_immutable_mark_for_non_value_assignment,
         type_is_not_assignable,
         internal_error,
+
+        // ---------------------------------------------------------------------------------
+        //
+        //                                  Runtime Errors
+        //
+        // ---------------------------------------------------------------------------------
+        division_by_zero,
 
 
         last_keeper
@@ -132,6 +144,9 @@ namespace cshort {
             ErrorInfo{ ErrorIndex::should_break_line, 418032, "should have a line break" },
             ErrorInfo{ ErrorIndex::indent_error, 418033, "indent error" },
 
+            // operator
+            ErrorInfo{ ErrorIndex::invalid_operator_for_type, 418035, "invalid operator for type" },
+
             // value
             ErrorInfo{ ErrorIndex::expect_end_parenthesis, 418133, "expect_end_parenthesis" },
             ErrorInfo{ ErrorIndex::expected_expression_after_operator, 418134, "expected expression after operator" },
@@ -142,6 +157,7 @@ namespace cshort {
 
             ErrorInfo{ ErrorIndex::missing_object_delimiter, 7677812, "missing object delimiter"},
             ErrorInfo{ ErrorIndex::unexpected_line_break_or_null_in_string_literal, 7677813, "unexpected line break or end of document  in string literal"},
+            ErrorInfo{ ErrorIndex::invalid_operator_for_string, 7677814, "invalid operator for string"},
 
             // class
             ErrorInfo{ ErrorIndex::invalid_class_name, 7777413, "Invalid class name"},
@@ -167,10 +183,18 @@ namespace cshort {
             ErrorInfo{ErrorIndex::type_not_found,       57770002, "type not found"},
             ErrorInfo{ErrorIndex::assign_null_to_unnullable, 57770003, "assign null to unnullable type"},
             ErrorInfo{ErrorIndex::assign_to_immutable,  57770004, "assign to immutable"},
-            ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770005, "cant put immutable mark for non value assignment"},
-            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770006, "type is not assignable"},
-            ErrorInfo{ErrorIndex::internal_error, 57770007, "internal error"},
+            ErrorInfo{ErrorIndex::let_without_value, 57770005, "let without value"},
 
+            ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770006, "cant put immutable mark for non value assignment"},
+            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770007, "type is not assignable"},
+            ErrorInfo{ErrorIndex::internal_error, 57770008, "internal error"},
+
+            // ---------------------------------------------------------------------------------
+            //
+            //                                  Runtime Errors
+            //
+            // ---------------------------------------------------------------------------------
+            ErrorInfo{ErrorIndex::division_by_zero, 70000000, "division by zero"},
 
             ErrorInfo{ ErrorIndex::last_keeper, 99999999, "end" },
         };

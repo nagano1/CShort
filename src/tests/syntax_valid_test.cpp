@@ -10,7 +10,7 @@
 
 using namespace cshort;
 
-void testParsing();
+void callTests();
 
 void checkIndentDepth(const char *chars);
 
@@ -19,7 +19,7 @@ int main()
     printf("cshort test\n");
     fflush(stdout);
 
-    testParsing();
+    callTests();
 
     return 0;
 }
@@ -125,7 +125,7 @@ void checkTextEquality(const char *name, const char* code)
 
 
 #define CheckTextEq(x) checkTextEquality(#x, x)
-void testParsing()
+void callTests()
 {
     CheckTextEq(fnTestText);
     CheckTextEq(classOnlyText);

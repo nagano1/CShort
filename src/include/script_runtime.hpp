@@ -1,13 +1,28 @@
 ﻿#pragma once
 
 #include <stdlib.h>
-
+//#include <array>
+//
+//#include <cstdlib>
+//#include <cassert>
+//#include <cstdio>
+//#include <chrono>
+//#include <unordered_map>
+//
+//#include <cstdint> // uint64_t, int_fast32_t
+//#include <ctime>
+//
+//#include <string.h> // memcpy
+//
 #include "ParseUtil.hpp"
 #include "common.hpp"
 #include "code_nodes.hpp"
+//
+
 
 namespace cshort
 {
+    struct _ScriptEnv;
 
     // general-purpose register	GPR
     enum class GRPRegisterEnum {
@@ -114,6 +129,13 @@ namespace cshort
         return nullptr;
     }
 
+    using BinaryOperationResult = struct _BinaryOperationResult {
+        GRPRegisterEnum calcRegEnum;
+        st_byte *calcReg;
+        int typeIndex;
+        bool typeAtHeap;
+    };
+
     ///
     /// Simulation of stack memory for the script engine.
     ///
@@ -124,6 +146,11 @@ namespace cshort
         int stackSize; // 2MB
 
         bool isOverflowed;
+
+        // func(55, c:48) 0b101000...  for func(int a, int b = 32, int c = 8) // 32
+        uint32_t argumentBits;
+
+        bool useBigStructForReturnValue{false};
 
         st_byte *stackPointer; // esp, stack pointer, this points to the top of the stack
         st_byte *stackBasePointer; // ebp, stack base pointer. this points to the base of the current stack frame (function call)
@@ -145,4 +172,251 @@ namespace cshort
             this->isOverflowed = true;
         }
     };
+
+
+    // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
+    using ValueBase = struct _valueBase {
+        int typeIndex;
+        void* ptr;
+        unsigned int size; // in byte
+    };
+
+
+    struct BuiltInTypeIndex {
+        static int int32;
+        static int int64;
+        static int boolIdx;
+        static int null;
+        static int heapString;
+    };
+
+
+
+    // logic error is with NodeBase
+    using LogicErrorItem = struct _ErrorNodeItem {
+        _NodeBase *node;
+        _ErrorNodeItem *next;
+
+        CodeErrorItem codeErrorItem;
+    };
+
+    struct _typeEntry;
+    using LogicalErrorInfo = struct _logicalErrorInfo {
+        bool hasError{false};
+        int count;
+
+        LogicErrorItem *firstErrorItem;
+        LogicErrorItem *lastErrorItem;
+        static const int SYNTAX_ERROR_RETURN = -1;
+    };
+
+    using ScriptEngineContext = struct _scriptEngineContext {
+        _ScriptEnv* scriptEnv;
+        CPUSim cpuRegister;
+
+        LogicalErrorInfo logicErrorInfo;
+
+        MemBuffer memBuffer; // for TypeEntry, variable->value map
+
+        MemBuffer memBufferForValueBase; // for value base
+        MemBuffer memBufferForHeap; // for value
+        MemBuffer memBufferForError; // for value
+
+        VoidHashMap *variableMap2;
+        VoidHashMap *typeNameMap;
+        StackMemory stackMemory;
+
+        void evaluateExprNode(NodeBase* expressionNode);
+
+        ValueBase *newValueForHeap();
+        ValueBase *genValueBase(int type, int size, void *ptr);
+
+        void init(_ScriptEnv *scriptEnv);
+
+        // allocating methods for objects in script running, which will be freed all together after script execution finishes, this is more efficient than malloc/free for each object, and also easier to manage memory in the script engine.
+        void* mallocHeapObject(int bytes) {
+            return this->memBufferForHeap.mallocHeapEntry(bytes);
+        }
+
+        void freeHeapObject(void *ptr) {
+            this->memBufferForHeap.freeHeapEntry(ptr);
+        }
+
+        void freeAll()
+        {
+            this->memBufferForHeap.freeAllHeapEntries();
+            this->memBufferForHeap.freeAll();
+
+            this->memBufferForValueBase.freeAll();
+            this->memBufferForError.freeAll();
+            this->memBuffer.freeAll();
+            this->stackMemory.freeAll();
+        }
+
+        void setErrorPositions();
+
+        void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) {
+            printf("logic error: %s\n", getErrorMessage(errorCode));
+            auto *node = Cast::upcast(nodeArg);
+            assert(node->vtable != nullptr);
+
+            auto &errorInfo = this->logicErrorInfo;
+            errorInfo.count++;
+            errorInfo.hasError = true;
+            auto *mem = this->memBufferForError.newMem<LogicErrorItem>(1);
+            mem->node = node;
+            mem->codeErrorItem.errorIndex = errorCode;
+            mem->codeErrorItem.linePos1 = -1;
+            mem->next = nullptr;
+            if (errorInfo.firstErrorItem == nullptr) {
+                errorInfo.firstErrorItem = mem;
+            }
+
+            if (errorInfo.lastErrorItem == nullptr) {
+                errorInfo.lastErrorItem = mem;
+            }
+            else {
+                errorInfo.lastErrorItem->next = mem;
+                errorInfo.lastErrorItem = mem;
+            }
+
+            mem->codeErrorItem.errorId = getErrorCode(errorCode);
+            const char* reason = getErrorMessage(errorCode);
+            if (reason == nullptr) {
+                reason = "";
+            }
+            int len = (int)strlen(reason);
+            mem->codeErrorItem.reasonLength = len < MAX_REASON_LENGTH ? len : MAX_REASON_LENGTH;
+            memcpy(mem->codeErrorItem.reason, reason, mem->codeErrorItem.reasonLength);
+            mem->codeErrorItem.reason[mem->codeErrorItem.reasonLength] = '\0';
+        }
+    };
+
+
+    enum class BuildinTypeId {
+        Int32 = 1,
+        Int64 = 2,
+        HeapString = 23,
+        Null = 24,
+        Bool = 3,
+    };
+
+    // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
+    // node->typeIndex is the index of the type entry in the ScriptEnv->typeEntryList, which is used to get the TypeEntry for the node.
+    // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
+    using TypeEntry = struct _typeEntry {
+        int typeIndex;
+        int dataSize;
+        bool isReferenceType; // class rather than struct
+
+        char *(*toString)(ScriptEngineContext *context, ValueBase* value);
+        int (*binary_operate)(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck);
+        int (*canAssignTypeImplicitly)(ScriptEngineContext *context, _typeEntry *typeEntry);
+        void (*evaluateNode)(ScriptEngineContext *context, NodeBase *node);
+
+        char *typeChars;
+        int typeCharsLength;
+        bool isBuiltIn;
+        BuildinTypeId typeId;
+
+        template<typename T, std::size_t SIZE>
+        void initAsBuiltInType(decltype(toString) f1, decltype(binary_operate) f2, decltype(canAssignTypeImplicitly) f8,
+                               void(*evaluateNode2)(ScriptEngineContext *context, T *node),
+                               const char(&f3)[SIZE], decltype(typeId) f4, decltype(dataSize) f5, decltype(isReferenceType) f7
+        ) {
+            this->toString = f1;
+            this->binary_operate = f2;
+            this->canAssignTypeImplicitly = f8;
+            this->evaluateNode = (void(*)(ScriptEngineContext *context, NodeBase *node))evaluateNode2;
+            this->typeChars = (char*)f3;
+            this->typeCharsLength = SIZE;
+            this->typeId = f4;
+            this->dataSize = f5;
+            this->isReferenceType = f7;
+            this->isBuiltIn = true;
+        }
+    };
+
+
+    using ScriptEnv = struct _ScriptEnv {
+
+        DocumentStruct* document;
+        FuncDefNodeStruct* mainFunc;
+        TypeEntry **typeEntryList;
+        int typeEntryListCapacity;
+        // next index to insert new type entry, which is also the count of type entries in the list
+        int typeEntryListNextIndex;
+
+        TypeEntry* getTypeEntryByIndex(int typeIndex) {
+            assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
+            return this->typeEntryList[typeIndex];
+        }
+
+        ScriptEngineContext *context;
+
+
+        int typeFromNode(NodeBase *expressionNode);
+
+        static void deleteScriptEnv(_ScriptEnv *doc);
+        static _ScriptEnv *newScriptEnv();
+        TypeEntry *newTypeEntry() const;
+
+        static int startScriptInternal(char* script, int byteLength);
+
+        template<std::size_t SIZE>
+        static int startScript(const char(&text)[SIZE])
+        {
+            return startScriptInternal((char*)text, SIZE - 1);
+        }
+
+        static _ScriptEnv* loadScript(char* script, int byteLength);
+        void validateScript();
+        void validateFuncDef(FuncDefNodeStruct* funcDefNode);
+        int runScript();
+
+        void registerTypeEntry(TypeEntry* typeEntry);
+
+        void addTypeAliasEntity(TypeEntry* typeEntry, char *f3 , int length);
+        template<std::size_t SIZE>
+        void addTypeAlias(TypeEntry* typeEntry, const char(&f3)[SIZE]) {
+            this->addTypeAliasEntity(typeEntry , (char*)f3, SIZE-1);
+        }
+    };
+
+
+    /*
+     *
+    // 11111111 11111111 11111111 11111111
+    static constexpr unsigned char BYTE_BIT_COUNTS[256]{
+        0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+    };
+
+    // EXPECT_EQ(4, GetSetBitsCount(0b1111));
+
+    int GetSetBitsCount(uint32_t n)
+    {
+        auto counts = BYTE_BIT_COUNTS;
+        return n <= 0xff ? counts[n]
+            : n <= 0xffff ? counts[n & 0xff] + counts[n >> 8]
+            : n <= 0xffffff ? counts[n & 0xff] + counts[(n >> 8) & 0xff] + counts[(n >> 16) & 0xff]
+            : counts[n & 0xff] + counts[(n >> 8) & 0xff] + counts[(n >> 16) & 0xff] + counts[(n >> 24) & 0xff];
+    }
+     *
+     */
+
 }

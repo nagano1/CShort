@@ -439,6 +439,8 @@ namespace cshort {
         Init::initSymbolToken(&funcNode->parameterEndNode, context, funcNode, ')');
         funcNode->parameterEndNode.isEndFlag = true;
 
+        funcNode->localVariableMap = nullptr;
+
         Init::initFuncBodyNode(&funcNode->bodyNode, context, funcNode);
 
         return funcNode;

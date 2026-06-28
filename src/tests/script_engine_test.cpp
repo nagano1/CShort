@@ -44,10 +44,28 @@ void testCPURegister() {
     AL(&reg) = 0x00;
     assert(AX(&reg) == 0xFF00);
 
-
     RAX(&reg) = 25;
     RAX(&reg) = RAX(&reg) + 35; // add 35 to RAX
     assert(RAX(&reg) == 60);
+}
+
+void mallocHeapTest() {
+    ScriptEnv* env = ScriptEnv::newScriptEnv();
+
+    int* mem;
+    for (int i = 0; i < 1024; i++) {
+        mem = (int*)env->context->mallocHeapObject(sizeof(int));
+        *mem = 53;
+        if (i % 3 == 2) {
+            env->context->freeHeapObject(mem);
+        }
+    }
+
+
+    assert(*mem == 53);
+    assert(env->context->memBufferForHeap.firstBufferBlock != env->context->memBufferForHeap.currentBufferBlock);
+
+    ScriptEnv::deleteScriptEnv(env);
 }
 
 void testStackMemoryPushPopTest() {
@@ -223,14 +241,164 @@ void testStackMemoryOverflowCall() {
     assert(stackMemory.isOverflowed == true);
 }
 
+
+
+void testScript() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    int b = 9
+    int a = 500
+    int c = 500
+    
+    return c * 2 - b * a
+}
+)";
+        int ret = ScriptEnv::startScript(source);
+        printf("ret 1 = %d\n", ret);
+        assert(ret == -3500);
+}
+
+void testScript2() {
+    constexpr const char expressionFirstAssignment[]  = u8R"(
+fn Main() {
+    int b = 9
+    b = 5 + (10 + 1) - 2
+    return b
+}
+    )";
+
+    int ret = ScriptEnv::startScript(expressionFirstAssignment);
+    printf("ret = %d\n", ret);
+    assert(ret == 14);
+
+}
+
+
+void testHeapString() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    string *ptr = "ijfowjio"
+    String *ptr2 = ptr
+    return ptr2
+}
+)";
+        int ret = ScriptEnv::startScript(source);
+        printf("ret = %d\n", ret);
+        assert(ret != 0);
+}
+
+void testNull() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    ?int *ptr = null
+    #int ok = 3421
+    return ptr
+}
+)";
+        int ret = ScriptEnv::startScript(source);
+        assert(ret == 0);
+}
+
+void testVarable() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    let b = 9
+    int c = b
+    
+    return c + b
+}
+)";
+        int ret = ScriptEnv::startScript(source);
+        printf("ret = %d\n", ret);
+        assert(ret == 18);
+}
+
+void testi64 () {
+            constexpr char source[] = R"(
+fn Main()
+{
+    i64 b = 5L
+    i64 a = 900L
+    i64 c = 901L
+    
+    return c - (a + b)
+}
+)";
+        ScriptEnv* env = ScriptEnv::loadScript((char*)source, sizeof(source) - 1);
+        if (env->document->context->syntaxErrorInfo.hasError) {
+            assert(false);
+            return;// env->document->context->syntaxErrorInfo.errorItem.errorId;
+        }
+
+        env->validateScript();
+        if (env->context->logicErrorInfo.hasError) {
+            assert(false);
+            env->context->setErrorPositions();
+            return;// env->context->logicErrorInfo.firstErrorItem->codeErrorItem.errorId;
+        }
+        auto* node = env->mainFunc->bodyNode.firstChildNode;
+        while (node) {
+            if (node->vtable == VTables::ReturnStatementVTable) {
+                auto returnState = Cast::downcast<ReturnStatementNodeStruct*>(node);
+                assert(returnState->expressionNode->vtable == VTables::BinaryOperationVTable);
+                
+                auto binary0 = Cast::downcast<BinaryOperationNodeStruct*>(returnState->expressionNode);
+
+                auto *c = Cast::downcast<IdentifiersAccessNodeStruct*>(binary0->leftExprNode);
+
+                auto pare = Cast::downcast<ParenthesesNodeStruct*>(binary0->rightExprNode);
+                assert(pare->valueNode->vtable == VTables::BinaryOperationVTable);
+                auto binary = Cast::downcast<BinaryOperationNodeStruct*>(pare->valueNode);
+                auto *a = Cast::downcast<IdentifiersAccessNodeStruct*>(binary->leftExprNode);
+                auto *b = Cast::downcast<IdentifiersAccessNodeStruct*>(binary->rightExprNode);
+
+                // return c - (a + b)
+                assert(c->calcRegEnum == GRPRegisterEnum::ebx);
+
+                assert(a->calcRegEnum == GRPRegisterEnum::eax);
+                assert(b->calcRegEnum == GRPRegisterEnum::ebx);
+                
+                assert(binary->calcRegEnum == GRPRegisterEnum::ecx);
+                assert(binary0->rightExprNode->calcRegEnum == GRPRegisterEnum::ecx);
+
+                // stack 
+                assert(c->stackOffset == -24);
+                assert(a->stackOffset == -16);
+                assert(b->stackOffset == -8);
+                assert(env->mainFunc->stackSize == 24);
+            }
+            
+            node = node->nextNode;
+        }
+        int ret = env->runScript();
+        assert(ret == -4);
+
+        //EXPECT_EQ(c - (a + b), 6);
+}
+
+
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()
 {
     testCPURegister();
+    mallocHeapTest();
     testStackMemoryPushPopTest();
     testStackMemoryMoveToFrom();
     testStackMemoryCallRet();
     testStackMemoryCallRet2();
+    testStackMemoryOverflowPush();
+    testStackMemoryOverflowLocalVariables();
+    testStackMemoryOverflowCall();
+    testHeapString();
+    testNull();
+    testScript();
+    testScript2();
+    testVarable();
+    testi64();
     testStackMemoryFuncCall();
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();

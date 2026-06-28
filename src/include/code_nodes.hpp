@@ -24,6 +24,7 @@ namespace cshort {
 
     struct ParseContext;
     struct CodeLine;
+    enum class GRPRegisterEnum;
     
     #define NODE_TYPE_ID 0x123
     #define TOKEN_TYPE_ID 0x456
@@ -38,6 +39,9 @@ namespace cshort {
         COMMON_HEADER \
         const struct node_vtable *vtable; /* virtual table */ \
         _NodeBase *nextNode; \
+        GRPRegisterEnum calcRegEnum; \
+        st_byte *calcReg;                 \
+        int typeIndex;                \
 
     #define TOKEN_HEADER \
         COMMON_HEADER \
@@ -57,6 +61,10 @@ namespace cshort {
         utf8byte *text; \
         int_fast32_t textLength;
 
+    enum class TypeIndexEnum {
+        NotAssigned = -1,
+        Empty = 0,
+    };
 
     #define INIT_NODE(node, context, parent, argvtable) \
         (node)->vtable = (argvtable); \
@@ -65,6 +73,9 @@ namespace cshort {
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
         (node)->nextNode = nullptr; \
+        (node)->typeIndex = (int)TypeIndexEnum::NotAssigned; \
+        (node)->calcRegEnum = (GRPRegisterEnum)0; \
+        (node)->calcReg = nullptr; \
         (0)
 
     #define INIT_TOKEN(token, context, parent, argvtable) \
@@ -305,6 +316,7 @@ namespace cshort {
         SymbolTokenStruct parameterEndNode; // )
 
         FuncBodyNodeStruct bodyNode;
+        VoidHashMap *localVariableMap;
 
         int parameterParsePhase;
         FuncParameterItemStruct *firstChildParameterNode;
@@ -378,6 +390,8 @@ namespace cshort {
         SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
         BinaryOperationGroup opGroup;
         BinaryOperator binaryOp; 
+        // if true, the left and right expression nodes do not need to save their registers, used for optimization
+        bool noNeedToSaveRegisters;
 
         NodeBase *leftExprNode;
         NodeBase *rightExprNode;
@@ -950,7 +964,6 @@ namespace cshort {
                 auto currentToken = token;
                 token = token->nextTokenInLine; // assign next token before checking current token
 
-                printf("currentToken: %s\n", TokenVTableCall::typeText(currentToken));
                 if (currentToken->vtable == VTables::BlockCommentFragmentVTable
                      || currentToken->vtable == VTables::BlockCommentVTable) {
                     continue;
