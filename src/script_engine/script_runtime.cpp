@@ -633,10 +633,7 @@ namespace cshort {
         }
 
         auto *typeEntry = context->scriptEnv->getTypeEntryByIndex(typeIndex);
-        int dataSize = typeEntry->dataSize;
-        if (typeEntry->isReferenceType) {
-            dataSize = 8;
-        }
+        int dataSize = typeEntry->getStackOffsetForType();
 
         const GPRRegister *calcRegister = GetGPRRegisterByEnum(node->calcRegEnum, &context->cpuRegister);
         if (calcRegister != nullptr) {
@@ -685,22 +682,6 @@ namespace cshort {
             }
         }
 
-/*
-        if (node->vtable == VTables::VariableVTable) {
-            //node->calcRegEnum = PrimitiveCalcRegisterEnum::eax;
-//            node->calcReg = (st_byte*)&__EX(&context->cpuRegister.rax);
-
-            assignCalcRegToNode(node, context);
-        }
-*/
-        /*
-         * TODO: make calcFunc always returns with same register
-        if (node->vtable == VTables::CallFuncVTable) {
-            auto *callFunc = Cast::downcast<FuncCallNodeStruct *>(node);
-
-            node->calcResultReg = PrimitiveCalcRegister::eax;
-        }
-        */
         return 0;
     }
 
@@ -969,21 +950,20 @@ namespace cshort {
                     (void*)context,
                     nullptr,
                     callTypeSelectorOnExpressions,
-                    /*children first*/false,
+                    /* children first */false,
                     (void *) statement,
                     nullptr);
 
             // int a = 3
             if (statement->vtable == VTables::AssignmentVTable) {
                 auto* assign = Cast::downcast<AssignmentNodeStruct*>(statement);
-                if (assign->hasTypeOrLet && assign->typeIndex > -1) {
+                if (assign->hasTypeOrLet) { // assign stack offset for variable
+                    if (assign->typeIndex == -1) {
+                        // can't assign stack offset further if type not found 
+                        return;
+                    }
                     TypeEntry *typeEntry = context->scriptEnv->getTypeEntryByIndex(assign->typeIndex);
-                    if (typeEntry->isReferenceType) {
-                        currentStackOffset -= 8;
-                    }
-                    else {
-                        currentStackOffset -= typeEntry->dataSize;
-                    }
+                    currentStackOffset -= typeEntry->getStackOffsetForType();
                     assign->stackOffset = currentStackOffset;
                 }
             }
@@ -1044,13 +1024,8 @@ namespace cshort {
         if (expressionNode->vtable == VTables::IdentifiersAccessVTable) {
             auto* variableNode = Cast::downcast<IdentifiersAccessNodeStruct *>(expressionNode);
             TypeEntry *typeEntry = this->scriptEnv->getTypeEntryByIndex(variableNode->typeIndex);
-            if (typeEntry->isReferenceType) {
-                this->stackMemory.moveFromStack(variableNode->stackOffset, 8, variableNode->calcReg);
-            }
-            else {
-                int dataSize = typeEntry->dataSize;
-                this->stackMemory.moveFromStack(variableNode->stackOffset, dataSize, variableNode->calcReg);
-            }
+            int dataSize = typeEntry->getStackOffsetForType();
+            this->stackMemory.moveFromStack(variableNode->stackOffset, dataSize, variableNode->calcReg);
             return;
         }
         
@@ -1183,7 +1158,7 @@ namespace cshort {
                     auto *typeEntry = env->getTypeEntryByIndex(assignStatement->typeIndex);
 
                     // 
-                    auto dataSize = typeEntry->isReferenceType ? 8 : typeEntry->dataSize;
+                    auto dataSize = typeEntry->getStackOffsetForType();
                     env->context->stackMemory.moveToStack(assignStatement->stackOffset, dataSize,
                                                      assignStatement->expressionNode->calcReg);
                 }
@@ -1231,8 +1206,9 @@ namespace cshort {
         if (mainFunc) {
             // printf("main found <%s()>\n", mainFunc2->nameNode.name);
             TypeAndExpression typeAndExpression = executeFunc(this, mainFunc);
-            if (typeAndExpression.typeEntry != nullptr) {
-                if (typeAndExpression.typeEntry->dataSize == 8 || typeAndExpression.typeEntry->isReferenceType) {
+            TypeEntry *typeEntry = typeAndExpression.typeEntry;
+            if (typeEntry != nullptr) {
+                if (typeEntry->getStackOffsetForType() == 8) {
                     int64_t v = *(int64_t*)typeAndExpression.expressionNode->calcReg;
                     ret = (int32_t)v; // return of main entry func is always int32, so cast to int32
                 }

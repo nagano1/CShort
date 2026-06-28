@@ -307,6 +307,10 @@ namespace cshort
             this->isReferenceType = f7;
             this->isBuiltIn = true;
         }
+
+        int getStackOffsetForType() const {
+            return this->isReferenceType ? 8 : this->dataSize;
+        }
     };
 
 
