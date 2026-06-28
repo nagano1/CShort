@@ -308,7 +308,8 @@ namespace cshort
             this->isBuiltIn = true;
         }
 
-        int getStackOffsetForType() const {
+        // get the stack size for this type, if it is a reference type, the stack size is 8 bytes (64bit), otherwise it is the data size of the type.
+        int getStackSizeForType() const {
             return this->isReferenceType ? 8 : this->dataSize;
         }
     };

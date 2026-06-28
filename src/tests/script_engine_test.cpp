@@ -376,8 +376,6 @@ fn Main()
         }
         int ret = env->runScript();
         assert(ret == -4);
-
-        //EXPECT_EQ(c - (a + b), 6);
 }
 
 
