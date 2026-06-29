@@ -538,53 +538,16 @@ namespace cshort {
         bool incrementDepthOnNextLine{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 
-        void setError(ErrorIndex errorCode, st_int startPos) {
-            setError2(errorCode, startPos, startPos);
-        }
+        void setError(ErrorIndex errorCode, st_int startPos);
 
-        inline int getNextLineIndentDepth() const {
-            return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
-        }
+        int getNextLineIndentDepth() const;
 
         void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2);
         void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1);
         void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2);
+        void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) ;
 
-        void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) {
-            printf("semantic error: %s\n", getErrorMessage(errorCode));
-            auto *node = Cast::upcast(nodeArg);
-            assert(node->vtable != nullptr);
-
-            auto &errorInfo = this->semanticErrorInfo;
-            errorInfo.count++;
-            errorInfo.hasError = true;
-            auto *mem = this->memBufferForError.newMem<SemanticErrorItem>(1);
-            mem->node = node;
-            mem->codeErrorItem.errorIndex = errorCode;
-            mem->codeErrorItem.linePos1 = -1;
-            mem->next = nullptr;
-            if (errorInfo.firstErrorItem == nullptr) {
-                errorInfo.firstErrorItem = mem;
-            }
-
-            if (errorInfo.lastErrorItem == nullptr) {
-                errorInfo.lastErrorItem = mem;
-            }
-            else {
-                errorInfo.lastErrorItem->next = mem;
-                errorInfo.lastErrorItem = mem;
-            }
-
-            mem->codeErrorItem.errorId = getErrorCode(errorCode);
-            const char* reason = getErrorMessage(errorCode);
-            if (reason == nullptr) {
-                reason = "";
-            }
-            int len = (int)strlen(reason);
-            mem->codeErrorItem.reasonLength = len < MAX_REASON_LENGTH ? len : MAX_REASON_LENGTH;
-            memcpy(mem->codeErrorItem.reason, reason, mem->codeErrorItem.reasonLength);
-            mem->codeErrorItem.reason[mem->codeErrorItem.reasonLength] = '\0';
-        }
+        
     };
 
 
@@ -653,24 +616,24 @@ namespace cshort {
 
 
     #define ApplyFunc_params3 \
-        void *scriptEngineContext, \
+        ParseContext *context, \
         void *targetVTable, \
-        int (*func)(NodeBase *, void *scriptEngineContext, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
+        int (*func)(NodeBase *, cshort::ParseContext *context, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
         bool parentIsFirst,           \
         void *topLevelNodeInBody,           \
         void *arg2
 
     #define TokenApplyFunc_params3 \
-        void *scriptEngineContext, \
+        ParseContext *context, \
         void *targetVTable, \
-        int (*func)(TokenBase *, void *scriptEngineContext, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
+        int (*func)(TokenBase *, cshort::ParseContext *context, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
         bool parentIsFirst,           \
         void *topLevelNodeInBody,           \
         void *arg2
 
 
     #define ApplyFunc_params2 \
-        void *scriptEngineContext, \
+        ParseContext *context, \
         void *targetVTable, \
         void *func, \
         bool parentIsFirst,           \
@@ -679,11 +642,11 @@ namespace cshort {
 
 
     #define ApplyFunc_pass \
-                scriptEngineContext, \
+                context, \
                 targetVTable, (void *)func, parentIsFirst, topLevelNodeInBody, arg2
 
     #define ApplyFunc_pass2 \
-                scriptEngineContext, \
+                context, \
                 targetVTable, func, parentIsFirst, topLevelNodeInBody, arg2
 
 

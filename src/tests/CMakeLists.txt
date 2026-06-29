@@ -5,6 +5,7 @@ file(GLOB cpp_lib_files CONFIGURE_DEPENDS
     "${SRC_ROOT}/parser/*.cpp"
     "${SRC_ROOT}/parser/nodes/*.cpp"
     "${SRC_ROOT}/parser/tokens/*.cpp"
+    "${SRC_ROOT}/parser/validation/*.cpp"
     "${SRC_ROOT}/script_engine/*.cpp"
 )
 

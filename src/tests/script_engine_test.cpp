@@ -50,7 +50,7 @@ void testCPURegister() {
 }
 
 void mallocHeapTest() {
-    ScriptEnv* env = ScriptEnv::newScriptEnv();
+    ScriptEnv* env = ScriptEnv::newScriptEnv(nullptr);
 
     int* mem;
     for (int i = 0; i < 1024; i++) {
@@ -334,7 +334,7 @@ fn Main()
             return;// env->document->context->syntaxErrorInfo.errorItem.errorId;
         }
 
-        env->validateScript();
+        env->document->context->typeManager->validateScript();
         if (env->context->semanticErrorInfo.hasError) {
             assert(false);
             env->context->setErrorPositions();

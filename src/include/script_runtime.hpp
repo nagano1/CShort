@@ -202,7 +202,9 @@ namespace cshort
         ValueBase *newValueForHeap();
         ValueBase *genValueBase(int type, int size, void *ptr);
 
-        void init(_ScriptEnv *scriptEnv);
+        ParseContext *parseContext;
+
+        void init(_ScriptEnv *scriptEnv, ParseContext *context);
 
         // allocating methods for objects in script running, which will be freed all together after script execution finishes, this is more efficient than malloc/free for each object, and also easier to manage memory in the script engine.
         void* mallocHeapObject(int bytes) {
@@ -270,23 +272,28 @@ namespace cshort
 
         DocumentStruct* document;
         FuncDefNodeStruct* mainFunc;
-        TypeEntry **typeEntryList;
-        int typeEntryListCapacity;
-        // next index to insert new type entry, which is also the count of type entries in the list
-        int typeEntryListNextIndex;
 
-        TypeEntry* getTypeEntryByIndex(int typeIndex) {
-            assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
-            return this->typeEntryList[typeIndex];
-        }
+        int runScript();
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         ScriptEngineContext *context;
 
 
-        int typeFromNode(NodeBase *expressionNode);
 
         static void deleteScriptEnv(_ScriptEnv *doc);
-        static _ScriptEnv *newScriptEnv();
+        static _ScriptEnv *newScriptEnv(ParseContext *context);
         //TypeEntry *newTypeEntry() const;
 
         static int startScriptInternal(char* script, int byteLength);
@@ -298,17 +305,7 @@ namespace cshort
         }
 
         static _ScriptEnv* loadScript(char* script, int byteLength);
-        void validateScript();
-        void validateFuncDef(FuncDefNodeStruct* funcDefNode);
-        int runScript();
 
-        void registerTypeEntry(TypeEntry* typeEntry);
-
-        void addTypeAliasEntity(TypeEntry* typeEntry, char *f3 , int length);
-        template<std::size_t SIZE>
-        void addTypeAlias(TypeEntry* typeEntry, const char(&f3)[SIZE]) {
-            this->addTypeAliasEntity(typeEntry , (char*)f3, SIZE-1);
-        }
     };
 
 

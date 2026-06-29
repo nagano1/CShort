@@ -18,6 +18,7 @@
 #include <stdint.h>
 
 #include "parser.hpp"
+#include "types.hpp"
 
 namespace cshort
 {
@@ -27,22 +28,59 @@ namespace cshort
 
     
     void ParseContext::init() {
-            memBuffer.init();
-            memBufferForCodeLines.init();
-            appendLineMode = AppendLineMode::Normal;
-            syntaxErrorInfo.hasError = false;
-            syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
-            syntaxErrorInfo.errorItem.errorId = 10000;
+        memBuffer.init();
+        memBufferForCodeLines.init();
+        appendLineMode = AppendLineMode::Normal;
+        syntaxErrorInfo.hasError = false;
+        syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
+        syntaxErrorInfo.errorItem.errorId = 10000;
 
-            semanticErrorInfo.hasError = false;
-            semanticErrorInfo.count = 0;
-            semanticErrorInfo.firstErrorItem = nullptr;
-            semanticErrorInfo.lastErrorItem = nullptr;
+        semanticErrorInfo.hasError = false;
+        semanticErrorInfo.count = 0;
+        semanticErrorInfo.firstErrorItem = nullptr;
+        semanticErrorInfo.lastErrorItem = nullptr;
 
-            typeManager = memBuffer.newMem<TypeManager>(1);
-            typeManager->init(this);
+        typeManager = memBuffer.newMem<TypeManager>(1);
+        typeManager->init(this);
 
-            memBufferForError.init();
+        memBufferForError.init();
+    }
+
+
+    void ParseContext::addErrorWithNode(ErrorIndex errorCode, void* nodeArg) {
+            printf("semantic error: %s\n", getErrorMessage(errorCode));
+            auto *node = Cast::upcast(nodeArg);
+            assert(node->vtable != nullptr);
+
+            auto &errorInfo = this->semanticErrorInfo;
+            errorInfo.count++;
+            errorInfo.hasError = true;
+            auto *mem = this->memBufferForError.newMem<SemanticErrorItem>(1);
+            mem->node = node;
+            mem->codeErrorItem.errorIndex = errorCode;
+            mem->codeErrorItem.linePos1 = -1;
+            mem->next = nullptr;
+            if (errorInfo.firstErrorItem == nullptr) {
+                errorInfo.firstErrorItem = mem;
+            }
+
+            if (errorInfo.lastErrorItem == nullptr) {
+                errorInfo.lastErrorItem = mem;
+            }
+            else {
+                errorInfo.lastErrorItem->next = mem;
+                errorInfo.lastErrorItem = mem;
+            }
+
+            mem->codeErrorItem.errorId = getErrorCode(errorCode);
+            const char* reason = getErrorMessage(errorCode);
+            if (reason == nullptr) {
+                reason = "";
+            }
+            int len = (int)strlen(reason);
+            mem->codeErrorItem.reasonLength = len < MAX_REASON_LENGTH ? len : MAX_REASON_LENGTH;
+            memcpy(mem->codeErrorItem.reason, reason, mem->codeErrorItem.reasonLength);
+            mem->codeErrorItem.reason[mem->codeErrorItem.reasonLength] = '\0';
         }
 
         void ParseContext::dispose() {
@@ -78,7 +116,7 @@ namespace cshort
             setError2(errorCode, startPos, startPos);
         }
 
-        inline int ParseContext::getNextLineIndentDepth() const {
+        int ParseContext::getNextLineIndentDepth() const {
             return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
         }
 
@@ -123,7 +161,6 @@ namespace cshort
                 item.reasonLength = static_cast<int>(strlen(item.reason));
             }
         }
-    };
 
 
 

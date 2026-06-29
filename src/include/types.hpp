@@ -20,20 +20,50 @@
 
 namespace cshort
 {
-
-    struct Types {
-        void registerBuiltInTypes(ParseContext *context);
-        TypeEntry *newTypeEntry(ParseContext *context) const;
-    };
+    struct _typeEntry;
 
     struct TypeManager {
-        void registerTypeEntry(TypeEntry* typeEntry);
 
-        void addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length);
+        void setupBuiltInTypeSelectors();
+
+        struct _typeEntry **typeEntryList;
+        int typeEntryListCapacity;
+        // next index to insert new type entry, which is also the count of type entries in the list
+        int typeEntryListNextIndex;
+
+        struct _typeEntry* getTypeEntryByIndex(int typeIndex) {
+            assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
+            return this->typeEntryList[typeIndex];
+        }
+        int typeFromNode(NodeBase *expressionNode);
+
+        void validateScript(DocumentStruct *document);
+
+        void validateFuncDef(FuncDefNodeStruct* funcDefNode);
+        int runScript();
+
+        void registerTypeEntry(struct _typeEntry* typeEntry);
+
+        template<std::size_t SIZE>
+        void addTypeAlias(struct _typeEntry* typeEntry, const char(&f3)[SIZE]) {
+            this->addTypeAliasEntity(typeEntry , (char*)f3, SIZE-1);
+        }
+
+        void registerBuiltInTypes(ParseContext *context);
+        struct _typeEntry *newTypeEntry(ParseContext *context) const;
+
+
+        void addTypeAliasEntity(struct _typeEntry* typeEntry, char *aliasName , int length);
 
         ParseContext *context;
         void init(ParseContext *context) {
             this->context = context;
+            typeEntryList = nullptr;
+            typeEntryListNextIndex = 1;
+            typeEntryListCapacity = 0;
+
+            registerBuiltInTypes(context);
+
         }
     };
 
@@ -46,16 +76,18 @@ namespace cshort
         bool isReferenceType; // class rather than struct
 
         //char *(*toString)(ParseContext *context, ValueBase* value);
-        int (*binary_operate)(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck);
+        int (*binary_operate)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
+        //int (*binary_operate)(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck);
         int (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
-        //void (*evaluateNode)(ParseContext *context, NodeBase *node);
+        void (*evaluateNode)(ParseContext *context, NodeBase *node);
 
         char *typeChars;
         int typeCharsLength;
         bool isBuiltIn;
         BuildinTypeId typeId;
 
-        template<typename T, std::size_t SIZE>
+        //template<typename T, std::size_t SIZE>
+        template<std::size_t SIZE>
         void initAsBuiltInType(/*decltype(toString) f1, */decltype(binary_operate) f2, decltype(canAssignTypeImplicitly) f8,
                                //void(*evaluateNode2)(ScriptEngineContext *context, T *node),
                                const char(&f3)[SIZE], decltype(typeId) f4, decltype(dataSize) f5, decltype(isReferenceType) f7
