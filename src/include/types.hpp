@@ -20,53 +20,6 @@
 
 namespace cshort
 {
-    struct _typeEntry;
-
-    struct TypeManager {
-
-        void setupBuiltInTypeSelectors();
-
-        struct _typeEntry **typeEntryList;
-        int typeEntryListCapacity;
-        // next index to insert new type entry, which is also the count of type entries in the list
-        int typeEntryListNextIndex;
-
-        struct _typeEntry* getTypeEntryByIndex(int typeIndex) {
-            assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
-            return this->typeEntryList[typeIndex];
-        }
-        int typeFromNode(NodeBase *expressionNode);
-
-        void validateScript(DocumentStruct *document);
-
-        void validateFuncDef(FuncDefNodeStruct* funcDefNode);
-        int runScript();
-
-        void registerTypeEntry(struct _typeEntry* typeEntry);
-
-        template<std::size_t SIZE>
-        void addTypeAlias(struct _typeEntry* typeEntry, const char(&f3)[SIZE]) {
-            this->addTypeAliasEntity(typeEntry , (char*)f3, SIZE-1);
-        }
-
-        void registerBuiltInTypes(ParseContext *context);
-        struct _typeEntry *newTypeEntry(ParseContext *context) const;
-
-
-        void addTypeAliasEntity(struct _typeEntry* typeEntry, char *aliasName , int length);
-
-        ParseContext *context;
-        void init(ParseContext *context) {
-            this->context = context;
-            typeEntryList = nullptr;
-            typeEntryListNextIndex = 1;
-            typeEntryListCapacity = 0;
-
-            registerBuiltInTypes(context);
-
-        }
-    };
-
     // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
     // node->typeIndex is the index of the type entry in the ScriptEnv->typeEntryList, which is used to get the TypeEntry for the node.
     // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
@@ -107,6 +60,61 @@ namespace cshort
         // get the stack size for this type, if it is a reference type, the stack size is 8 bytes (64bit), otherwise it is the data size of the type.
         int getStackSizeForType() const {
             return this->isReferenceType ? 8 : this->dataSize;
+        }
+    };
+
+
+    struct TypeManager {
+
+        void setupBuiltInTypeSelectors();
+
+        TypeEntry **typeEntryList;
+        int typeEntryListCapacity;
+        // next index to insert new type entry, which is also the count of type entries in the list
+        int typeEntryListNextIndex;
+
+        VoidHashMap *variableMap2;
+        VoidHashMap *typeNameMap;
+
+        TypeEntry* getTypeEntryByIndex(int typeIndex) {
+            assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
+            return this->typeEntryList[typeIndex];
+        }
+        int typeFromNode(NodeBase *expressionNode);
+
+        void validateScript(DocumentStruct *document);
+
+        void validateFuncDef(FuncDefNodeStruct* funcDefNode);
+        int runScript();
+
+        void registerTypeEntry(TypeEntry* typeEntry);
+
+        template<std::size_t SIZE>
+        void addTypeAlias(TypeEntry* typeEntry, const char(&f3)[SIZE]) {
+
+            this->addTypeAliasEntity(typeEntry , (char*)f3, SIZE-1);
+        }
+
+        void registerBuiltInTypes(ParseContext *context);
+        TypeEntry *newTypeEntry(ParseContext *context) const;
+
+
+        void addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length);
+
+        ParseContext *context;
+        void init(ParseContext *context) {
+            this->context = context;
+            typeEntryList = nullptr;
+            typeEntryListNextIndex = 1;
+            typeEntryListCapacity = 0;
+
+            //            this->variableMap2 = this->memBuffer.newMem<VoidHashMap>(1);
+            //this->variableMap2->init(&this->memBuffer);
+
+            this->typeNameMap = context->memBuffer.newMem<VoidHashMap>(1);
+            this->typeNameMap->init(&context->memBuffer);
+
+            registerBuiltInTypes(context);
         }
     };
 }

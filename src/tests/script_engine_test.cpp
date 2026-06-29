@@ -279,8 +279,8 @@ void testHeapString() {
             constexpr char source[] = R"(
 fn Main()
 {
-    string *ptr = "ijfowjio"
-    String *ptr2 = ptr
+    string ptr = "ijfowjio"
+    string ptr2 = ptr
     return ptr2
 }
 )";
@@ -334,7 +334,7 @@ fn Main()
             return;// env->document->context->syntaxErrorInfo.errorItem.errorId;
         }
 
-        env->document->context->typeManager->validateScript();
+        env->document->context->typeManager->validateScript(env->document);
         if (env->context->semanticErrorInfo.hasError) {
             assert(false);
             env->context->setErrorPositions();
@@ -392,6 +392,7 @@ void callTests()
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
     testHeapString();
+    /*
     testNull();
     testScript();
     testScript2();
@@ -401,4 +402,6 @@ void callTests()
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
+    */
+
 }

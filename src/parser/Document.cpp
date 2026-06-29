@@ -58,6 +58,7 @@ namespace cshort {
 
         auto *context = mallocForType<ParseContext>();
         auto *doc = mallocForType<DocumentStruct>();
+
         context->init();
 
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);

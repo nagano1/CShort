@@ -106,6 +106,7 @@ void *MemBuffer::newBytesMem(unsigned int bytes) {
     // Round total length up to ALIGN so successive allocations stay aligned.
     auto length = (st_size)((bytes + HEADER + ALIGN - 1) & ~(ALIGN - 1));
     int padding_tail_size = isHeapEntryEnabled ? HEADER : 0;
+                printf("DDD LLL 4 bytes = %d\n", bytes);
 
     if (currentMemOffset + length < DEFAULT_BUFFER_SIZE) {
 
@@ -123,6 +124,7 @@ void *MemBuffer::newBytesMem(unsigned int bytes) {
         else {
             auto *newNode = (MemBufferBlock*)malloc(sizeof(MemBufferBlock));
             newNode->chunk = (void *)calloc(assign_size, 1);
+                printf("DDD LLL 5 %d\n", currentBufferBlock->itemCount);
 
             currentBufferBlock->next = newNode;
             newNode->prev = currentBufferBlock;

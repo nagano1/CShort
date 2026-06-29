@@ -188,7 +188,7 @@ namespace cshort {
     }
 
 
-    int canAssignType_String(ParseContext *context, _typeEntry *otherType)
+    static int canAssignType_String(ParseContext *context, _typeEntry *otherType)
     {
         return 0;
     }
@@ -438,11 +438,11 @@ namespace cshort {
         this->memBufferForValueBase.init();
         this->stackMemory.init();
 
-        this->variableMap2 = this->memBuffer.newMem<VoidHashMap>(1);
-        this->variableMap2->init(&this->memBuffer);
+        // this->variableMap2 = this->memBuffer.newMem<VoidHashMap>(1);
+        // this->variableMap2->init(&this->memBuffer);
 
-        this->typeNameMap = this->memBuffer.newMem<VoidHashMap>(1);
-        this->typeNameMap->init(&this->memBuffer);
+        // this->typeNameMap = this->memBuffer.newMem<VoidHashMap>(1);
+        // this->typeNameMap->init(&this->memBuffer);
         this->cpuRegister = CPUSim{};
     }
 
@@ -611,6 +611,7 @@ namespace cshort {
 
     int ScriptEnv::startScriptInternal(char* script, int scriptLength)
     {
+        printf("A\n");
         // Load the script
         ScriptEnv *env = ScriptEnv::loadScript(script, scriptLength);
 

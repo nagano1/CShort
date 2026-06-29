@@ -105,6 +105,7 @@ struct MemBuffer {
     template<typename Type>
     Type *newMem(unsigned int count) {
         auto bytes = st_size_of(Type) * count;
+
         return (Type*)this->newBytesMem(bytes);
     }
     

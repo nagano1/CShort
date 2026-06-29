@@ -487,7 +487,7 @@ namespace cshort {
         SemanticErrorInfo semanticErrorInfo;
 
         VoidHashMap *variableMap2;
-        VoidHashMap *typeNameMap;
+//        VoidHashMap *typeNameMap;
 
 
 

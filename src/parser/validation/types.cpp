@@ -41,23 +41,6 @@ namespace cshort {
     }
 
 
-
-
-    void TypeManager::registerTypeEntry(TypeEntry* typeEntry)
-    {
-        expandTypeEntryList(this);
-        typeEntry->typeIndex = this->typeEntryListNextIndex;
-        this->typeEntryList[typeEntry->typeIndex] = typeEntry;
-        this->typeEntryListNextIndex++;
-    }
-
-    void TypeManager::addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length)
-    {
-        this->context->typeNameMap->put(aliasName, length, typeEntry);
-    }
-
-
-
     //------------------------------------------------------------------------------------------
     //
     //                                      TypeEntry
@@ -104,10 +87,10 @@ namespace cshort {
 
     void TypeManager::addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length)
     {
-        this->context->typeNameMap->put(aliasName, length, typeEntry);
+        printf("KK %d\n",this->typeNameMap);
+        this->typeNameMap->put(aliasName, length, typeEntry);
+        printf("LL\n");
     }
-
-
 
 
 
@@ -238,6 +221,7 @@ namespace cshort {
         TypeManager *typeManager = context->typeManager;
         // int
         {
+
             TypeEntry *int32Type = TypeManager::newTypeEntry(context);
             int32Type->initAsBuiltInType(/*int32_toString,*/ int32_binary_operate, canAssignType_i32,
                                          // int32_evaluateNode,
@@ -403,7 +387,7 @@ namespace cshort {
 
     static int applyFunc_assignCalcOpRegister(NodeBase *node, ApplyFunc_params2)
     {
-        auto *context = (ParseContext *)context;
+        //auto *context = (ParseContext *)context;
 
         if (node->vtable == VTables::BinaryOperationVTable) {
             auto *binary = Cast::downcast<BinaryOperationNodeStruct *>(node);
@@ -460,7 +444,7 @@ namespace cshort {
     {
         TypeEntry *declaredType = nullptr;
         if (assign->hasTypeDecl()) {
-            declaredType = (TypeEntry *) context->typeNameMap->get(
+            declaredType = (TypeEntry *) context->typeManager->typeNameMap->get(
                 assign->typeOrLet.nameNode.name,
                 assign->typeOrLet.nameNode.nameLength
             );
@@ -588,6 +572,7 @@ namespace cshort {
     // children come first
     static int callTypeSelectorOnExpressions(NodeBase *node, ApplyFunc_params2)
     {
+
         if (node->vtable == VTables::BinaryOperationVTable) {
             auto *binary = Cast::downcast<BinaryOperationNodeStruct *>(node);
 
@@ -694,7 +679,9 @@ namespace cshort {
     /// </summary>
     static void callTypeSelectorsOnExpressions2(ParseContext *context, FuncDefNodeStruct *func)
     {
-        func->localVariableMap = context->memBuffer.newMem<VoidHashMap>(1);
+                printf("DDD LLL K %d\n", context->memBuffer);
+
+        //func->localVariableMap = context->memBuffer.newMem<VoidHashMap>(1);
 
         auto *statement = func->bodyNode.firstChildNode;
         int currentStackOffset = 0;
@@ -724,6 +711,8 @@ namespace cshort {
 
             statement = statement->nextNode;
         }
+                printf("DDD LLL 3\n");
+
         func->stackSize = -currentStackOffset;
     }
 
@@ -736,7 +725,7 @@ namespace cshort {
         callTypeSelectorsOnExpressions2(context, func);
 
         if (errorCount == this->context->semanticErrorInfo.count) {
-            assignCalcOpRegister(context, func);
+            //assignCalcOpRegister(context, func);
         }
 
     }
@@ -751,6 +740,7 @@ namespace cshort {
             if (rootNode->vtable == VTables::FuncDefVTable) {
                 // fn
                 auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(rootNode);
+                printf("DDD LLL\n");
                 this->validateFuncDef(fnNode);
             }
             rootNode = rootNode->nextNode;
