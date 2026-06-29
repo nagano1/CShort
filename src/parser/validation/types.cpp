@@ -679,9 +679,8 @@ namespace cshort {
     /// </summary>
     static void callTypeSelectorsOnExpressions2(ParseContext *context, FuncDefNodeStruct *func)
     {
-                printf("DDD LLL K %d\n", context->memBuffer);
-
-        //func->localVariableMap = context->memBuffer.newMem<VoidHashMap>(1);
+        printf("%d\n", func->context->memBuffer.currentBufferBlock);
+        func->localVariableMap = func->context->memBuffer.newMem<VoidHashMap>(1);
 
         auto *statement = func->bodyNode.firstChildNode;
         int currentStackOffset = 0;
