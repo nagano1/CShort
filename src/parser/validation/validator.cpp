@@ -370,7 +370,6 @@ namespace cshort {
     /// </summary>
     static void callTypeSelectorsOnExpressions2(ParseContext *context, FuncDefNodeStruct *func)
     {
-        printf("%d\n", func->context->memBuffer.currentBufferBlock);
         func->localVariableMap = func->context->memBuffer.newMem<VoidHashMap>(1);
 
         auto *statement = func->bodyNode.firstChildNode;
@@ -401,7 +400,6 @@ namespace cshort {
 
             statement = statement->nextNode;
         }
-                printf("DDD LLL 3\n");
 
         func->stackSize = -currentStackOffset;
     }
@@ -430,7 +428,6 @@ namespace cshort {
             if (rootNode->vtable == VTables::FuncDefVTable) {
                 // fn
                 auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(rootNode);
-                printf("DDD LLL\n");
                 this->validateFuncDef(fnNode);
             }
             rootNode = rootNode->nextNode;

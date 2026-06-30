@@ -41,7 +41,6 @@ namespace cshort
         semanticErrorInfo.lastErrorItem = nullptr;
 
         typeManager = memBuffer.newMem<TypeManager>(1);
-        printf("C\n");
         typeManager->init(this);
 
         memBufferForError.init();

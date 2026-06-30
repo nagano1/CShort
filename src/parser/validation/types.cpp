@@ -86,9 +86,7 @@ namespace cshort {
 
     void TypeManager::addTypeAliasEntity(TypeEntry* typeEntry, char *aliasName , int length)
     {
-        printf("KK %d\n",this->typeNameMap);
         this->typeNameMap->put(aliasName, length, typeEntry);
-        printf("LL\n");
     }
 
 
@@ -311,11 +309,8 @@ namespace cshort {
             return nodeBase->typeIndex = BuiltInTypeIndex::boolIdx;
         }
         assert(false); // Unknown literal type
-    }
 
-    static int selectTypeFromNullNode(ScriptEnv *env, LiteralValueNodeStruct *nodeBase)
-    {
-        return nodeBase->typeIndex = BuiltInTypeIndex::null;
+        return (int)TypeIndexEnum::NotAssigned;
     }
 
     template<typename T>
@@ -328,5 +323,4 @@ namespace cshort {
         setTypeSelector(VTables::NumberVTable, selectTypeFromNumberNode);
         setTypeSelector(VTables::FixedLiteralVTable, selectTypeFromConstNode);
     }
-
 }

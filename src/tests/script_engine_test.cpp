@@ -49,25 +49,6 @@ void testCPURegister() {
     assert(RAX(&reg) == 60);
 }
 
-void mallocHeapTest() {
-    ScriptEnv* env = ScriptEnv::newScriptEnv(nullptr);
-
-    int* mem;
-    for (int i = 0; i < 1024; i++) {
-        mem = (int*)env->context->mallocHeapObject(sizeof(int));
-        *mem = 53;
-        if (i % 3 == 2) {
-            env->context->freeHeapObject(mem);
-        }
-    }
-
-
-    assert(*mem == 53);
-    assert(env->context->memBufferForHeap.firstBufferBlock != env->context->memBufferForHeap.currentBufferBlock);
-
-    ScriptEnv::deleteScriptEnv(env);
-}
-
 void testStackMemoryPushPopTest() {
     StackMemory stackMemory;
     stackMemory.init();
@@ -383,7 +364,6 @@ fn Main()
 void callTests()
 {
     testCPURegister();
-    mallocHeapTest();
     testStackMemoryPushPopTest();
     testStackMemoryMoveToFrom();
     testStackMemoryCallRet();
@@ -392,7 +372,6 @@ void callTests()
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
     testHeapString();
-    /*
     testNull();
     testScript();
     testScript2();
@@ -402,6 +381,4 @@ void callTests()
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
-    */
-
 }

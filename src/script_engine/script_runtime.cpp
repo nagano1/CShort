@@ -611,7 +611,6 @@ namespace cshort {
 
     int ScriptEnv::startScriptInternal(char* script, int scriptLength)
     {
-        printf("A\n");
         // Load the script
         ScriptEnv *env = ScriptEnv::loadScript(script, scriptLength);
 

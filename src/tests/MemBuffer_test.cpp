@@ -91,6 +91,28 @@ void testLastBlockStaysAvailableAfterDelete()
     buffer.freeAll();
 }
 
+
+void mallocHeapTest() {
+    MemBuffer memBufferForHeap{};
+    memBufferForHeap.initWithHeapEntryEnabled();
+
+    int* mem;
+    for (int i = 0; i < 1024; i++) {
+        mem = (int*)memBufferForHeap.mallocHeapEntry(sizeof(int));
+        *mem = 53;
+        if (i % 3 == 2) {
+            memBufferForHeap.freeHeapEntry(mem);
+        }
+    }
+
+
+    assert(*mem == 53);
+    assert(memBufferForHeap.firstBufferBlock != memBufferForHeap.currentBufferBlock);
+
+    memBufferForHeap.freeAll();
+}
+
+
 void testHashMap() {
     {
         auto hashKey = VoidHashMap::calc_hash_x("ak", 10000);
@@ -153,6 +175,7 @@ int main()
     testAllocationsReuseCurrentBlock();
     testDeletedNonLastBlockIsReleased();
     testLastBlockStaysAvailableAfterDelete();
+    mallocHeapTest();
 
     testHashMap();
     return 0;
