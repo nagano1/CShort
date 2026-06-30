@@ -109,6 +109,7 @@ void mallocHeapTest() {
     assert(*mem == 53);
     assert(memBufferForHeap.firstBufferBlock != memBufferForHeap.currentBufferBlock);
 
+    memBufferForHeap.freeAllHeapEntries();
     memBufferForHeap.freeAll();
 }
 
