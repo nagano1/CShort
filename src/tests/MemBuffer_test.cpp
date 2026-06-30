@@ -92,13 +92,14 @@ void testLastBlockStaysAvailableAfterDelete()
 }
 
 
-void mallocHeapTest() {
+void testMallocHeapEntry() {
     MemBuffer memBufferForHeap{};
     memBufferForHeap.initWithHeapEntryEnabled();
 
     int* mem;
     for (int i = 0; i < 1024; i++) {
         mem = (int*)memBufferForHeap.mallocHeapEntry(sizeof(int));
+        assert(mem != nullptr);
         *mem = 53;
         if (i % 3 == 2) {
             memBufferForHeap.freeHeapEntry(mem);
@@ -109,6 +110,46 @@ void mallocHeapTest() {
     assert(*mem == 53);
     assert(memBufferForHeap.firstBufferBlock != memBufferForHeap.currentBufferBlock);
 
+    memBufferForHeap.freeAllHeapEntries();
+    memBufferForHeap.freeAll();
+}
+
+void testMallocHeapEntrySmallAndLargeFree() {
+    MemBuffer memBufferForHeap{};
+    memBufferForHeap.initWithHeapEntryEnabled();
+
+    constexpr size_t ALIGN = alignof(std::max_align_t);
+    constexpr size_t HEAP_HEADER_SIZE = (sizeof(HeapEntry*) + ALIGN - 1) & ~(ALIGN - 1);
+
+    auto *smallMem = (char*)memBufferForHeap.mallocHeapEntry(1);
+    auto *largeMem = (char*)memBufferForHeap.mallocHeapEntry(64 * 1024);
+
+    assert(smallMem != nullptr);
+    assert(largeMem != nullptr);
+
+    smallMem[0] = 's';
+    largeMem[0] = 'L';
+    largeMem[(64 * 1024) - 1] = 'E';
+
+    assert(smallMem[0] == 's');
+    assert(largeMem[0] == 'L');
+    assert(largeMem[(64 * 1024) - 1] == 'E');
+
+    auto *smallEntry = *(HeapEntry**)((char*)smallMem - HEAP_HEADER_SIZE);
+    auto *largeEntry = *(HeapEntry**)((char*)largeMem - HEAP_HEADER_SIZE);
+    assert(smallEntry != nullptr);
+    assert(largeEntry != nullptr);
+    assert(!smallEntry->freed);
+    assert(!largeEntry->freed);
+
+    memBufferForHeap.freeHeapEntry(smallMem);
+    assert(smallEntry->freed);
+    memBufferForHeap.freeHeapEntry(nullptr);
+
+    memBufferForHeap.freeHeapEntry(largeMem);
+    assert(largeEntry->freed);
+
+    memBufferForHeap.freeAllHeapEntries();
     memBufferForHeap.freeAll();
 }
 
@@ -175,7 +216,8 @@ int main()
     testAllocationsReuseCurrentBlock();
     testDeletedNonLastBlockIsReleased();
     testLastBlockStaysAvailableAfterDelete();
-    mallocHeapTest();
+    testMallocHeapEntry();
+    testMallocHeapEntrySmallAndLargeFree();
 
     testHashMap();
     return 0;
