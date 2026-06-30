@@ -194,13 +194,19 @@ void* MemBuffer::mallocHeapEntry(int bytes) {
 }
 
 void MemBuffer::freeHeapEntry(void *ptr) {
+    if (ptr == nullptr) {
+        return;
+    }
+
     // Retrieve the back-pointer to the HeapEntry struct, which is stored immediately before the allocated memory.
     HeapEntry *item = *(HeapEntry**)((char*)ptr - HEAP_HEADER_SIZE);
     assert(item != nullptr);
-    if (!item->freed) { // prevent double free
-        free(item->ptr);
-        item->freed = true;
+    if (item == nullptr || item->freed) {
+        return; // prevent double free
     }
+
+    free(item->ptr);
+    item->freed = true;
     this->tryDelete<HeapEntry>(item);
 }
 

@@ -92,7 +92,7 @@ void testLastBlockStaysAvailableAfterDelete()
 }
 
 
-void mallocHeapTest() {
+void testMallocHeapEntry() {
     MemBuffer memBufferForHeap{};
     memBufferForHeap.initWithHeapEntryEnabled();
 
@@ -177,7 +177,7 @@ int main()
     testAllocationsReuseCurrentBlock();
     testDeletedNonLastBlockIsReleased();
     testLastBlockStaysAvailableAfterDelete();
-    mallocHeapTest();
+    testMallocHeapEntry();
 
     testHashMap();
     return 0;
