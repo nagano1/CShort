@@ -107,7 +107,6 @@ struct MemBuffer {
     Type *newMem(unsigned int count) {
         assert(!isHeapEntryEnabled || (std::is_same<Type, HeapEntry>::value)); // only HeapEntry is allowed when heap mode is enabled
         auto bytes = st_size_of(Type) * count;
-
         return (Type*)this->newBytesMem(bytes);
     }
     
@@ -117,7 +116,6 @@ struct MemBuffer {
     void *newBytesMem(unsigned int bytes);
 
     // Extension for heap malloc: objects can be freed all together after script execution finishes, simplifying memory management in the script engine.
-
     void* mallocHeapEntry(int bytes);
     void freeHeapEntry(void *ptr);
     void freeAllHeapEntries();
