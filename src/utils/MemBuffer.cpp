@@ -223,26 +223,27 @@ void MemBuffer::freeHeapEntry(void *ptr) {
 
 // Free all heap entries that have not been freed yet.
 void MemBuffer::freeAllHeapEntries() {
+    assert(isHeapEntryEnabled);
+    if (!isHeapEntryEnabled) return;
+
+    static constexpr st_size HEAP_ENTRY_STRIDE = (st_size)((sizeof(HeapEntry) + HEADER + ALIGN - 1) & ~(ALIGN - 1));
+
     auto *block = this->firstBufferBlock;
     while (block != nullptr) {
-        if (block->itemCount > 0) {
-            int currentOffset = 0;
-            // this strategy can be used only for same size items
-            while (currentOffset < DEFAULT_BUFFER_SIZE) {
-                MemBufferBlock* blockRef = *(MemBufferBlock**)((char*)block->chunk + currentOffset + HEADER - sizeof(MemBufferBlock*));
-                if (blockRef == block) { // found an item that belongs to this block
-                    HeapEntry* heapEntry = (HeapEntry*)((char*)block->chunk + currentOffset + HEADER);
-                    if (!heapEntry->freed) {
-                        free(heapEntry->ptr);
-                        heapEntry->freed = true;
-                    }
-                    currentOffset += HEADER + sizeof(HeapEntry);
-                }
-                else {
-                    // reached the end of items in this block
-                    break;
-                }
+        st_size currentOffset = 0;
+        // this strategy can be used only for same size items
+        while (currentOffset < DEFAULT_BUFFER_SIZE) {
+            auto *blockRef = *(MemBufferBlock**)((char*)block->chunk + currentOffset + HEADER - sizeof(MemBufferBlock*));
+            if (blockRef != block) { // reached the end of items in this block
+                break;
             }
+
+            auto *heapEntry = (HeapEntry*)((char*)block->chunk + currentOffset + HEADER);
+            if (!heapEntry->freed) {
+                free(heapEntry->ptr);
+                heapEntry->freed = true;
+            }
+            currentOffset += HEAP_ENTRY_STRIDE;
         }
         block = block->next;
     }
