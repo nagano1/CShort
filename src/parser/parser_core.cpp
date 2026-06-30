@@ -17,7 +17,7 @@
 #include <ctime>
 #include <stdint.h>
 
-#include "code_nodes.hpp"
+#include "parser.hpp"
 
 namespace cshort
 {

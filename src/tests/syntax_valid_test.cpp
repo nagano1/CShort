@@ -5,7 +5,7 @@
 
 #include <cstdio>
 
-#include "code_nodes.hpp"
+#include "parser.hpp"
 #include "ParseUtil.hpp"
 
 using namespace cshort;
