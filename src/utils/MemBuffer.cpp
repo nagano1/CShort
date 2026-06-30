@@ -181,10 +181,21 @@ static constexpr size_t HEAP_HEADER_SIZE = (sizeof(HeapEntry*) + ALIGN - 1) & ~(
 // allocation methods of heap objects in running script, which will be freed all together
 // after script execution finishes even if user couldn't handle freeing the objects in their script.
 void* MemBuffer::mallocHeapEntry(int bytes) {
+    if (bytes <= 0) {
+        return nullptr;
+    }
+    size_t totalSize = (size_t)bytes + HEAP_HEADER_SIZE;
+    if (totalSize < HEAP_HEADER_SIZE) { // overflow check
+        return nullptr;
+    }
+    void *rawPtr = malloc(totalSize); // allocate extra space for back-pointer
+    if (rawPtr == nullptr) {
+        return nullptr;
+    }
+
     auto *heapEntry = this->newMem<HeapEntry>(1);
     heapEntry->freed = false;
-
-    heapEntry->ptr = malloc(bytes + HEAP_HEADER_SIZE); // allocate extra space for back-pointer
+    heapEntry->ptr = rawPtr;
 
     // Store a back-pointer to the HeapEntry struct immediately before the allocated memory.
     HeapEntry** addressPtr = (HeapEntry**)heapEntry->ptr;
