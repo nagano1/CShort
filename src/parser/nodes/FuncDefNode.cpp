@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <ctime>
 
-#include "code_nodes.hpp"
+#include "parser.hpp"
 
 namespace cshort {
     // FuncDefNodeStruct represents a function declaration. It contains the function name, parameters, and body.
