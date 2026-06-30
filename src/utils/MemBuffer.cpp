@@ -21,6 +21,7 @@ void MemBuffer::init() {
     this->currentMemOffset = DEFAULT_BUFFER_SIZE + 1;
     this->firstBufferBlock = nullptr;
     this->currentBufferBlock = nullptr;
+    this->isHeapEntryEnabled = false;
 }
 
 void MemBuffer::initWithHeapEntryEnabled() {
