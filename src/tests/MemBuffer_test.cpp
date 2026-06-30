@@ -99,6 +99,7 @@ void testMallocHeapEntry() {
     int* mem;
     for (int i = 0; i < 1024; i++) {
         mem = (int*)memBufferForHeap.mallocHeapEntry(sizeof(int));
+        assert(mem != nullptr);
         *mem = 53;
         if (i % 3 == 2) {
             memBufferForHeap.freeHeapEntry(mem);
