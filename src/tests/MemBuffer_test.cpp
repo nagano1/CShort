@@ -114,6 +114,45 @@ void testMallocHeapEntry() {
     memBufferForHeap.freeAll();
 }
 
+void testMallocHeapEntrySmallAndLargeFree() {
+    MemBuffer memBufferForHeap{};
+    memBufferForHeap.initWithHeapEntryEnabled();
+
+    constexpr size_t ALIGN = alignof(std::max_align_t);
+    constexpr size_t HEAP_HEADER_SIZE = (sizeof(HeapEntry*) + ALIGN - 1) & ~(ALIGN - 1);
+
+    auto *smallMem = (char*)memBufferForHeap.mallocHeapEntry(1);
+    auto *largeMem = (char*)memBufferForHeap.mallocHeapEntry(64 * 1024);
+
+    assert(smallMem != nullptr);
+    assert(largeMem != nullptr);
+
+    smallMem[0] = 's';
+    largeMem[0] = 'L';
+    largeMem[(64 * 1024) - 1] = 'E';
+
+    assert(smallMem[0] == 's');
+    assert(largeMem[0] == 'L');
+    assert(largeMem[(64 * 1024) - 1] == 'E');
+
+    auto *smallEntry = *(HeapEntry**)((char*)smallMem - HEAP_HEADER_SIZE);
+    auto *largeEntry = *(HeapEntry**)((char*)largeMem - HEAP_HEADER_SIZE);
+    assert(smallEntry != nullptr);
+    assert(largeEntry != nullptr);
+    assert(!smallEntry->freed);
+    assert(!largeEntry->freed);
+
+    memBufferForHeap.freeHeapEntry(smallMem);
+    assert(smallEntry->freed);
+    memBufferForHeap.freeHeapEntry(nullptr);
+
+    memBufferForHeap.freeHeapEntry(largeMem);
+    assert(largeEntry->freed);
+
+    memBufferForHeap.freeAllHeapEntries();
+    memBufferForHeap.freeAll();
+}
+
 
 void testHashMap() {
     {
@@ -179,6 +218,7 @@ int main()
     testDeletedNonLastBlockIsReleased();
     testLastBlockStaysAvailableAfterDelete();
     testMallocHeapEntry();
+    testMallocHeapEntrySmallAndLargeFree();
 
     testHashMap();
     return 0;
