@@ -25,14 +25,13 @@ void MemBuffer::init() {
 
 void MemBuffer::initWithHeapEntryEnabled() {
     this->init();
-
     this->isHeapEntryEnabled = true;
 }
 
 void MemBuffer::freeAll() {
     MemBufferBlock *bufferList = this->firstBufferBlock;
 
-    while (bufferList) {
+    while (bufferList != nullptr) {
         free(bufferList->chunk);
 
         auto *temp = bufferList;
@@ -59,7 +58,8 @@ void MemBuffer::tryFreeMemoryBlock(MemBufferBlock *memBufferBlock)
 
             this->firstBufferBlock = memBufferBlock->next;
             memBufferBlock->next->prev = nullptr;
-        } else {
+        }
+        else {
             prev->next = memBufferBlock->next;
             memBufferBlock->next->prev = prev;
         }
@@ -159,4 +159,74 @@ void *MemBuffer::newBytesMem(unsigned int bytes) {
     }
 
     return (void*)((st_byte*)node + HEADER);
+}
+
+// ----------------------------------------------------------------
+//
+//                    MemBuffer Extension : heap malloc
+//
+// ----------------------------------------------------------------
+
+/*
+
+MemBufferBlock
+-------------------------------------------------
+|MemBufferBlock*|HeapEntry|MemBufferBlock*|HeapEntry|...
+-------------------------------------------------
+*/
+
+
+static constexpr size_t HEAP_HEADER_SIZE = (sizeof(HeapEntry*) + ALIGN - 1) & ~(ALIGN - 1);
+
+// allocation methods of heap objects in running script, which will be freed all together
+// after script execution finishes even if user couldn't handle freeing the objects in their script.
+void* MemBuffer::mallocHeapEntry(int bytes) {
+    auto *heapEntry = this->newMem<HeapEntry>(1);
+    heapEntry->freed = false;
+
+    heapEntry->ptr = malloc(bytes + HEAP_HEADER_SIZE); // allocate extra space for back-pointer
+
+    // Store a back-pointer to the HeapEntry struct immediately before the allocated memory.
+    HeapEntry** addressPtr = (HeapEntry**)heapEntry->ptr;
+    *addressPtr = heapEntry;
+
+    return ((char*)heapEntry->ptr) + HEAP_HEADER_SIZE;
+}
+
+void MemBuffer::freeHeapEntry(void *ptr) {
+    // Retrieve the back-pointer to the HeapEntry struct, which is stored immediately before the allocated memory.
+    HeapEntry *item = *(HeapEntry**)((char*)ptr - HEAP_HEADER_SIZE);
+    assert(item != nullptr);
+    if (!item->freed) { // prevent double free
+        free(item->ptr);
+        item->freed = true;
+    }
+    this->tryDelete<HeapEntry>(item);
+}
+
+// Free all heap entries that have not been freed yet.
+void MemBuffer::freeAllHeapEntries() {
+    auto *block = this->firstBufferBlock;
+    while (block != nullptr) {
+        if (block->itemCount > 0) {
+            int currentOffset = 0;
+            // this strategy can be used only for same size items
+            while (currentOffset < DEFAULT_BUFFER_SIZE) {
+                MemBufferBlock* blockRef = *(MemBufferBlock**)((char*)block->chunk + currentOffset + HEADER - sizeof(MemBufferBlock*));
+                if (blockRef == block) { // found an item that belongs to this block
+                    HeapEntry* heapEntry = (HeapEntry*)((char*)block->chunk + currentOffset + HEADER);
+                    if (!heapEntry->freed) {
+                        free(heapEntry->ptr);
+                        heapEntry->freed = true;
+                    }
+                    currentOffset += HEADER + sizeof(HeapEntry);
+                }
+                else {
+                    // reached the end of items in this block
+                    break;
+                }
+            }
+        }
+        block = block->next;
+    }
 }
