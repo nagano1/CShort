@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <cstddef> // std::max_align_t
 #include <ctime>
+#include <type_traits>
 
 
 using utf8byte = char;
@@ -104,6 +105,7 @@ struct MemBuffer {
 
     template<typename Type>
     Type *newMem(unsigned int count) {
+        assert(!isHeapEntryEnabled || (std::is_same<Type, HeapEntry>::value)); // only HeapEntry is allowed when heap mode is enabled
         auto bytes = st_size_of(Type) * count;
         return (Type*)this->newBytesMem(bytes);
     }
@@ -112,6 +114,11 @@ struct MemBuffer {
     utf8byte *newTextAssign(const utf8byte *text, unsigned int count);
 
     void *newBytesMem(unsigned int bytes);
+
+    // Extension for heap malloc: objects can be freed all together after script execution finishes, simplifying memory management in the script engine.
+    void* mallocHeapEntry(int bytes);
+    void freeHeapEntry(void *ptr);
+    void freeAllHeapEntries();
 };
 
 
