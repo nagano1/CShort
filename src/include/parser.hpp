@@ -248,9 +248,10 @@ namespace cshort {
         bool hasTypeDecl() {
             return hasTypeOrLet && !typeOrLet.isLet;
         }
+
         //SymbolTokenStruct pointerAsterisk; // *
 
-        int stackOffset;
+        int stackOffset; // stack offset for this variable, used for code generation and runtime stack memory management.
         IdentifierTokenStruct variableNameToken; // variable name
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
@@ -378,6 +379,8 @@ namespace cshort {
         SymbolTokenStruct opToken; // op can be +, -, *, /, %, etc..
         BinaryOperationGroup opGroup;
         BinaryOperator binaryOp; 
+        // if true, the left and right expression nodes do not need to save their registers, used for optimization
+        bool noNeedToSaveRegisters;
 
         NodeBase *leftExprNode;
         NodeBase *rightExprNode;
@@ -411,6 +414,14 @@ namespace cshort {
     };
 
 
+    struct ValidationContext {
+        DocumentStruct *document;
+        MemBuffer memBuffer;
+        void init() {
+            memBuffer.init();
+        }
+    };
+
     struct ParseContext {
         st_uint start;
         int length;
@@ -440,20 +451,20 @@ namespace cshort {
 
         MemBuffer memBuffer;
         MemBuffer memBufferForCodeLines;
+        MemBuffer memBufferForError;
+        MemBuffer memBufferForTypeManager;
 
-        void init() {
-            memBuffer.init();
-            memBufferForCodeLines.init();
-            appendLineMode = AppendLineMode::Normal;
-            syntaxErrorInfo.hasError = false;
-            syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
-            syntaxErrorInfo.errorItem.errorId = 10000;
-        }
+        //TypeManager *typeManager;
 
-        void dispose() {
-            memBuffer.freeAll();
-            memBufferForCodeLines.freeAll();
-        }
+        SemanticErrorInfo semanticErrorInfo;
+
+        VoidHashMap *variableMap2;
+//        VoidHashMap *typeNameMap;
+
+
+
+        void init();
+        void dispose();
 
         template<typename T>
         T *newMem() {
@@ -487,26 +498,9 @@ namespace cshort {
             return memBuffer.newMem<T>(1);
         }
 
-        static int IncrementIndentDepth(ParseContext *context) {
-            auto formerIndentDepth = context->currentIndentDepth;
-            if (!context->isAfterOpenParenthesis) {
-                context->currentIndentDepth++;
-            }
-            context->isAfterOpenParenthesis = false;
-            return formerIndentDepth;
-        }
-
-        static int IncrementIndentDepthForParenthesis(ParseContext *context) {
-            auto formerIndentDepth = context->currentIndentDepth;
-            context->isAfterOpenParenthesis = true;
-            context->currentIndentDepth++;
-            return formerIndentDepth;
-        }
-
-        static void DecrementIndentDepth(ParseContext *context) {
-            context->currentIndentDepth--;
-        }
-
+        int IncrementIndentDepth(ParseContext *context);
+        int IncrementIndentDepthForParenthesis(ParseContext *context);
+        void DecrementIndentDepth(ParseContext *context);
         
         int baseIndent;
         SyntaxErrorInfo syntaxErrorInfo;
@@ -516,55 +510,16 @@ namespace cshort {
         bool incrementDepthOnNextLine{false}; // when true, the next line break will increase indent depth by 1.
         int arithmeticBaseDepth{ -1 };
 
-        void setError(ErrorIndex errorCode, st_int startPos) {
-            setError2(errorCode, startPos, startPos);
-        }
+        void setError(ErrorIndex errorCode, st_int startPos);
 
-        inline int getNextLineIndentDepth() const {
-            return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
-        }
+        int getNextLineIndentDepth() const;
 
-        void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
-            if (syntaxErrorInfo.hasError) {
-                return;
-            }
-            syntaxErrorInfo.hasError = true;
-            auto &item = syntaxErrorInfo.errorItem;
-            item.errorIndex = errorCode;
-            item.errorId = getErrorCode(errorCode);
-            item.charPosition = startPos;
-            item.charPosition2 = startPos2;
+        void setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2);
+        void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1);
+        void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2);
+        void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) ;
 
-            const char *msg = getErrorMessage(errorCode);
-            if (msg != nullptr) {
-                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
-                item.reasonLength = static_cast<int>(strlen(item.reason));
-            }
-        }
-
-        void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1) {
-            setError3(errorCode, line1, charPos1, line1, charPos1);
-        }
-
-        void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2) {
-            if (syntaxErrorInfo.hasError) {
-                return;
-            }
-            syntaxErrorInfo.hasError = true;
-            auto &item = syntaxErrorInfo.errorItem;
-            item.errorIndex = errorCode;
-            item.errorId = getErrorCode(errorCode);
-            item.linePos1 = line1;
-            item.charPos1 = charPos1;
-            item.linePos2 = line2;
-            item.charPos2 = charPos2;
-
-            const char *msg = getErrorMessage(errorCode);
-            if (msg != nullptr) {
-                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
-                item.reasonLength = static_cast<int>(strlen(item.reason));
-            }
-        }
+        
     };
 
 
@@ -633,24 +588,24 @@ namespace cshort {
 
 
     #define ApplyFunc_params3 \
-        void *scriptEngineContext, \
+        ParseContext *context, \
         void *targetVTable, \
-        int (*func)(NodeBase *, void *scriptEngineContext, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
+        int (*func)(NodeBase *, cshort::ParseContext *context, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
         bool parentIsFirst,           \
         void *topLevelNodeInBody,           \
         void *arg2
 
     #define TokenApplyFunc_params3 \
-        void *scriptEngineContext, \
+        ParseContext *context, \
         void *targetVTable, \
-        int (*func)(TokenBase *, void *scriptEngineContext, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
+        int (*func)(TokenBase *, cshort::ParseContext *context, void *targetVTable,void *func, bool parentIsFirst, void *arg, void *arg2), \
         bool parentIsFirst,           \
         void *topLevelNodeInBody,           \
         void *arg2
 
 
     #define ApplyFunc_params2 \
-        void *scriptEngineContext, \
+        ParseContext *context, \
         void *targetVTable, \
         void *func, \
         bool parentIsFirst,           \
@@ -659,11 +614,11 @@ namespace cshort {
 
 
     #define ApplyFunc_pass \
-                scriptEngineContext, \
+                context, \
                 targetVTable, (void *)func, parentIsFirst, topLevelNodeInBody, arg2
 
     #define ApplyFunc_pass2 \
-                scriptEngineContext, \
+                context, \
                 targetVTable, func, parentIsFirst, topLevelNodeInBody, arg2
 
 
@@ -675,7 +630,7 @@ namespace cshort {
         int (*applyFuncToDescendants)(T *Node, ApplyFunc_params3); \
         const char *typeChars; \
         int typeCharsLength; \
-        int (*typeSelector)(void *env, NodeBase *self);     \
+        int (*typeSelector)(NodeBase *self);     \
         NodeTypeId nodeTypeId; \
 
     #define TOKEN_VTABLE_DEF(T) \
@@ -686,7 +641,7 @@ namespace cshort {
         int (*applyFuncToDescendants)(T *Node, TokenApplyFunc_params3); \
         const char *typeChars; \
         int typeCharsLength; \
-        int (*typeSelector)(void *env, NodeBase *self);     \
+        int (*typeSelector)(TokenBase *self);     \
         TokenTypeId nodeTypeId; \
 
 
@@ -950,7 +905,6 @@ namespace cshort {
                 auto currentToken = token;
                 token = token->nextTokenInLine; // assign next token before checking current token
 
-                printf("currentToken: %s\n", TokenVTableCall::typeText(currentToken));
                 if (currentToken->vtable == VTables::BlockCommentFragmentVTable
                      || currentToken->vtable == VTables::BlockCommentVTable) {
                     continue;
@@ -967,6 +921,7 @@ namespace cshort {
             }
             return true;
         }
+        
         // insert token into this line, if prev is null, insert it into top of the line
         CodeLine *insertToken(TokenBase *token, TokenBase *prev) {
             if (firstToken == nullptr) {
@@ -1151,6 +1106,7 @@ namespace cshort {
 
         static utf8byte *getTextFromTree(DocumentStruct *doc);
     };
+
 
 
     struct Init {

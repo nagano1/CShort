@@ -1,13 +1,27 @@
 ﻿#pragma once
 
 #include <stdlib.h>
-
+//#include <array>
+//
+//#include <cstdlib>
+//#include <cassert>
+//#include <cstdio>
+//#include <chrono>
+//#include <unordered_map>
+//
+//#include <cstdint> // uint64_t, int_fast32_t
+//#include <ctime>
+//
+//#include <string.h> // memcpy
+//
 #include "ParseUtil.hpp"
 #include "common.hpp"
 #include "parser.hpp"
+//#include "types.hpp"
 
 namespace cshort
 {
+    struct _ScriptEnv;
 
     // general-purpose register	GPR
     enum class GRPRegisterEnum {
@@ -113,6 +127,13 @@ namespace cshort
 
         return nullptr;
     }
+
+    using BinaryOperationResult = struct _BinaryOperationResult {
+        GRPRegisterEnum calcRegEnum;
+        st_byte *calcReg;
+        int typeIndex;
+        bool typeAtHeap;
+    };
 
     ///
     /// Simulation of stack memory for the script engine.

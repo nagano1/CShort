@@ -58,8 +58,8 @@ namespace cshort {
 
         auto *context = mallocForType<ParseContext>();
         auto *doc = mallocForType<DocumentStruct>();
-        context->init();
 
+        context->init();
 
         INIT_NODE(doc, context, nullptr, VTables::DocumentVTable);
         INIT_NODE(&doc->endOfFile, context, Cast::upcast(doc), VTables::EndOfFileVTable);
@@ -82,6 +82,7 @@ namespace cshort {
         free(doc->context);
         free(doc);
     }
+
 
     utf8byte *DocumentUtils::getTextFromTree(DocumentStruct *doc)
     {

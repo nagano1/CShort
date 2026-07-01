@@ -206,7 +206,6 @@ void testHashMap() {
             assert(node2 == nullptr);
         }
     }
-
     context->dispose();
     free(context);
 }
