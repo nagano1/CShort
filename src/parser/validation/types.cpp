@@ -24,7 +24,7 @@
 namespace cshort {
     TypeEntry *TypeManager::newTypeEntry(ParseContext *context) const
     {
-        auto *emptyTypeEntry = context->memBuffer.newMem<TypeEntry>(1);
+        auto *emptyTypeEntry = context->memBufferForTypeManager.newMem<TypeEntry>(1);
         //emptyTypeEntry->toString = nullptr;
         emptyTypeEntry->binary_operate = nullptr;
         emptyTypeEntry->canAssignTypeImplicitly = nullptr;
@@ -96,20 +96,6 @@ namespace cshort {
     //                                Built-in Types
     //
     //------------------------------------------------------------------------------------------
-
-    // Converts an int32 value to a string.
-    char* int32_toString(ScriptEngineContext *context, ValueBase *value)
-    {
-        // allocate memory for the string representation of the int32 value
-        //auto *chars = (char*)malloc(sizeof(char) * 64);
-        const int bufferSize = 13;
-        auto *chars = context->memBufferForHeap.newText(bufferSize);
-        // PRId32 means the format specifier for a 32-bit signed integer,
-        // ensuring that the output is correctly formatted regardless of platform.
-        // snprintf append null terminator automatically
-        snprintf(chars, bufferSize, "%" PRId32, *(int32_t*)value->ptr);
-        return chars;
-    }
 
     int canAssignType_i32(ParseContext *context, TypeEntry *otherType)
     {
@@ -280,12 +266,12 @@ namespace cshort {
     int TypeManager::typeFromNode(NodeBase *node)
     {
         if (node->vtable->typeSelector != nullptr) {
-            return node->vtable->typeSelector(this, node);
+            return node->vtable->typeSelector(node);
         }
         return -1;
     }
 
-    static int selectTypeFromNumberNode(ScriptEnv *env, NumberNodeStruct *numberNode)
+    static int selectTypeFromNumberNode(NumberNodeStruct *numberNode)
     {
         if (numberNode->unit == 64) {
             numberNode->typeIndex = BuiltInTypeIndex::int64;
@@ -297,7 +283,7 @@ namespace cshort {
         return numberNode->typeIndex;
     }
 
-    static int selectTypeFromConstNode(ScriptEnv *env, LiteralValueNodeStruct *nodeBase)
+    static int selectTypeFromConstNode(LiteralValueNodeStruct *nodeBase)
     {
         if (nodeBase->isStringLiteral) {
             return nodeBase->typeIndex = BuiltInTypeIndex::heapString;
@@ -314,8 +300,8 @@ namespace cshort {
     }
 
     template<typename T>
-    static void setTypeSelector(const node_vtable* vtable, int (*argToType)(ScriptEnv*, T*)) {
-        ((node_vtable*)vtable)->typeSelector = reinterpret_cast<int (*)(void *, NodeBase *)>(argToType);
+    static void setTypeSelector(const node_vtable* vtable, int (*argToType)(T*)) {
+        ((node_vtable*)vtable)->typeSelector = reinterpret_cast<int (*)(NodeBase *)>(argToType);
     }
 
     void TypeManager::setupBuiltInTypeSelectors()

@@ -111,8 +111,8 @@ namespace cshort
             //            this->variableMap2 = this->memBuffer.newMem<VoidHashMap>(1);
             //this->variableMap2->init(&this->memBuffer);
 
-            this->typeNameMap = context->memBuffer.newMem<VoidHashMap>(1);
-            this->typeNameMap->init(&context->memBuffer);
+            this->typeNameMap = context->memBufferForTypeManager.newMem<VoidHashMap>(1);
+            this->typeNameMap->init(&context->memBufferForTypeManager);
 
             registerBuiltInTypes(context);
         }

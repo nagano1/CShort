@@ -30,6 +30,8 @@ namespace cshort
     void ParseContext::init() {
         memBuffer.init();
         memBufferForCodeLines.init();
+        memBufferForTypeManager.init();
+
         appendLineMode = AppendLineMode::Normal;
         syntaxErrorInfo.hasError = false;
         syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
@@ -40,7 +42,7 @@ namespace cshort
         semanticErrorInfo.firstErrorItem = nullptr;
         semanticErrorInfo.lastErrorItem = nullptr;
 
-        typeManager = memBuffer.newMem<TypeManager>(1);
+        typeManager = memBufferForTypeManager.newMem<TypeManager>(1);
         typeManager->init(this);
 
         memBufferForError.init();
@@ -87,6 +89,7 @@ namespace cshort
             memBuffer.freeAll();
             memBufferForCodeLines.freeAll();
             memBufferForError.freeAll();
+            //memBufferForTypeManager.freeAll();
         }
 
 

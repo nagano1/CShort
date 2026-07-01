@@ -67,6 +67,13 @@ namespace cshort {
         Empty = 0,
     };
 
+    // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
+    using ValueBase = struct _valueBase {
+        int typeIndex;
+        void* ptr;
+        unsigned int size; // in byte
+    };
+
     enum class BuildinTypeId {
         Int32 = 1,
         Int64 = 2,
@@ -481,6 +488,7 @@ namespace cshort {
         MemBuffer memBuffer;
         MemBuffer memBufferForCodeLines;
         MemBuffer memBufferForError;
+        MemBuffer memBufferForTypeManager;
 
         TypeManager *typeManager;
 
@@ -658,7 +666,7 @@ namespace cshort {
         int (*applyFuncToDescendants)(T *Node, ApplyFunc_params3); \
         const char *typeChars; \
         int typeCharsLength; \
-        int (*typeSelector)(void *env, NodeBase *self);     \
+        int (*typeSelector)(NodeBase *self);     \
         NodeTypeId nodeTypeId; \
 
     #define TOKEN_VTABLE_DEF(T) \
@@ -669,7 +677,7 @@ namespace cshort {
         int (*applyFuncToDescendants)(T *Node, TokenApplyFunc_params3); \
         const char *typeChars; \
         int typeCharsLength; \
-        int (*typeSelector)(void *env, NodeBase *self);     \
+        int (*typeSelector)(TokenBase *self);     \
         TokenTypeId nodeTypeId; \
 
 
