@@ -30,6 +30,8 @@ namespace cshort
     void ParseContext::init() {
         memBuffer.init();
         memBufferForCodeLines.init();
+        memBufferForTypeManager.init();
+
         appendLineMode = AppendLineMode::Normal;
         syntaxErrorInfo.hasError = false;
         syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
@@ -87,6 +89,7 @@ namespace cshort
             memBuffer.freeAll();
             memBufferForCodeLines.freeAll();
             memBufferForError.freeAll();
+            memBufferForTypeManager.freeAll();
         }
 
 

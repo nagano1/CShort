@@ -481,6 +481,7 @@ namespace cshort {
         MemBuffer memBuffer;
         MemBuffer memBufferForCodeLines;
         MemBuffer memBufferForError;
+        MemBuffer memBufferForTypeManager;
 
         TypeManager *typeManager;
 
@@ -658,7 +659,7 @@ namespace cshort {
         int (*applyFuncToDescendants)(T *Node, ApplyFunc_params3); \
         const char *typeChars; \
         int typeCharsLength; \
-        int (*typeSelector)(void *env, NodeBase *self);     \
+        int (*typeSelector)(NodeBase *self);     \
         NodeTypeId nodeTypeId; \
 
     #define TOKEN_VTABLE_DEF(T) \
@@ -669,7 +670,7 @@ namespace cshort {
         int (*applyFuncToDescendants)(T *Node, TokenApplyFunc_params3); \
         const char *typeChars; \
         int typeCharsLength; \
-        int (*typeSelector)(void *env, NodeBase *self);     \
+        int (*typeSelector)(TokenBase *self);     \
         TokenTypeId nodeTypeId; \
 
 

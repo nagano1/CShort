@@ -24,7 +24,7 @@
 namespace cshort {
     TypeEntry *TypeManager::newTypeEntry(ParseContext *context) const
     {
-        auto *emptyTypeEntry = context->memBuffer.newMem<TypeEntry>(1);
+        auto *emptyTypeEntry = context->memBufferForTypeManager.newMem<TypeEntry>(1);
         //emptyTypeEntry->toString = nullptr;
         emptyTypeEntry->binary_operate = nullptr;
         emptyTypeEntry->canAssignTypeImplicitly = nullptr;
@@ -280,7 +280,7 @@ namespace cshort {
     int TypeManager::typeFromNode(NodeBase *node)
     {
         if (node->vtable->typeSelector != nullptr) {
-            return node->vtable->typeSelector(this, node);
+            return node->vtable->typeSelector(node);
         }
         return -1;
     }
@@ -315,7 +315,7 @@ namespace cshort {
 
     template<typename T>
     static void setTypeSelector(const node_vtable* vtable, int (*argToType)(ScriptEnv*, T*)) {
-        ((node_vtable*)vtable)->typeSelector = reinterpret_cast<int (*)(void *, NodeBase *)>(argToType);
+        ((node_vtable*)vtable)->typeSelector = reinterpret_cast<int (*)(NodeBase *)>(argToType);
     }
 
     void TypeManager::setupBuiltInTypeSelectors()
