@@ -40,9 +40,6 @@ namespace cshort {
         COMMON_HEADER \
         const struct node_vtable *vtable; /* virtual table */ \
         _NodeBase *nextNode; \
-        GRPRegisterEnum calcRegEnum; \
-        st_byte *calcReg;                 \
-        int typeIndex;                \
 
     #define TOKEN_HEADER \
         COMMON_HEADER \
@@ -67,28 +64,6 @@ namespace cshort {
         Empty = 0,
     };
 
-    // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
-    using ValueBase = struct _valueBase {
-        int typeIndex;
-        void* ptr;
-        unsigned int size; // in byte
-    };
-
-    enum class BuildinTypeId {
-        Int32 = 1,
-        Int64 = 2,
-        HeapString = 23,
-        Null = 24,
-        Bool = 3,
-    };
-
-    struct BuiltInTypeIndex {
-        static int int32;
-        static int int64;
-        static int boolIdx;
-        static int null;
-        static int heapString;
-    };
 
     #define INIT_NODE(node, context, parent, argvtable) \
         (node)->vtable = (argvtable); \
@@ -97,9 +72,6 @@ namespace cshort {
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
         (node)->nextNode = nullptr; \
-        (node)->typeIndex = (int)TypeIndexEnum::NotAssigned; \
-        (node)->calcRegEnum = (GRPRegisterEnum)0; \
-        (node)->calcReg = nullptr; \
         (0)
 
     #define INIT_TOKEN(token, context, parent, argvtable) \
@@ -449,15 +421,6 @@ namespace cshort {
         DetectErrorSpanTokens // add tokens only on the line that has syntax error, used for LSP server to reduce unnecessary addition.
     };
 
-
-    struct ValidationContext {
-        DocumentStruct *document;
-        MemBuffer memBuffer;
-        void init() {
-            memBuffer.init();
-        }
-    };
-
     struct ParseContext {
         st_uint start;
         int length;
@@ -493,11 +456,6 @@ namespace cshort {
         TypeManager *typeManager;
 
         SemanticErrorInfo semanticErrorInfo;
-
-        VoidHashMap *variableMap2;
-//        VoidHashMap *typeNameMap;
-
-
 
         void init();
         void dispose();
