@@ -10,14 +10,14 @@
 
 using namespace cshort;
 
-void testParsing();
+void callTests();
 
 int main()
 {
     printf("----------------- CShort test ----------------\n");
     fflush(stdout);
 
-    testParsing();
+    callTests();
 
     return 0;
 }
@@ -117,7 +117,7 @@ void checkIndentDepth(const char *chars, const int indentDepthRuleList[], int ru
 
     Alloc::deleteDocument(document);
 }
-void testParsing()
+void callTests()
 {
     checkIndentDepth(classOnlyText, indentDepthRuleList1, sizeof(indentDepthRuleList1) / sizeof(indentDepthRuleList1[0]));
     checkIndentDepth(classOnlyText2, indentDepthRuleList2, sizeof(indentDepthRuleList2) / sizeof(indentDepthRuleList2[0]));

@@ -18,11 +18,156 @@
 #include <stdint.h>
 
 #include "parser.hpp"
+//#include "types.hpp"
 
 namespace cshort
 {
     ErrorInfo ErrorInfo::ErrorInfoList[errorListSize]; // errorIndex -> ErrorInfo
     struct InternalParsingData;
+
+
+    
+    void ParseContext::init() {
+        memBuffer.init();
+        memBufferForCodeLines.init();
+        memBufferForTypeManager.init();
+
+        appendLineMode = AppendLineMode::Normal;
+        syntaxErrorInfo.hasError = false;
+        syntaxErrorInfo.errorItem.errorIndex = ErrorIndex::no_syntax_error;
+        syntaxErrorInfo.errorItem.errorId = 10000;
+
+        semanticErrorInfo.hasError = false;
+        semanticErrorInfo.count = 0;
+        semanticErrorInfo.firstErrorItem = nullptr;
+        semanticErrorInfo.lastErrorItem = nullptr;
+
+//        typeManager = memBufferForTypeManager.newMem<TypeManager>(1);
+//        typeManager->init(this);
+
+        memBufferForError.init();
+    }
+
+
+    void ParseContext::addErrorWithNode(ErrorIndex errorCode, void* nodeArg) {
+            printf("semantic error: %s\n", getErrorMessage(errorCode));
+            auto *node = Cast::upcast(nodeArg);
+            assert(node->vtable != nullptr);
+
+            auto &errorInfo = this->semanticErrorInfo;
+            errorInfo.count++;
+            errorInfo.hasError = true;
+            auto *mem = this->memBufferForError.newMem<SemanticErrorItem>(1);
+            mem->node = node;
+            mem->codeErrorItem.errorIndex = errorCode;
+            mem->codeErrorItem.linePos1 = -1;
+            mem->next = nullptr;
+            if (errorInfo.firstErrorItem == nullptr) {
+                errorInfo.firstErrorItem = mem;
+            }
+
+            if (errorInfo.lastErrorItem == nullptr) {
+                errorInfo.lastErrorItem = mem;
+            }
+            else {
+                errorInfo.lastErrorItem->next = mem;
+                errorInfo.lastErrorItem = mem;
+            }
+
+            mem->codeErrorItem.errorId = getErrorCode(errorCode);
+            const char* reason = getErrorMessage(errorCode);
+            if (reason == nullptr) {
+                reason = "";
+            }
+            int len = (int)strlen(reason);
+            mem->codeErrorItem.reasonLength = len < MAX_REASON_LENGTH ? len : MAX_REASON_LENGTH;
+            memcpy(mem->codeErrorItem.reason, reason, mem->codeErrorItem.reasonLength);
+            mem->codeErrorItem.reason[mem->codeErrorItem.reasonLength] = '\0';
+        }
+
+        void ParseContext::dispose() {
+            memBuffer.freeAll();
+            memBufferForCodeLines.freeAll();
+            memBufferForError.freeAll();
+            //memBufferForTypeManager.freeAll();
+        }
+
+
+        int ParseContext::IncrementIndentDepth(ParseContext *context) {
+            auto formerIndentDepth = currentIndentDepth;
+            if (!isAfterOpenParenthesis) {
+                currentIndentDepth++;
+            }
+            isAfterOpenParenthesis = false;
+            return formerIndentDepth;
+        }
+
+        int ParseContext::IncrementIndentDepthForParenthesis(ParseContext *context) {
+            auto formerIndentDepth = currentIndentDepth;
+            isAfterOpenParenthesis = true;
+            currentIndentDepth++;
+            return formerIndentDepth;
+        }
+
+        void ParseContext::DecrementIndentDepth(ParseContext *context) {
+            currentIndentDepth--;
+        }
+
+        
+        
+        void ParseContext::setError(ErrorIndex errorCode, st_int startPos) {
+            setError2(errorCode, startPos, startPos);
+        }
+
+        int ParseContext::getNextLineIndentDepth() const {
+            return currentIndentDepth + (incrementDepthOnNextLine ? 1 : 0);
+        }
+
+        void ParseContext::setError2(ErrorIndex errorCode, st_int startPos, st_int startPos2) {
+            if (syntaxErrorInfo.hasError) {
+                return;
+            }
+            syntaxErrorInfo.hasError = true;
+            auto &item = syntaxErrorInfo.errorItem;
+            item.errorIndex = errorCode;
+            item.errorId = getErrorCode(errorCode);
+            item.charPosition = startPos;
+            item.charPosition2 = startPos2;
+
+            const char *msg = getErrorMessage(errorCode);
+            if (msg != nullptr) {
+                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
+                item.reasonLength = static_cast<int>(strlen(item.reason));
+            }
+        }
+
+        void ParseContext::setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1) {
+            setError3(errorCode, line1, charPos1, line1, charPos1);
+        }
+
+        void ParseContext::setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2) {
+            if (syntaxErrorInfo.hasError) {
+                return;
+            }
+            syntaxErrorInfo.hasError = true;
+            auto &item = syntaxErrorInfo.errorItem;
+            item.errorIndex = errorCode;
+            item.errorId = getErrorCode(errorCode);
+            item.linePos1 = line1;
+            item.charPos1 = charPos1;
+            item.linePos2 = line2;
+            item.charPos2 = charPos2;
+
+            const char *msg = getErrorMessage(errorCode);
+            if (msg != nullptr) {
+                snprintf(item.reason, MAX_REASON_LENGTH, "%s", msg);
+                item.reasonLength = static_cast<int>(strlen(item.reason));
+            }
+        }
+
+
+
+
 
     // Nested block comments are not supported, instead, we support named block comments which can be closed with the corresponding tag,
     // for example: /*<[A] ... [A]>*/.

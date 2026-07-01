@@ -10,14 +10,14 @@
 
 using namespace cshort;
 
-void testParsing();
+void callTests();
 
 int main()
 {
     printf("cshort test\n");
     fflush(stdout);
 
-    testParsing();
+    callTests();
 
     return 0;
 }
@@ -65,7 +65,7 @@ static void testSyntaxError(const char* codeText, ErrorIndex errorIndex, const c
 
 #define TEST_SYNTAX_ERROR(codeText, errorCode) \
     testSyntaxError(codeText, errorCode, #errorCode)
-void testParsing()
+void callTests()
 {
     TEST_SYNTAX_ERROR(classOnlyText, ErrorIndex::invalid_class_name);
     TEST_SYNTAX_ERROR(no_brace_for_classText, ErrorIndex::no_brace_for_class);

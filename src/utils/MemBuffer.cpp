@@ -106,7 +106,6 @@ void *MemBuffer::newBytesMem(unsigned int bytes) {
     // Round total length up to ALIGN so successive allocations stay aligned.
     auto length = (st_size)((bytes + HEADER + ALIGN - 1) & ~(ALIGN - 1));
     int padding_tail_size = isHeapEntryEnabled ? HEADER : 0;
-
     if (currentMemOffset + length < DEFAULT_BUFFER_SIZE) {
 
     }
