@@ -235,6 +235,8 @@ int startScript(const char* source) {
 
     document->context->typeManager->validateScript(document);
 
+    assert(!document->context->semanticErrorInfo.hasError);
+
     return 0;
 }
 
