@@ -259,13 +259,6 @@ namespace cshort {
         if (docStruct->documentType == DocumentType::CodeDocument) {
             Scanner::scanRoot(docStruct, tokenizeDocumentRootLoop, context);
         }
-
-                
-            {
-                auto *declaredType2 = (TypeEntry *) docStruct->context->typeManager->typeNameMap->get("string", 6);
-                int declaredTypeIndex2 = declaredType2->typeIndex;
-            }
-
         
         if (!context->syntaxErrorInfo.hasError) {
             if (docStruct->lastRootNode) {

@@ -225,17 +225,15 @@ void testStackMemoryOverflowCall() {
 
 int startScript(const char* source) {
     auto* document = Alloc::newDocument(DocumentType::CodeDocument);
-    
-    document->context->typeManager->setupBuiltInTypeSelectors();
-
-    auto *declaredType = (TypeEntry *) document->context->typeManager->typeNameMap->get("string", 6);
-    int declaredTypeIndex = declaredType->typeIndex;
     auto *context = document->context;
+
     DocumentUtils::parseText(document, source, (int)strlen(source));
 
-    document->context->typeManager->validateScript(document);
+    context->typeManager->setupBuiltInTypeSelectors();
 
-    assert(!document->context->semanticErrorInfo.hasError);
+    Validator::validateScript(document);
+
+    assert(!context->semanticErrorInfo.hasError);
 
     return 0;
 }

@@ -405,20 +405,20 @@ namespace cshort {
     }
 
 
-    void TypeManager::validateFuncDef(FuncDefNodeStruct *func)
+    void Validator::validateFuncDef(FuncDefNodeStruct *func)
     {
-        int errorCount = this->context->semanticErrorInfo.count;
+        int errorCount = func->context->semanticErrorInfo.count;
 
         // set typeIndex to all expressions and assignments
-        callTypeSelectorsOnExpressions2(context, func);
+        callTypeSelectorsOnExpressions2(func->context, func);
 
-        if (errorCount == this->context->semanticErrorInfo.count) {
-            //assignCalcOpRegister(context, func);
+        if (errorCount == func->context->semanticErrorInfo.count) {
+            //assignCalcOpRegister(func->context, func);
         }
 
     }
 
-    void TypeManager::validateScript(DocumentStruct *document)
+    void Validator::validateScript(DocumentStruct *document)
     {
         assert(document->context->syntaxErrorInfo.hasError == false);
 
@@ -428,7 +428,7 @@ namespace cshort {
             if (rootNode->vtable == VTables::FuncDefVTable) {
                 // fn
                 auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(rootNode);
-                this->validateFuncDef(fnNode);
+                Validator::validateFuncDef(fnNode);
             }
             rootNode = rootNode->nextNode;
         }

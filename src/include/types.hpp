@@ -64,6 +64,12 @@ namespace cshort
     };
 
 
+    struct Validator {
+        static void validateScript(DocumentStruct *document);
+
+        static void validateFuncDef(FuncDefNodeStruct* funcDefNode);
+    };
+
     struct TypeManager {
 
         void setupBuiltInTypeSelectors();
@@ -82,9 +88,6 @@ namespace cshort
         }
         int typeFromNode(NodeBase *expressionNode);
 
-        void validateScript(DocumentStruct *document);
-
-        void validateFuncDef(FuncDefNodeStruct* funcDefNode);
         int runScript();
 
         void registerTypeEntry(TypeEntry* typeEntry);
