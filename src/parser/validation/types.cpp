@@ -41,7 +41,7 @@ namespace cshort {
         typeEntry->dataSize = 0;
         typeEntry->isBuiltIn = false;
         typeEntry->isReferenceType = false;
-        typeEntry->typeIndex = (int)TypeIndexEnum::NotAssigned;
+        typeEntry->typeIndex = (int)TypeIndexConst::NotAssigned;
         return typeEntry;
     }
 
@@ -235,7 +235,7 @@ namespace cshort {
             return nodeBase->typeIndex = BuiltInTypeIndex::boolIdx;
         }
         assert(false); // Unknown literal type
-        return (int)TypeIndexEnum::NotAssigned;
+        return (int)TypeIndexConst::NotAssigned;
     }
 
     template<typename T>
