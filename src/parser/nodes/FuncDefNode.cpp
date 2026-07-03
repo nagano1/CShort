@@ -86,7 +86,7 @@ namespace cshort {
         }
 
         auto *child = node->firstChildNode;
-        while (child) {
+        while (child != nullptr) {
             child->vtable->applyFuncToDescendants(
                     Cast::upcast(child), ApplyFunc_pass2);
             child = child->nextNode;
@@ -118,6 +118,7 @@ namespace cshort {
         node->childCount = 0;
         node->startFound = false;
         node->firstStatementFound = false;
+        node->localVariableChain = nullptr;
 
         Init::initSymbolToken(&node->bodyStartNode, context, node, '{');
         Init::initSymbolToken(&node->endBodyNode, context, node, '}');
@@ -438,8 +439,6 @@ namespace cshort {
         Init::initSymbolToken(&funcNode->parameterStartNode, context, funcNode, '(');
         Init::initSymbolToken(&funcNode->parameterEndNode, context, funcNode, ')');
         funcNode->parameterEndNode.isEndFlag = true;
-
-        //funcNode->localVariableMap = nullptr;
 
         Init::initFuncBodyNode(&funcNode->bodyNode, context, funcNode);
 

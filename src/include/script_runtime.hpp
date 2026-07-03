@@ -17,7 +17,7 @@
 #include "ParseUtil.hpp"
 #include "common.hpp"
 #include "parser.hpp"
-//#include "types.hpp"
+#include "types.hpp"
 
 namespace cshort
 {

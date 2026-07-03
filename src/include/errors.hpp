@@ -66,6 +66,11 @@ namespace cshort {
         //                                  Logical/Semantic Errors
         //
         //----------------------------------------------------------------------------------
+        
+        // 
+        main_func_not_found,
+
+        // semantic errors
         no_logical_error,
         no_variable_defined,
         type_not_found,
@@ -178,6 +183,7 @@ namespace cshort {
             //                                  Logical/Semantic Errors
             //
             //----------------------------------------------------------------------------------
+            ErrorInfo{ErrorIndex::main_func_not_found, 57760000, "main function not found"},
             ErrorInfo{ErrorIndex::no_logical_error,     57770000, "no_logical_error"},
             ErrorInfo{ErrorIndex::no_variable_defined,  57770001, "no variable defined"},
             ErrorInfo{ErrorIndex::type_not_found,       57770002, "type not found"},
