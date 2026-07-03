@@ -245,7 +245,7 @@ namespace cshort {
                 parentheses->typeIndex = parentheses->valueNode->typeIndex;
             }
             else {
-                parentheses->typeIndex = (int)TypeIndexEnum::Empty; // empty parentheses (syntax error)
+                parentheses->typeIndex = (int)TypeIndexConst::Empty; // empty parentheses (syntax error)
             }
         }
         else if (node->vtable == VTables::ReturnStatementVTable) {
@@ -255,7 +255,7 @@ namespace cshort {
                 returnState->typeIndex = returnState->expressionNode->typeIndex;
             }
             else {
-                returnState->typeIndex = (int)TypeIndexEnum::Empty; // return for void function
+                returnState->typeIndex = (int)TypeIndexConst::Empty; // return for void function
             }
         }
         else if (node->vtable == VTables::AssignmentVTable) {

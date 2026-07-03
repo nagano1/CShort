@@ -63,7 +63,7 @@ namespace cshort {
         utf8byte *text; \
         int_fast32_t textLength;
 
-    enum class TypeIndexEnum {
+    enum class TypeIndexConst {
         NotAssigned = -1,
         Empty = 0,
     };
@@ -98,7 +98,7 @@ namespace cshort {
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
         (node)->nextNode = nullptr; \
-        (node)->typeIndex = (int)TypeIndexEnum::NotAssigned; \
+        (node)->typeIndex = (int)TypeIndexConst::NotAssigned; \
         (node)->calcRegEnum = (GRPRegisterEnum)0; \
         (node)->calcReg = nullptr; \
         (0)
