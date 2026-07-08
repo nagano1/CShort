@@ -79,7 +79,9 @@ namespace cshort {
 
     void TypeManager::registerTypeEntry(TypeEntry* typeEntry)
     {
-        expandTypeEntryList(this);
+        bool ok = expandTypeEntryList(this);
+        assert(ok);
+        if (!ok) return;
         typeEntry->typeIndex = this->typeEntryListNextIndex;
         this->typeEntryList[typeEntry->typeIndex] = typeEntry;
         this->typeEntryListNextIndex++;
@@ -232,7 +234,7 @@ namespace cshort {
             return nodeBase->typeIndex = BuiltInTypeIndex::null;
         }
         else if (nodeBase->isTrue || nodeBase->isFalse) {
-            return nodeBase->typeIndex = BuiltInTypeIndex::boolIdx;
+            return nodeBase->typeIndex = BuiltInTypeIndex::boolIdx; // TODO: register a dedicated bool type
         }
         assert(false); // Unknown literal type
         return (int)TypeIndexConst::NotAssigned;

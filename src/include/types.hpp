@@ -67,6 +67,10 @@ namespace cshort
             return this->typeEntryList[typeIndex];
         }
 
+        TypeEntry* getTypeEntryByName(const char *typeName, int length) {
+            return (TypeEntry*)this->typeNameMap->get(typeName, length);
+        }
+
 
         void initializeBuiltinTypeSelectors();
 
