@@ -241,6 +241,25 @@ int startScript(const char* source) {
     return 0;
 }
 
+int checkSemanticError(const char* source, ErrorIndex expectedError) {
+    auto* document = Alloc::newDocument(DocumentType::CodeDocument);
+    auto *context = document->context;
+
+    DocumentUtils::parseText(document, source, (int)strlen(source));
+
+    context->typeManager->initializeBuiltinTypeSelectors();
+
+    Validator::validateScript(document);
+
+    assert(context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorIndex == expectedError);
+
+    Alloc::deleteDocument(document);
+
+    return 0;
+}
+
+
+
 void testScript() {
             constexpr char source[] = R"(
 fn Main()
@@ -332,4 +351,13 @@ void callTests()
     testScript();
     testScript2();
     testVarable();
+
+    checkSemanticError(R"(fn Main() { int a = 5
+        int a = 6})", ErrorIndex::variable_name_duplicated);
+
+    checkSemanticError(R"(fn Main() { #int a })", ErrorIndex::cant_put_immutable_mark_for_non_value_assignment);
+    checkSemanticError(R"(fn Main() { int a = null })", ErrorIndex::assign_null_to_unnullable);
+    checkSemanticError(R"(fn Main() { a = null })", ErrorIndex::no_variable_defined);
+    checkSemanticError(R"(fn Main() { let a })", ErrorIndex::let_without_value);
+
 }

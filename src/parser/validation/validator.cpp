@@ -351,10 +351,12 @@ namespace cshort {
                 // add variable of assignment(declaration) to local variable chain
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(statement);
                 if (assign->hasTypeOrLet) {
-                    assign->typeIndex = assign->expressionNode->typeIndex;
-                    func->bodyNode.localVariableChain->addToCurrentBlock(assign, func->context);
-                    assign->stackOffset = currentStackOffset;
-                    currentStackOffset += 1;
+                    if (assign->expressionNode != nullptr) {
+                        assign->typeIndex = assign->expressionNode->typeIndex;
+                        func->bodyNode.localVariableChain->addToCurrentBlock(assign, func->context);
+                        assign->stackOffset = currentStackOffset;
+                        currentStackOffset += 1;
+                    }
                 }
             }
 
