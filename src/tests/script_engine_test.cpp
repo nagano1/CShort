@@ -251,6 +251,7 @@ int checkSemanticError(const char* source, ErrorIndex expectedError) {
 
     Validator::validateScript(document);
 
+    assert(context->semanticErrorInfo.hasError);
     assert(context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorIndex == expectedError);
 
     Alloc::deleteDocument(document);
@@ -359,5 +360,5 @@ void callTests()
     checkSemanticError(R"(fn Main() { int a = null })", ErrorIndex::assign_null_to_unnullable);
     checkSemanticError(R"(fn Main() { a = null })", ErrorIndex::no_variable_defined);
     checkSemanticError(R"(fn Main() { let a })", ErrorIndex::let_without_value);
-
+    checkSemanticError(R"(fn Main() { int a = "fwe" })", ErrorIndex::type_is_not_assignable);
 }
