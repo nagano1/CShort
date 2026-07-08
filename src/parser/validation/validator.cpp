@@ -170,7 +170,10 @@ namespace cshort {
 
         if (assign->expressionNode != nullptr) { // int b = 8, let b = 8
             int childTypeIndex = assign->expressionNode->typeIndex;
-            assert(TypeManager::isValidTypeIndex(childTypeIndex));
+            if (!TypeManager::isValidTypeIndex(childTypeIndex)) {
+                // Child node should have already reported a semantic error (e.g., unknown identifier).
+                return;
+            }
 
             if (assign->typeOrLet.isLet) { // let b = 8
                 assign->typeIndex = childTypeIndex; // just assign the type index
@@ -325,7 +328,6 @@ namespace cshort {
             }
         }
         else {
-            // for other nodes, like number, string literal, etc.
             node->typeIndex = context->typeManager->typeFromNode(node);
         }
 

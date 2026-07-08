@@ -205,11 +205,10 @@ namespace cshort {
 
     int TypeManager::typeFromNode(NodeBase *node)
     {
-        assert(node->vtable->typeSelector != nullptr);
         if (node->vtable->typeSelector != nullptr) {
             return node->vtable->typeSelector(node);
         }
-        return -1;// node->typeIndex;
+        return (int)TypeIndexConst::NotAssigned;// node->typeIndex;
     }
 
     static int selectTypeFromNumberNode(NumberNodeStruct *numberNode)

@@ -274,7 +274,7 @@ fn Main()
 }
 
 void testScript2() {
-    constexpr const char expressionFirstAssignment[]  = u8R"(
+    constexpr char expressionFirstAssignment[]  = u8R"(
 fn Main() {
     int b = 9
     b = 5 + (10 + 1) - 2
