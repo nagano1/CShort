@@ -25,10 +25,7 @@ namespace cshort {
     struct ParseContext;
     struct CodeLine;
     struct TypeManager;
-<<<<<<< HEAD
-=======
     struct LocalVariableChain;
->>>>>>> origin/main
     enum class GRPRegisterEnum;
     
     #define NODE_TYPE_ID 0x123
@@ -66,17 +63,11 @@ namespace cshort {
         utf8byte *text; \
         int_fast32_t textLength;
 
-<<<<<<< HEAD
-    enum class TypeIndexEnum {
-=======
     enum class TypeIndexConst {
->>>>>>> origin/main
         NotAssigned = -1,
         Empty = 0,
     };
 
-<<<<<<< HEAD
-=======
     // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
     using ValueBase = struct _valueBase {
         int typeIndex;
@@ -84,7 +75,6 @@ namespace cshort {
         unsigned int size; // in byte
     };
 
->>>>>>> origin/main
     enum class BuildinTypeId {
         Int32 = 1,
         Int64 = 2,
@@ -108,11 +98,7 @@ namespace cshort {
         (node)->parentNode = (NodeBase*)(parent); \
         (node)->codeLine = nullptr; \
         (node)->nextNode = nullptr; \
-<<<<<<< HEAD
-        (node)->typeIndex = (int)TypeIndexEnum::NotAssigned; \
-=======
         (node)->typeIndex = (int)TypeIndexConst::NotAssigned; \
->>>>>>> origin/main
         (node)->calcRegEnum = (GRPRegisterEnum)0; \
         (node)->calcReg = nullptr; \
         (0)

@@ -558,7 +558,7 @@ namespace cshort {
         auto* document = Alloc::newDocument(DocumentType::CodeDocument);
         ScriptEnv* env = ScriptEnv::newScriptEnv(document->context);
 
-        document->context->typeManager->setupBuiltInTypeSelectors();
+        document->context->typeManager->initializeBuiltinTypeSelectors();
 
         DocumentUtils::parseText(document, script, byteLength);
         env->document = document;
@@ -620,7 +620,7 @@ namespace cshort {
         }
 
         // Validate types, values and finding Main(entry) function
-        env->document->context->typeManager->validateScript(env->document);
+        Validator::validateScript(env->document);
         
         if (env->context->parseContext->semanticErrorInfo.hasError) {
             env->context->setErrorPositions();
