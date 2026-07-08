@@ -66,8 +66,13 @@ namespace cshort {
         //                                  Logical/Semantic Errors
         //
         //----------------------------------------------------------------------------------
+        
+
+        // semantic errors
+        main_func_not_found,
         no_logical_error,
         no_variable_defined,
+        variable_name_duplicated,
         type_not_found,
         assign_null_to_unnullable,
         assign_to_immutable,
@@ -178,16 +183,19 @@ namespace cshort {
             //                                  Logical/Semantic Errors
             //
             //----------------------------------------------------------------------------------
+            ErrorInfo{ErrorIndex::main_func_not_found, 57760000, "main function not found"},
             ErrorInfo{ErrorIndex::no_logical_error,     57770000, "no_logical_error"},
             ErrorInfo{ErrorIndex::no_variable_defined,  57770001, "no variable defined"},
-            ErrorInfo{ErrorIndex::type_not_found,       57770002, "type not found"},
-            ErrorInfo{ErrorIndex::assign_null_to_unnullable, 57770003, "assign null to unnullable type"},
-            ErrorInfo{ErrorIndex::assign_to_immutable,  57770004, "assign to immutable"},
-            ErrorInfo{ErrorIndex::let_without_value, 57770005, "let without value"},
+            ErrorInfo{ErrorIndex::variable_name_duplicated, 57770002, "variable name duplicated"},
 
-            ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770006, "cant put immutable mark for non value assignment"},
-            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770007, "type is not assignable"},
-            ErrorInfo{ErrorIndex::internal_error, 57770008, "internal error"},
+            ErrorInfo{ErrorIndex::type_not_found,       57770003, "type not found"},
+            ErrorInfo{ErrorIndex::assign_null_to_unnullable, 57770004, "assign null to unnullable type"},
+            ErrorInfo{ErrorIndex::assign_to_immutable,  57770005, "assign to immutable"},
+            ErrorInfo{ErrorIndex::let_without_value, 57770006, "let without value"},
+
+            ErrorInfo{ErrorIndex::cant_put_immutable_mark_for_non_value_assignment, 57770007, "cant put immutable mark for non value assignment"},
+            ErrorInfo{ErrorIndex::type_is_not_assignable, 57770008, "type is not assignable"},
+            ErrorInfo{ErrorIndex::internal_error, 57770009, "internal error"},
 
             // ---------------------------------------------------------------------------------
             //

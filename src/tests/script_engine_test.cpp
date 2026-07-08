@@ -223,6 +223,114 @@ void testStackMemoryOverflowCall() {
     assert(stackMemory.isOverflowed == true);
 }
 
+
+int startScript(const char* source) {
+    auto* document = Alloc::newDocument(DocumentType::CodeDocument);
+    auto *context = document->context;
+
+    DocumentUtils::parseText(document, source, (int)strlen(source));
+
+    Validator::validateScript(document);
+
+    assert(!context->semanticErrorInfo.hasError);
+
+    Alloc::deleteDocument(document);
+
+    return 0;
+}
+
+int checkSemanticError(const char* source, ErrorIndex expectedError) {
+    auto* document = Alloc::newDocument(DocumentType::CodeDocument);
+    auto *context = document->context;
+
+    DocumentUtils::parseText(document, source, (int)strlen(source));
+
+    Validator::validateScript(document);
+
+    assert(context->semanticErrorInfo.hasError);
+    assert(context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorIndex == expectedError);
+
+    Alloc::deleteDocument(document);
+
+    return 0;
+}
+
+
+
+void testScript() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    int b = 9
+    int a = 500
+    int c = 500
+    
+    return c * 2 - b * a
+}
+)";
+        int ret = startScript(source);
+        printf("ret 1 = %d\n", ret);
+        //assert(ret == -3500);
+}
+
+void testScript2() {
+    constexpr char expressionFirstAssignment[]  = u8R"(
+fn Main() {
+    int b = 9
+    b = 5 + (10 + 1) - 2
+    return b
+}
+    )";
+
+    int ret = startScript(expressionFirstAssignment);
+    printf("ret = %d\n", ret);
+    //assert(ret == 14);
+
+}
+
+
+void testHeapString() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    string ptr = "ijfowjio"
+    string ptr2 = ptr
+    return ptr2
+}
+)";
+        int ret = startScript(source);
+        printf("ret = %d\n", ret);
+        //assert(ret != 0);
+}
+
+void testNull() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    ?int *ptr = null
+    #int ok = 3421
+    return ptr
+}
+)";
+        int ret = startScript(source);
+//        assert(ret == 0);
+}
+
+void testVarable() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    let b = 9
+    int c = b
+    
+    return c + b
+}
+)";
+        int ret = startScript(source);
+        printf("ret = %d\n", ret);
+        //assert(ret == 18);
+}
+
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()
 {
@@ -235,4 +343,18 @@ void callTests()
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
+    testHeapString();
+    testNull();
+    testScript();
+    testScript2();
+    testVarable();
+
+    checkSemanticError(R"(fn Main() { int a = 5
+        int a = 6})", ErrorIndex::variable_name_duplicated);
+
+    checkSemanticError(R"(fn Main() { #int a })", ErrorIndex::cant_put_immutable_mark_for_non_value_assignment);
+    checkSemanticError(R"(fn Main() { int a = null })", ErrorIndex::assign_null_to_unnullable);
+    checkSemanticError(R"(fn Main() { a = null })", ErrorIndex::no_variable_defined);
+    checkSemanticError(R"(fn Main() { let a })", ErrorIndex::let_without_value);
+    checkSemanticError(R"(fn Main() { int a = "fwe" })", ErrorIndex::type_is_not_assignable);
 }
