@@ -233,8 +233,10 @@ namespace cshort {
 
             int leftTypeIndex = binary->leftExprNode->typeIndex;
             int rightTypeIndex = binary->rightExprNode->typeIndex;
-            assert(TypeManager::isValidTypeIndex(leftTypeIndex));
-            assert(TypeManager::isValidTypeIndex(rightTypeIndex));
+             if (!TypeManager::isValidTypeIndex(leftTypeIndex) || !TypeManager::isValidTypeIndex(rightTypeIndex)) {
+                 // A child node should have already emitted a semantic error (e.g., unknown identifier).
+                 return;
+             }
 
             auto *baseTypeEntry = context->typeManager->getTypeEntryByIndex(leftTypeIndex);
             auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(rightTypeIndex);
