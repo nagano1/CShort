@@ -42,7 +42,7 @@ namespace cshort {
         VariableBlock *firstVariableBlock;
         VariableBlock *lastVariableBlock;
 
-        AssignmentNodeStruct *findVariableAssignment(const char *name, int nameLength) {
+        AssignmentNodeStruct *findDeclareStatement(const char *name, int nameLength) {
             VariableBlock *block = this->lastVariableBlock;
             while (block != nullptr) {
                 if (block->variableMap->hasKey(name, nameLength)) {
@@ -93,6 +93,33 @@ namespace cshort {
     //
     //------------------------------------------------------------------------------------------
 
+    // validates an assignment node by checking type declarations, type compatibility, and other constraints.
+    void validateAssignmentAndExpression(AssignmentNodeStruct *assign,
+                                         TypeEntry *declaredType,
+                                         ParseContext *context)
+    {
+        assert(declaredType != nullptr);
+        assert(assign->expressionNode != nullptr);
+
+        int childTypeIndex = assign->expressionNode->typeIndex;
+
+        if (declaredType->typeIndex != childTypeIndex) {
+            if (childTypeIndex == BuiltInTypeIndex::null){
+                if (!assign->typeOrLet.hasNullableMark) {
+                    context->addErrorWithNode(ErrorIndex::assign_null_to_unnullable, assign);
+                }
+            }
+            else {
+                // check assignable
+                auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(childTypeIndex);
+                bool canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
+                if (!canAssign) {
+                    context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assign);
+                }
+            }
+        }
+    }
+
     // This function validates an assignment node by checking type declarations, type compatibility,
     // and other constraints.
     static void validateDeclaredTypeAssignmentNode(AssignmentNodeStruct *assign,
@@ -106,7 +133,7 @@ namespace cshort {
                 assign->typeOrLet.nameNode.nameLength
             );
             if (declaredType != nullptr) {
-                assert(declaredType->typeIndex > 0);
+                assert(TypeManager::isValidTypeIndex(declaredType->typeIndex));
                 assign->typeIndex = declaredType->typeIndex;
             }
             else {
@@ -115,34 +142,33 @@ namespace cshort {
             }
         }
 
-        if (assign->expressionNode) { // int b = 8, let b = 8
+        // check if the variable name is already defined in the current scope
+        if (assign->hasTypeOrLet) {
+            auto *currentStatement = Cast::downcast<NodeBase*>(topLevelNodeInBody);
+            auto *bodyNode = Cast::downcast<FuncBodyNodeStruct *>(currentStatement->parentNode);
+            assert(bodyNode->vtable == VTables::FuncBodyVTable);
+
+            auto *existingAssignment = bodyNode->localVariableChain->findDeclareStatement(
+                assign->variableNameToken.name,
+                assign->variableNameToken.nameLength
+            );
+
+            if (existingAssignment != nullptr) {
+                // error: variable already defined in the current scope
+                context->addErrorWithNode(ErrorIndex::variable_name_duplicated, assign);
+            }
+        }
+
+        if (assign->expressionNode != nullptr) { // int b = 8, let b = 8
+            
             int childTypeIndex = assign->expressionNode->typeIndex;
             assert(TypeManager::isValidTypeIndex(childTypeIndex));
 
             if (assign->typeOrLet.isLet) { // let b = 8
-                assign->typeIndex = childTypeIndex;
-
-                TypeEntry *typeEntry = context->typeManager->getTypeEntryByIndex(assign->typeIndex);
-                assign->typeIndex = childTypeIndex;
+                assign->typeIndex = childTypeIndex; // just assign the type index
             }
             else { // int b = 8
-                if (declaredType != nullptr) {
-                    if (declaredType->typeIndex != childTypeIndex) {
-                        if (childTypeIndex == BuiltInTypeIndex::null){
-                            if (!assign->typeOrLet.hasNullableMark) {
-                                context->addErrorWithNode(ErrorIndex::assign_null_to_unnullable, assign);
-                            }
-                        }
-                        else {
-                            // check assignable
-                            auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(assign->expressionNode->typeIndex);
-                            bool canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
-                            if (!canAssign) {
-                                context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assign);
-                            }
-                        }
-                    }
-                }
+                validateAssignmentAndExpression(assign, declaredType, context);
             }
         }
         else { // no value: int b, let b
@@ -157,6 +183,7 @@ namespace cshort {
         }
     }
 
+    // b = 4
     static void validateOnlyAssignmentNode(AssignmentNodeStruct *assign,
                                            void *topLevelNodeInBody,
                                            ParseContext *context
@@ -170,31 +197,23 @@ namespace cshort {
         assert(TypeManager::isValidTypeIndex(childTypeIndex));
         assign->typeIndex = childTypeIndex;
 
-        auto *variableAssignment = bodyNode->localVariableChain->findVariableAssignment(
+        auto *declareStatement = bodyNode->localVariableChain->findDeclareStatement(
             assign->variableNameToken.name,
             assign->variableNameToken.nameLength);
 
-        if (variableAssignment == nullptr) {
+        if (declareStatement == nullptr) {
             // error: no decl found
             context->addErrorWithNode(ErrorIndex::no_variable_defined, assign);
             return;
         }
 
-        if (variableAssignment->hasTypeOrLet && variableAssignment->typeOrLet.hasImmutableMark) {
+        assign->stackOffset = declareStatement->stackOffset;
+
+        if (declareStatement->hasTypeOrLet && declareStatement->typeOrLet.hasImmutableMark) {
             context->addErrorWithNode(ErrorIndex::assign_to_immutable, assign);
         }
 
-        assign->stackOffset = variableAssignment->stackOffset;
-        if (childTypeIndex != variableAssignment->typeIndex) {
-            auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(childTypeIndex);
-            assert(targetTypeEntry != nullptr);
-
-            bool canAssign = targetTypeEntry->canAssignTypeImplicitly(context, targetTypeEntry);
-            if (!canAssign) {
-                // error
-                context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assign);
-            }
-        }
+        validateAssignmentAndExpression(assign, context->typeManager->getTypeEntryByIndex(declareStatement->typeIndex), context);
     }
 
 
@@ -219,7 +238,8 @@ namespace cshort {
 
             int leftTypeIndex = binary->leftExprNode->typeIndex;
             int rightTypeIndex = binary->rightExprNode->typeIndex;
-             assert(leftTypeIndex > -1 && rightTypeIndex > -1);
+            assert(TypeManager::isValidTypeIndex(leftTypeIndex));
+            assert(TypeManager::isValidTypeIndex(rightTypeIndex));
 
             auto *baseTypeEntry = context->typeManager->getTypeEntryByIndex(leftTypeIndex);
             auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(rightTypeIndex);
@@ -235,13 +255,13 @@ namespace cshort {
             }
 
             int binaryType = baseTypeEntry->binary_operate(context, binary);
-            assert(binaryType > -1);
+            assert(TypeManager::isValidTypeIndex(binaryType));
             binary->typeIndex = binaryType;
         }
         else if (node->vtable == VTables::ParenthesesVTable) {
             auto *parentheses = Cast::downcast<ParenthesesNodeStruct *>(node);
             if (parentheses->valueNode != nullptr) {
-                assert(parentheses->valueNode != nullptr && parentheses->valueNode->typeIndex > -1);
+                assert(parentheses->valueNode != nullptr && TypeManager::isValidTypeIndex(parentheses->valueNode->typeIndex));
                 parentheses->typeIndex = parentheses->valueNode->typeIndex;
             }
             else {
@@ -251,7 +271,7 @@ namespace cshort {
         else if (node->vtable == VTables::ReturnStatementVTable) {
             auto *returnState = Cast::downcast<ReturnStatementNodeStruct*>(node);
             if (returnState->expressionNode != nullptr) {
-                assert(returnState->expressionNode->typeIndex > -1);
+                assert(TypeManager::isValidTypeIndex(returnState->expressionNode->typeIndex));
                 returnState->typeIndex = returnState->expressionNode->typeIndex;
             }
             else {
@@ -269,7 +289,9 @@ namespace cshort {
             auto *vari = Cast::downcast<IdentifiersAccessNodeStruct*>(node);
             auto varibleName = vari->identifierToken;//.name;
 
-            auto *targetAssignment = bodyNode->localVariableChain->findVariableAssignment(varibleName.name, varibleName.nameLength);
+            auto *targetAssignment = bodyNode->localVariableChain->findDeclareStatement(
+                varibleName.name,
+                varibleName.nameLength);
             if (targetAssignment != nullptr) {
                 vari->stackOffset = targetAssignment->stackOffset;
                 vari->typeIndex = targetAssignment->typeIndex;
@@ -315,7 +337,7 @@ namespace cshort {
         auto *statement = func->bodyNode.firstChildNode;
         int currentStackOffset = 0;
         while (statement != nullptr) {
-            // apply type selection to all expressions in the statement
+            // call type selector to all expressions in the statement
             statement->vtable->applyFuncToDescendants(
                     statement,
                     context,
@@ -326,7 +348,7 @@ namespace cshort {
                     nullptr);
 
             if (statement->vtable == VTables::AssignmentVTable) {
-                // add assignment(declaration) to local variable chain
+                // add variable of assignment(declaration) to local variable chain
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(statement);
                 if (assign->hasTypeOrLet) {
                     assign->typeIndex = assign->expressionNode->typeIndex;
