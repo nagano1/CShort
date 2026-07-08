@@ -96,14 +96,24 @@ namespace cshort {
     // validates an assignment node by checking type declarations, type compatibility, and other constraints.
     void validateAssignmentAndExpression(AssignmentNodeStruct *declarationStatement,
                                          AssignmentNodeStruct *assignment,
-                                         TypeEntry *declaredType,
+                                         //TypeEntry *declaredType,
                                          ParseContext *context)
     {
-        assert(declaredType != nullptr);
+        //assert(declaredType != nullptr);
         assert(assignment->expressionNode != nullptr);
 
-        int childTypeIndex = assignment->expressionNode->typeIndex;
+        int declaredTypeIndex = declarationStatement->typeIndex;
+        if (!TypeManager::isValidTypeIndex(declaredTypeIndex)) {
+            // Type selection should have already reported an error for this assignment.
+            return;
+        }
+        TypeEntry *declaredType = context->typeManager->getTypeEntryByIndex(declaredTypeIndex);
+        if (declaredType == nullptr) {
+            // Type selection should have already reported an error for this assignment.
+            return;
+        }
 
+        int childTypeIndex = assignment->expressionNode->typeIndex;
         if (declaredType->typeIndex != childTypeIndex) {
             if (childTypeIndex == BuiltInTypeIndex::null){
                 if (!declarationStatement->typeOrLet.hasNullableMark) {
@@ -167,7 +177,7 @@ namespace cshort {
             }
             else { // int b = 8
                 if (declaredType != nullptr) {
-                    validateAssignmentAndExpression(assign, assign, declaredType, context);
+                    validateAssignmentAndExpression(assign, assign, context);
                 }
             }
         }
@@ -213,7 +223,7 @@ namespace cshort {
             context->addErrorWithNode(ErrorIndex::assign_to_immutable, assign);
         }
 
-        validateAssignmentAndExpression(varDeclarationStatement, assign, context->typeManager->getTypeEntryByIndex(varDeclarationStatement->typeIndex), context);
+        validateAssignmentAndExpression(varDeclarationStatement, assign, context);
     }
 
 
