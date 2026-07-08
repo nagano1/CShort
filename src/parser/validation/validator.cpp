@@ -94,19 +94,20 @@ namespace cshort {
     //------------------------------------------------------------------------------------------
 
     // validates an assignment node by checking type declarations, type compatibility, and other constraints.
-    void validateAssignmentAndExpression(AssignmentNodeStruct *assign,
+    void validateAssignmentAndExpression(AssignmentNodeStruct *declarationStatement,
+                                         AssignmentNodeStruct *assignment,
                                          TypeEntry *declaredType,
                                          ParseContext *context)
     {
         assert(declaredType != nullptr);
-        assert(assign->expressionNode != nullptr);
+        assert(assignment->expressionNode != nullptr);
 
-        int childTypeIndex = assign->expressionNode->typeIndex;
+        int childTypeIndex = assignment->expressionNode->typeIndex;
 
         if (declaredType->typeIndex != childTypeIndex) {
             if (childTypeIndex == BuiltInTypeIndex::null){
-                if (!assign->typeOrLet.hasNullableMark) {
-                    context->addErrorWithNode(ErrorIndex::assign_null_to_unnullable, assign);
+                if (!declarationStatement->typeOrLet.hasNullableMark) {
+                    context->addErrorWithNode(ErrorIndex::assign_null_to_unnullable, declarationStatement);
                 }
             }
             else {
@@ -114,7 +115,7 @@ namespace cshort {
                 auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(childTypeIndex);
                 bool canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
                 if (!canAssign) {
-                    context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assign);
+                    context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assignment);
                 }
             }
         }
@@ -166,7 +167,7 @@ namespace cshort {
             }
             else { // int b = 8
                 if (declaredType != nullptr) {
-                    validateAssignmentAndExpression(assign, declaredType, context);
+                    validateAssignmentAndExpression(assign, assign, declaredType, context);
                 }
             }
         }
@@ -190,25 +191,29 @@ namespace cshort {
         auto *currentStatement = Cast::downcast<NodeBase*>(topLevelNodeInBody);
         auto *bodyNode = Cast::downcast<FuncBodyNodeStruct *>(currentStatement->parentNode);
         assert(bodyNode->vtable == VTables::FuncBodyVTable);
-        assert(assign->expressionNode != nullptr && assign->expressionNode->typeIndex > -1);
+         if (assign->expressionNode == nullptr || !TypeManager::isValidTypeIndex(assign->expressionNode->typeIndex)) {
+             // Type selection should have already reported an error for this expression.
+             return;
+         }
 
-        auto *declareStatement = bodyNode->localVariableChain->findDeclareStatement(
+
+        auto *varDeclarationStatement = bodyNode->localVariableChain->findDeclareStatement(
             assign->variableNameToken.name,
             assign->variableNameToken.nameLength);
 
-        if (declareStatement == nullptr) {
+        if (varDeclarationStatement == nullptr) {
             // error: no decl found
             context->addErrorWithNode(ErrorIndex::no_variable_defined, assign);
             return;
         }
 
-        assign->stackOffset = declareStatement->stackOffset;
+        assign->stackOffset = varDeclarationStatement->stackOffset;
 
-        if (declareStatement->hasTypeOrLet && declareStatement->typeOrLet.hasImmutableMark) {
+        if (varDeclarationStatement->hasTypeOrLet && varDeclarationStatement->typeOrLet.hasImmutableMark) {
             context->addErrorWithNode(ErrorIndex::assign_to_immutable, assign);
         }
 
-        validateAssignmentAndExpression(assign, context->typeManager->getTypeEntryByIndex(declareStatement->typeIndex), context);
+        validateAssignmentAndExpression(varDeclarationStatement, assign, context->typeManager->getTypeEntryByIndex(varDeclarationStatement->typeIndex), context);
     }
 
 
@@ -235,7 +240,7 @@ namespace cshort {
             int rightTypeIndex = binary->rightExprNode->typeIndex;
              if (!TypeManager::isValidTypeIndex(leftTypeIndex) || !TypeManager::isValidTypeIndex(rightTypeIndex)) {
                  // A child node should have already emitted a semantic error (e.g., unknown identifier).
-                 return;
+                 return 0;
              }
 
             auto *baseTypeEntry = context->typeManager->getTypeEntryByIndex(leftTypeIndex);
@@ -252,14 +257,23 @@ namespace cshort {
             }
 
             int binaryType = baseTypeEntry->binary_operate(context, binary);
-            assert(TypeManager::isValidTypeIndex(binaryType));
+             if (!TypeManager::isValidTypeIndex(binaryType)) { // invalid operator for the type
+                 context->addErrorWithNode(ErrorIndex::internal_error, binary);
+                 binary->typeIndex = (int)TypeIndexConst::NotAssigned;
+                 return 0;
+             }
             binary->typeIndex = binaryType;
         }
         else if (node->vtable == VTables::ParenthesesVTable) {
             auto *parentheses = Cast::downcast<ParenthesesNodeStruct *>(node);
             if (parentheses->valueNode != nullptr) {
-                assert(parentheses->valueNode != nullptr && TypeManager::isValidTypeIndex(parentheses->valueNode->typeIndex));
-                parentheses->typeIndex = parentheses->valueNode->typeIndex;
+                 if (TypeManager::isValidTypeIndex(parentheses->valueNode->typeIndex)) {
+                     parentheses->typeIndex = parentheses->valueNode->typeIndex;
+                 }
+                 else {
+                     // Child node should have already emitted a semantic error.
+                     parentheses->typeIndex = (int)TypeIndexConst::NotAssigned;
+                 }
             }
             else {
                 parentheses->typeIndex = (int)TypeIndexConst::Empty; // empty parentheses (syntax error)
@@ -268,7 +282,10 @@ namespace cshort {
         else if (node->vtable == VTables::ReturnStatementVTable) {
             auto *returnState = Cast::downcast<ReturnStatementNodeStruct*>(node);
             if (returnState->expressionNode != nullptr) {
-                assert(TypeManager::isValidTypeIndex(returnState->expressionNode->typeIndex));
+                if (!TypeManager::isValidTypeIndex(returnState->expressionNode->typeIndex)) {
+                    // Expression already reported a semantic error.
+                    return 0;
+                }
                 returnState->typeIndex = returnState->expressionNode->typeIndex;
             }
             else {
@@ -375,6 +392,9 @@ namespace cshort {
     void Validator::validateScript(DocumentStruct *document)
     {
         assert(document->context->syntaxErrorInfo.hasError == false);
+
+        // Ensure vtable type selectors are registered before typeFromNode() is used.
+        document->context->typeManager->initializeBuiltinTypeSelectors();
 
         // search all funcs
         auto *rootNode = document->firstRootNode;

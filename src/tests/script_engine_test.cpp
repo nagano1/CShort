@@ -230,8 +230,6 @@ int startScript(const char* source) {
 
     DocumentUtils::parseText(document, source, (int)strlen(source));
 
-    context->typeManager->initializeBuiltinTypeSelectors();
-
     Validator::validateScript(document);
 
     assert(!context->semanticErrorInfo.hasError);
@@ -246,8 +244,6 @@ int checkSemanticError(const char* source, ErrorIndex expectedError) {
     auto *context = document->context;
 
     DocumentUtils::parseText(document, source, (int)strlen(source));
-
-    context->typeManager->initializeBuiltinTypeSelectors();
 
     Validator::validateScript(document);
 
