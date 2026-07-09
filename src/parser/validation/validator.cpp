@@ -129,6 +129,12 @@ namespace cshort {
                                                          nullptr);
     }
 
+    // ----------------------------------------------------------------
+    //
+    //                       Variable Block Chain
+    //
+    // ----------------------------------------------------------------
+
     struct VariableBlock {
         VoidHashMap *variableMap;
         VariableBlock *prev;
@@ -143,6 +149,7 @@ namespace cshort {
         }
     };
 
+    // This structure represents a chain of variable blocks, where each block contains a mapping of variable names to their corresponding assignment nodes. It allows for efficient management of variable scopes and declarations within a function body.
     struct LocalVariableChain
     {
         VariableBlock *firstVariableBlock;
