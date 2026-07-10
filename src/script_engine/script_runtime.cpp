@@ -92,10 +92,14 @@ namespace cshort {
 
     //------------------------------------------------------------------------------------------
     //
-    //                                      BuiltIn Type Binary operations
+    //                                      BuiltIn Type operations
     //
     //------------------------------------------------------------------------------------------
-        int int32_binary_operate(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode)
+    static void int32_evaluateNode(ParseContext *context, NumberNodeStruct *numberNode)
+    {
+        *(int32_t*)numberNode->calcReg = (int32_t)numberNode->num;
+    }
+    static int int32_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         int32_t left32 = *(int32_t*)binaryNode->leftExprNode->calcReg;
         int32_t right32 = 0;
@@ -133,7 +137,12 @@ namespace cshort {
         return BuiltInTypeIndex::int32;
     }
 
-    int int64_binary_operate(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode)
+    static void int64_evaluateNode(ParseContext *context, NumberNodeStruct *numberNode)
+    {
+        *(int64_t*)numberNode->calcReg = numberNode->num;
+    }
+
+    static int int64_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         int64_t left64 = *(int64_t*)binaryNode->leftExprNode->calcReg;
         int64_t right64 = 0;
@@ -171,18 +180,18 @@ namespace cshort {
     }
 
 
-    void heapString_evaluateNode(ScriptEngineContext *context, LiteralValueNodeStruct *node)
+    static void heapString_evaluateNode(ParseContext *context, LiteralValueNodeStruct *node)
     {
         StringLiteralTokenStruct *stringLiteralToken = node->stringLiteralToken;
         char *chars;
         int size = (1 + stringLiteralToken->strLength) * (int)sizeof(char);
-        ValueBase *value = context->genValueBase(BuiltInTypeIndex::heapString, size, &chars);
+        ValueBase *value = context->scriptEngineContext->genValueBase(BuiltInTypeIndex::heapString, size, &chars);
         memcpy(chars, stringLiteralToken->str, stringLiteralToken->strLength);
         chars[stringLiteralToken->strLength] = '\0';
         *(ValueBase **)node->calcReg = value;
     }
 
-    char* heapString_toString(ScriptEngineContext *context, ValueBase* value)
+    static char* heapString_toString(ParseContext *context, ValueBase* value)
     {
         return (char*)value->ptr;
     }
@@ -193,7 +202,7 @@ namespace cshort {
         return 0;
     }
 
-    int heapString_binary_operate(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode)
+    static int heapString_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         if (binaryNode->binaryOp != BinaryOperator::Add) {
             context->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
@@ -218,7 +227,7 @@ namespace cshort {
         if (rightValue->typeIndex == BuiltInTypeIndex::heapString) {
             unsigned int size = (1 + leftValue->size + rightValue->size) * sizeof(char);
             char *chars;
-            auto *value = context->genValueBase(BuiltInTypeIndex::heapString, (int)size, &chars);
+            auto *value = context->scriptEngineContext->genValueBase(BuiltInTypeIndex::heapString, (int)size, &chars);
             memcpy(chars, leftValue->ptr, leftValue->size);
             memcpy(chars + leftValue->size, rightValue->ptr, rightValue->size);
             chars[size - 1] = '\0';
@@ -229,26 +238,22 @@ namespace cshort {
     }
 
 
-    char* null_toString(ScriptEngineContext *context, ValueBase* value)
+    static char* null_toString(ParseContext *context, ValueBase* value)
     {
         return (char*)"null";
     }
 
-    int null_binary_operate(ScriptEngineContext *context, BinaryOperationNodeStruct *binaryNode, bool typeCheck)
+    static int null_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
-        if (typeCheck) {
-            return BuiltInTypeIndex::null;
-        }
-
         return BuiltInTypeIndex::null;
     }
 
-    int canAssignType_null(ScriptEngineContext *context, _typeEntry *otherType)
+    static int canAssignType_null(ParseContext *context, _typeEntry *otherType)
     {
         return 0;
     }
 
-    void null_evaluateNode(ScriptEngineContext *context, LiteralValueNodeStruct *node)
+    static void null_evaluateNode(ParseContext *context, LiteralValueNodeStruct *node)
     {
         *(int64_t*)node->calcReg = 0;
     }
@@ -421,6 +426,45 @@ namespace cshort {
         return value;
     }
 
+    template<typename T>
+    static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, int typeIndex
+        , int (*binary_func)(ParseContext *, BinaryOperationNodeStruct *),
+         void (*evalFunc)(ParseContext *, T *))
+    {
+        auto *typeEntry = context->typeManager->getTypeEntryByIndex(typeIndex);
+        typeEntry->binary_operate = binary_func;// static_cast<int (*)(ParseContext *, BinaryOperationNodeStruct *)>(func);
+        typeEntry->evaluateNode = reinterpret_cast<void (*)(ParseContext *, NodeBase *)>(evalFunc);
+    }
+
+    static void setBuiltinTypeOperations(ScriptEngineContext *context, ParseContext *parseContext) {
+        TypeManager *typeManager = parseContext->typeManager;
+        setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::int32,
+                                                              int32_binary_operate, 
+                                                              int32_evaluateNode);
+
+        setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::int64,
+                                                              int64_binary_operate,
+                                                              int64_evaluateNode);
+
+        setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::heapString,
+                                                              heapString_binary_operate,
+                                                              heapString_evaluateNode);
+
+        setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::null,
+                                                              null_binary_operate,
+                                                              null_evaluateNode);
+/*
+        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::int64)->binary_operate = int64_binary_operate;
+        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::int64)->evaluateNode = int64_evaluateNode;
+
+        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::heapString)->binary_operate = heapString_binary_operate;
+        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::heapString)->evaluateNode = heapString_evaluateNode;
+        
+        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::null)->binary_operate = null_binary_operate;
+        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::null)->evaluateNode = null_evaluateNode;
+*/
+    }
+
     void ScriptEngineContext::init(ScriptEnv *scriptEnvArg, ParseContext *context)
     {
         this->scriptEnv = scriptEnvArg;
@@ -444,6 +488,8 @@ namespace cshort {
         // this->typeNameMap = this->memBuffer.newMem<VoidHashMap>(1);
         // this->typeNameMap->init(&this->memBuffer);
         this->cpuRegister = CPUSim{};
+
+        setBuiltinTypeOperations(this, context);
     }
 
 
@@ -474,6 +520,7 @@ namespace cshort {
 
             scriptEnv->context = context;
             context->init(scriptEnv, parseContext);
+            parseContext->scriptEngineContext = context;
 
             scriptEnv->mainFunc = nullptr;
         }
@@ -508,6 +555,7 @@ namespace cshort {
         while (statementNode != nullptr)
         {
             // call func: funcA(100)
+            /*
             if (statementNode->vtable == VTables::FuncCallVTable) {
                 auto* funcCall = Cast::downcast<FuncCallNodeStruct*>(statementNode);
                 FuncCallArgItemStruct *arg = funcCall->firstArgumentItem;
@@ -520,6 +568,7 @@ namespace cshort {
                     arg = Cast::downcast<FuncCallArgItemStruct *>(arg->nextNode);
                 }
             }
+            */
 
             // assignment: int a = 3
             if (statementNode->vtable == VTables::AssignmentVTable) {

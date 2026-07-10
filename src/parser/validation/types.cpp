@@ -112,12 +112,12 @@ namespace cshort {
         return 0;
     }
 
-    int int32_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    int int32_binary_operate_determine_type(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::int32;
     }
 
-    int int64_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    int int64_binary_operate_determine_type(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::int64;
     }
@@ -150,7 +150,7 @@ namespace cshort {
         // int
         {
             TypeEntry *int32Type = TypeManager::newTypeEntry(context);
-            int32Type->initAsBuiltInType(int32_binary_operate, canAssignType_i32,
+            int32Type->initAsBuiltInType(int32_binary_operate_determine_type,canAssignType_i32,
                                          "int", BuildinTypeId::Int32, 4, false); // 4byte
             typeManager->registerTypeEntry(int32Type);
             BuiltInTypeIndex::int32 = int32Type->typeIndex;
@@ -161,7 +161,7 @@ namespace cshort {
         {
             // i64
             TypeEntry *int64Type = TypeManager::newTypeEntry(context);
-            int64Type->initAsBuiltInType(int64_binary_operate, canAssignType_i64,
+            int64Type->initAsBuiltInType(int64_binary_operate_determine_type, canAssignType_i64,
                                          "i64", BuildinTypeId::Int64, 8, false); // 4byte
             typeManager->registerTypeEntry(int64Type);
             BuiltInTypeIndex::int64 = int64Type->typeIndex;

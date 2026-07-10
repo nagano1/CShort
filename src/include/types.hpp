@@ -83,7 +83,6 @@ namespace cshort
             return (TypeEntry*)this->typeNameMap->get(typeName, length);
         }
 
-
         void initializeBuiltinTypeSelectors();
 
         int typeFromNode(NodeBase *expressionNode);

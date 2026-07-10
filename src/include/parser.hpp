@@ -25,6 +25,7 @@ namespace cshort {
     struct ParseContext;
     struct CodeLine;
     struct TypeManager;
+    struct _scriptEngineContext;
     struct LocalVariableChain;
     enum class GRPRegisterEnum;
     
@@ -496,6 +497,8 @@ namespace cshort {
         TypeManager *typeManager;
 
         SemanticErrorInfo semanticErrorInfo;
+
+        struct _scriptEngineContext *scriptEngineContext;
 
         VoidHashMap *variableMap2;
 //        VoidHashMap *typeNameMap;

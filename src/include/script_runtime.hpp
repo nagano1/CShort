@@ -304,6 +304,10 @@ namespace cshort
             return startScriptInternal((char*)text, SIZE - 1);
         }
 
+        static int startScript2(const char* script, int byteLength) {
+            return startScriptInternal((char*)script, byteLength);
+        }
+
         static _ScriptEnv* loadScript(char* script, int byteLength);
 
     };

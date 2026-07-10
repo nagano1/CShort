@@ -44,6 +44,7 @@ namespace cshort
 
         typeManager = memBufferForValidation.newMem<TypeManager>(1);
         typeManager->init(this);
+        scriptEngineContext = nullptr;
 
         memBufferForError.init();
     }

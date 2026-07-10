@@ -55,7 +55,6 @@ namespace cshort {
 
     static void assignCalcRegToNode(NodeBase *node, const ParseContext *context)
     {
-        /*
         int typeIndex = node->typeIndex;
         if (typeIndex == -1) {
             typeIndex = BuiltInTypeIndex::int64;
@@ -65,12 +64,11 @@ namespace cshort {
         auto *typeEntry = typeManager->getTypeEntryByIndex(typeIndex);
         int dataSize = typeEntry->getStackSizeForType();
 
-        const GPRRegister *calcRegister = GetGPRRegisterByEnum(node->calcRegEnum, &context->cpuRegister);
+        const GPRRegister *calcRegister = GetGPRRegisterByEnum(node->calcRegEnum, &context->scriptEngineContext->cpuRegister);
         if (calcRegister != nullptr) {
             st_byte* dataPointer = GetDataPointerFromGPRRegister(calcRegister, dataSize);
             node->calcReg = dataPointer;
         }
-        */
     }
 
     // assigns calculation registers to the left and right expression nodes of a binary operation node, as well as to the value node of a parentheses node, and to the expression node of an assignment or return statement node.
@@ -441,6 +439,8 @@ namespace cshort {
             }
         }
         else {
+            // for other node types, assign typeIndex based on the node's type using the TypeManager.
+            // e.g., for literals, function calls, etc.
             node->typeIndex = context->typeManager->typeFromNode(node);
         }
 
@@ -467,27 +467,41 @@ namespace cshort {
     }
 
 
+
     // This function executes type selection for the body of a function definition,
     // determining the types of expressions and assignments within the function body.
-    static void validateExpressionsOnFuncBody(ParseContext *context, FuncDefNodeStruct *func)
+    // fun A () {
+    //     let a = 3
+    //     int k = 5
+    //     return (a + k)
+    //}
+    // validation steps:
+    // 1. Create a local variable chain for the function body to manage variable scopes.
+    // 2. Iterate through each statement in the function body.
+    // 3. For each statement, apply type selection to all expressions within the statement.
+    // 4. If the statement is an assignment, add it to the local variable chain
+    // 5. Calculate the stack offset for each variable based on its type size.
+
+    void Validator::validateFuncDef(FuncDefNodeStruct *func)
     {
+        // set typeIndex to all expressions and assignments
         func->bodyNode.localVariableChain = func->context->memBuffer.newMem<LocalVariableChain>(1);
 
         auto *statement = func->bodyNode.firstChildNode;
         int currentStackOffset = 0;
         while (statement != nullptr) {
-            // call type selector to all expressions in the statement
+            // call type selector for all expressions in the statement
             statement->vtable->applyFuncToDescendants(
                     statement,
-                    context,
+                    func->context,
                     nullptr,
                     callTypeSelectorOnExpressions,
-                    /* children first */false,
+                    false, // children first 
                     (void *) statement,
                     nullptr);
 
             if (statement->vtable == VTables::AssignmentVTable) {
-                // add variable of assignment(declaration) to local variable chain
+                // add variable declaration(assignment node) to local variable chain
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(statement);
                 if (assign->hasTypeOrLet)
                 {
@@ -504,14 +518,7 @@ namespace cshort {
             statement = statement->nextNode;
         }
 
-        func->stackSize = -currentStackOffset;
-    }
-
-
-    void Validator::validateFuncDef(FuncDefNodeStruct *func)
-    {
-        // set typeIndex to all expressions and assignments
-        validateExpressionsOnFuncBody(func->context, func);
+        func->stackSize = currentStackOffset;
     }
 
     void Validator::validateScript(DocumentStruct *document)
