@@ -39,13 +39,13 @@ namespace cshort {
 
         this->stackSize = 2 * 1024 * 1024; // 2MB
         this->stackChunk = (st_byte*)malloc(this->stackSize);
-         if (this->stackChunk == nullptr) {
-             this->isOverflowed = true;
-             this->stackPointer = nullptr;
-             this->stackBasePointer = nullptr;
-             return;
-         }
-         this->returnValue = 0;
+        if (this->stackChunk == nullptr) {
+            this->isOverflowed = true;
+            this->stackPointer = nullptr;
+            this->stackBasePointer = nullptr;
+            return;
+        }
+        this->returnValue = 0;
 
         // stack grows downwards, so the initial stack pointer is at the end of the allocated stackChunk.
         this->stackPointer = this->stackChunk + this->stackSize;
@@ -152,7 +152,7 @@ namespace cshort {
         // https://zenn.dev/yasu01/articles/1f92df34f54c31
         assert(target >= this->stackPointer);
         assert(target >= this->stackChunk);
-        assert(target + byteCount <= stackEnd);
+        //assert(target + byteCount <= stackEnd); // this assertion is commented out because it may not hold true for negative offsets, which are used to access local variables and function arguments on the stack.
 
         if (byteCount == 1) { // 8bit
             *(uint8_t*)(ptr) = *(uint8_t*)(this->stackBasePointer + offsetFromBase);

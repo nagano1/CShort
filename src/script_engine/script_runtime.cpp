@@ -136,7 +136,7 @@ namespace cshort {
         assert(expressionNode != nullptr);
         assert(expressionNode->vtable != nullptr);
 
-        auto *context = this->scriptEnv->document->context;
+        auto *context = expressionNode->context;
         auto *typeManager = context->typeManager;
 
         if (expressionNode->vtable == VTables::IdentifiersAccessVTable) {
@@ -164,7 +164,7 @@ namespace cshort {
             *(uint64_t*)(binaryNode->rightExprNode->calcReg) = saved;
 
             auto *leftTypeEntry = typeManager->getTypeEntryByIndex(binaryNode->leftExprNode->typeIndex);
-            leftTypeEntry->binary_operate(parseContext, binaryNode);
+            leftTypeEntry->binary_operate(context, binaryNode);
 
             return;
         }
@@ -189,7 +189,7 @@ namespace cshort {
         }
 
         if (typeEntry) {
-            typeEntry->evaluateNode(this->parseContext, expressionNode);
+            typeEntry->evaluateNode(context, expressionNode);
         }
     }
 
@@ -557,41 +557,22 @@ namespace cshort {
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::null,
                                                               null_binary_operate,
                                                               null_evaluateNode);
-/*
-        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::int64)->binary_operate = int64_binary_operate;
-        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::int64)->evaluateNode = int64_evaluateNode;
-
-        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::heapString)->binary_operate = heapString_binary_operate;
-        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::heapString)->evaluateNode = heapString_evaluateNode;
-        
-        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::null)->binary_operate = null_binary_operate;
-        typeManager->getTypeEntryByIndex(BuiltInTypeIndex::null)->evaluateNode = null_evaluateNode;
-*/
     }
 
-    void ScriptEngineContext::init(ScriptEnv *scriptEnvArg, ParseContext *context)
+    void ScriptEngineContext::init(/*ScriptEnv *scriptEnvArg, */ParseContext *context)
     {
-        this->scriptEnv = scriptEnvArg;
+        //this->scriptEnv = scriptEnvArg;
         this->parseContext = context;
-
-        this->semanticErrorInfo.hasError = false;
-        this->semanticErrorInfo.count = 0;
-        this->semanticErrorInfo.firstErrorItem = nullptr;
-        this->semanticErrorInfo.lastErrorItem = nullptr;
-
-
+        
         this->memBuffer.init();
         this->memBufferForHeap.initWithHeapEntryEnabled();
-        this->memBufferForError.init();
+        //this->memBufferForError.init();
+
         this->memBufferForValueBase.init();
+
         this->stackMemory.init();
 
-        // this->variableMap2 = this->memBuffer.newMem<VoidHashMap>(1);
-        // this->variableMap2->init(&this->memBuffer);
-
-        // this->typeNameMap = this->memBuffer.newMem<VoidHashMap>(1);
-        // this->typeNameMap->init(&this->memBuffer);
-        this->cpuRegister = CPUSim{};
+        this->cpuRegister = CPUSim{}; // without this, the registers may contain garbage values, which can lead to unpredictable behavior during script execution.
 
         setBuiltinTypeOperations(this, context);
     }
@@ -620,13 +601,11 @@ namespace cshort {
     {
         auto *scriptEnv = (ScriptEnv*)malloc(sizeof(ScriptEnv));
         if (scriptEnv != nullptr) {
-            auto *context = mallocForType<ScriptEngineContext>();
+            auto *scriptContext = mallocForType<ScriptEngineContext>();
+            scriptContext->init(/*scriptEnv, */parseContext);
 
-            scriptEnv->context = context;
-            context->init(scriptEnv, parseContext);
-            parseContext->scriptEngineContext = context;
-
-            scriptEnv->mainFunc = nullptr;
+            scriptEnv->context = scriptContext;
+            parseContext->scriptEngineContext = scriptContext;
         }
         return scriptEnv;
     }
@@ -729,7 +708,7 @@ namespace cshort {
         assert(this->context->parseContext->semanticErrorInfo.hasError == false);
 
         int ret = 0;
-        auto *mainFunc = this->mainFunc;
+        auto *mainFunc = this->document->mainFunc;
         if (mainFunc) {
             // printf("main found <%s()>\n", mainFunc2->nameNode.name);
             TypeAndExpression typeAndExpression = executeFunc(this, mainFunc);

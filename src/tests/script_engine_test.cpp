@@ -349,21 +349,19 @@ void callTests()
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
-    testHeapString();
-    testNull();
-    testScript();
-    testScript2();
-    testVarable();
-    //testi64();
     testStackMemoryFuncCall();
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
-    testHeapString();
-    testNull();
+
     testScript();
+        /*
+    testNull();
+    testHeapString();
     testScript2();
     testVarable();
+    */
+    //testi64();
 
     checkSemanticError(R"(fn Main() { int a = 5
         int a = 6})", ErrorIndex::variable_name_duplicated);

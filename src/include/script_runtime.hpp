@@ -182,19 +182,14 @@ namespace cshort
 
 
     using ScriptEngineContext = struct _scriptEngineContext {
-        _ScriptEnv* scriptEnv;
+        //_ScriptEnv* scriptEnv;
         CPUSim cpuRegister;
-
-        SemanticErrorInfo semanticErrorInfo;
 
         MemBuffer memBuffer; // for TypeEntry, variable->value map
 
         MemBuffer memBufferForValueBase; // for value base
         MemBuffer memBufferForHeap; // for value
-        MemBuffer memBufferForError; // for value
 
-        VoidHashMap *variableMap2;
-        VoidHashMap *typeNameMap;
         StackMemory stackMemory;
 
         void evaluateExprNode(NodeBase* expressionNode);
@@ -204,7 +199,7 @@ namespace cshort
 
         ParseContext *parseContext;
 
-        void init(_ScriptEnv *scriptEnv, ParseContext *context);
+        void init(/*_ScriptEnv *scriptEnv, */ParseContext *context);
 
         // allocating methods for objects in script running, which will be freed all together after script execution finishes, this is more efficient than malloc/free for each object, and also easier to manage memory in the script engine.
         void* mallocHeapObject(int bytes) {
@@ -217,11 +212,10 @@ namespace cshort
 
         void freeAll()
         {
-            this->memBufferForHeap.freeAllHeapEntries();
             this->memBufferForHeap.freeAll();
 
             this->memBufferForValueBase.freeAll();
-            this->memBufferForError.freeAll();
+            // this->memBufferForError.freeAll();
             this->memBuffer.freeAll();
             this->stackMemory.freeAll();
         }
@@ -235,26 +229,10 @@ namespace cshort
     using ScriptEnv = struct _ScriptEnv {
 
         DocumentStruct* document;
-        FuncDefNodeStruct* mainFunc;
 
         int runScript();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         ScriptEngineContext *context;
-
-
 
         static void deleteScriptEnv(_ScriptEnv *doc);
         static _ScriptEnv *newScriptEnv(ParseContext *context);

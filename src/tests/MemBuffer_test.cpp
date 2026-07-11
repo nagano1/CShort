@@ -110,7 +110,6 @@ void testMallocHeapEntry() {
     assert(*mem == 53);
     assert(memBufferForHeap.firstBufferBlock != memBufferForHeap.currentBufferBlock);
 
-    memBufferForHeap.freeAllHeapEntries();
     memBufferForHeap.freeAll();
 }
 
@@ -149,7 +148,6 @@ void testMallocHeapEntrySmallAndLargeFree() {
     memBufferForHeap.freeHeapEntry(largeMem);
     assert(largeEntry->freed);
 
-    memBufferForHeap.freeAllHeapEntries();
     memBufferForHeap.freeAll();
 }
 

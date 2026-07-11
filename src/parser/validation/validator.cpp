@@ -282,7 +282,7 @@ namespace cshort {
                 return 0;
             }
 
-            int binaryType = baseTypeEntry->binary_operate(context, binary);
+            int binaryType = baseTypeEntry->binary_operate_type_check(context, binary);
              if (!TypeManager::isValidTypeIndex(binaryType)) { // invalid operator for the type
                  context->addErrorWithNode(ErrorIndex::internal_error, binary);
                  binary->typeIndex = (int)TypeIndexConst::NotAssigned;
@@ -442,6 +442,8 @@ namespace cshort {
         }
 
         auto *mainFunc = findMainFunc(document);
+        document->mainFunc = mainFunc;
+        document->context->mainFunc = mainFunc;
         if (mainFunc == nullptr) {
             // error: entry func not found
             document->context->addErrorWithNode(ErrorIndex::main_func_not_found, document);

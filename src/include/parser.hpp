@@ -445,6 +445,8 @@ namespace cshort {
 
         NodeBase *firstRootNode;
         NodeBase *lastRootNode;
+
+        FuncDefNodeStruct* mainFunc;
     };
 
 
@@ -482,7 +484,8 @@ namespace cshort {
         bool baseIncrementMode;
 
         bool skipBinaryExpressionTokenizer;
-         // used for tokenizer to indicate that it is inside parentheses expression, so that it can parse binary expression inside parentheses even if skipBinaryExpressionTokenizer is true.
+        
+        // used for tokenizer to indicate that it is inside parentheses expression, so that it can parse binary expression inside parentheses even if skipBinaryExpressionTokenizer is true.
         bool insideParenthesisExpression;
 
         LineBreakTokenStruct *remainedLineBreakToken;
@@ -494,16 +497,13 @@ namespace cshort {
         MemBuffer memBufferForError;
         MemBuffer memBufferForValidation;
 
-        TypeManager *typeManager;
+        FuncDefNodeStruct* mainFunc;
 
+        SyntaxErrorInfo syntaxErrorInfo;
         SemanticErrorInfo semanticErrorInfo;
 
         struct _scriptEngineContext *scriptEngineContext;
-
-        VoidHashMap *variableMap2;
-//        VoidHashMap *typeNameMap;
-
-
+        TypeManager *typeManager;
 
         void init();
         void dispose();
@@ -545,7 +545,6 @@ namespace cshort {
         void DecrementIndentDepth(ParseContext *context);
         
         int baseIndent;
-        SyntaxErrorInfo syntaxErrorInfo;
         bool has_depth_error{false};
         int currentIndentDepth { -1 };
         bool isAfterOpenParenthesis { false }; // used for indent depth calculation, when true, indent depth will be increased by 1 for the line after current line until the closing parenthesis(expression level) is found.
@@ -560,8 +559,6 @@ namespace cshort {
         void setIndentError(ErrorIndex errorCode, st_int line1, st_int charPos1);
         void setError3(ErrorIndex errorCode, st_int line1, st_int charPos1, st_int line2, st_int charPos2);
         void addErrorWithNode(ErrorIndex errorCode, void* nodeArg) ;
-
-        
     };
 
 
