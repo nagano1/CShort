@@ -109,8 +109,11 @@ namespace cshort {
         assert(!this->isOverflowed && "moveTo: stack is overflowed");
 
         auto* stackEnd = this->stackChunk + this->stackSize;
-        auto* target = this->stackBasePointer + offsetFromBase;
-        if (target < this->stackPointer || target < this->stackChunk || target + byteCount > stackEnd) {
+        auto* dataPosition = this->stackBasePointer + offsetFromBase;
+
+        if (dataPosition < this->stackPointer
+             || dataPosition < this->stackChunk
+             || dataPosition + byteCount > stackEnd) {
             overflowed();
             return false;
         }

@@ -412,7 +412,7 @@ namespace cshort {
                     if (TypeManager::isValidTypeIndex(assign->typeIndex)) { // typeIndex is not valid if the type is not found
                         assign->stackOffset = currentStackOffset;
                         TypeEntry *typeEntry = func->context->typeManager->getTypeEntryByIndex(assign->typeIndex);
-                        currentStackOffset += typeEntry->getStackSizeForType();
+                        currentStackOffset -= typeEntry->getStackSizeForType();
                     }
                 }
             }
@@ -420,7 +420,7 @@ namespace cshort {
             statement = statement->nextNode;
         }
 
-        func->stackSize = currentStackOffset;
+        func->stackSize = -currentStackOffset;
     }
 
     void Validator::validateScript(DocumentStruct *document)
