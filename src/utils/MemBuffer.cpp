@@ -30,6 +30,9 @@ void MemBuffer::initWithHeapEntryEnabled() {
 }
 
 void MemBuffer::freeAll() {
+    if (this->isHeapEntryEnabled) {
+        this->_freeAllHeapEntries();
+    }
     MemBufferBlock *bufferList = this->firstBufferBlock;
 
     while (bufferList != nullptr) {
@@ -222,7 +225,7 @@ void MemBuffer::freeHeapEntry(void *ptr) {
 }
 
 // Free all heap entries that have not been freed yet.
-void MemBuffer::freeAllHeapEntries() {
+void MemBuffer::_freeAllHeapEntries() {
     assert(isHeapEntryEnabled);
     if (!isHeapEntryEnabled) return;
 
