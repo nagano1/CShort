@@ -118,7 +118,7 @@ struct MemBuffer {
     // Extension for heap malloc: objects can be freed all together after script execution finishes, simplifying memory management in the script engine.
     void* mallocHeapEntry(int bytes);
     void freeHeapEntry(void *ptr);
-    void _freeAllHeapEntries();// Free all heap entries that have not been freed yet, this is called in freeAll() when heap mode is enabled.
+    void _freeAllHeapEntries();// this is called in freeAll() when heap mode is enabled, so this is kinda private, but it is public for testing purposes.
 };
 
 
