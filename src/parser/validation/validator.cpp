@@ -403,15 +403,15 @@ namespace cshort {
                     nullptr);
 
             if (statement->vtable == VTables::AssignmentVTable) {
-                // add variable declaration(assignment node) to local variable chain
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(statement);
-                if (assign->hasTypeOrLet)
-                {
+                if (assign->hasTypeOrLet) {
+                    // add variable declaration(assignment node) to local variable chain
                     func->bodyNode.localVariableChain->addToCurrentBlock(assign, func->context);
 
-                    if (TypeManager::isValidTypeIndex(assign->typeIndex)) { // typeIndex is not valid if the type is not found
+                    if (TypeManager::isValidTypeIndex(assign->typeIndex)) { // only assign stack offset for valid type index
                         assign->stackOffset = currentStackOffset;
                         TypeEntry *typeEntry = func->context->typeManager->getTypeEntryByIndex(assign->typeIndex);
+                        assert(typeEntry != nullptr);
                         currentStackOffset -= typeEntry->getStackSizeForType();
                     }
                 }
@@ -431,14 +431,14 @@ namespace cshort {
         document->context->typeManager->initializeBuiltinTypeSelectors();
 
         // search all funcs
-        auto *rootNode = document->firstRootNode;
-        while (rootNode != nullptr) {
-            if (rootNode->vtable == VTables::FuncDefVTable) {
+        auto *toplevelNode = document->firstRootNode;
+        while (toplevelNode != nullptr) {
+            if (toplevelNode->vtable == VTables::FuncDefVTable) {
                 // fn
-                auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(rootNode);
+                auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(toplevelNode);
                 Validator::validateFuncDef(fnNode);
             }
-            rootNode = rootNode->nextNode;
+            toplevelNode = toplevelNode->nextNode;
         }
 
         auto *mainFunc = findMainFunc(document);

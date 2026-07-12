@@ -288,7 +288,7 @@ namespace cshort {
 
         //SymbolTokenStruct pointerAsterisk; // *
 
-        int stackOffset; // stack offset for this variable, used for code generation and runtime stack memory management.
+        int stackOffset; // stack offset for this variable from the base of the stack frame
         IdentifierTokenStruct variableNameToken; // variable name
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
