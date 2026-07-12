@@ -257,7 +257,7 @@ namespace cshort {
 
     // This function is called for each expression node in the AST to determine its type and perform necessary validations.
     // children come first
-    static int callTypeSelectorOnExpressions(NodeBase *node, ApplyFunc_params2)
+    static int assignAndValidateTypesOnExpressions(NodeBase *node, ApplyFunc_params2)
     {
         if (node->vtable == VTables::BinaryOperationVTable) {
             auto *binary = Cast::downcast<BinaryOperationNodeStruct *>(node);
@@ -377,12 +377,10 @@ namespace cshort {
     //     int k = 5
     //     return (a + k)
     //}
-    // validation steps:
-    // 1. Create a local variable chain for the function body to manage variable scopes.
-    // 2. Iterate through each statement in the function body.
-    // 3. For each statement, apply type selection to all expressions within the statement.
-    // 4. If the statement is an assignment, add it to the local variable chain
-    // 5. Calculate the stack offset for each variable based on its type size.
+    // what validation does:
+    // - Validate types for expressions and assignments
+    // - For each assignment, it checks if the variable is already declared in the current scope.
+    // - Calculate the stack offset for each variable based on its type size.
 
     void Validator::validateFuncDef(FuncDefNodeStruct *func)
     {
@@ -397,7 +395,7 @@ namespace cshort {
                     statement,
                     func->context,
                     nullptr,
-                    callTypeSelectorOnExpressions,
+                    assignAndValidateTypesOnExpressions,
                     false, // children first 
                     (void *) statement,
                     nullptr);
