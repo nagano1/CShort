@@ -75,14 +75,13 @@ namespace cshort {
 
     static int applyFunc_assignCalcOpRegister(NodeBase *node, ApplyFunc_params2)
     {
-        //auto *context = (ParseContext *)context;
-
         if (node->vtable == VTables::BinaryOperationVTable) {
             auto *binary = Cast::downcast<BinaryOperationNodeStruct *>(node);
 
             binary->leftExprNode->calcRegEnum = findUnusedReg1(binary->calcRegEnum);
             assignCalcRegToNode(binary->leftExprNode, context);
 
+            // Find a register that is not used by the binary operation node or the left expression node, to avoid overwriting values during evaluation.
             binary->rightExprNode->calcRegEnum = findUnusedReg2(binary->calcRegEnum, binary->leftExprNode->calcRegEnum);
             assignCalcRegToNode(binary->rightExprNode, context);
         }
@@ -120,7 +119,7 @@ namespace cshort {
                                                          context,
                                                          nullptr,
                                                          applyFunc_assignCalcOpRegister,
-                                                         /*parent first*/true,
+                                                         true, // parent first
                                                          nullptr,
                                                          nullptr);
     }
@@ -169,7 +168,7 @@ namespace cshort {
             return;
         }
 
-        // To handle func call, like 3 + funcA(100)
+        // TODO: handle func calls, like 3 + funcA(100)
         // 1. evaluate caller expression to get func entry
         // 2. evaluate arguments and save their values to registers
         // 3. call func and save return value to register
@@ -179,8 +178,6 @@ namespace cshort {
             this->evaluateExprNode(funcCall->callerExprNode);
         }
         */
-
-
 
         TypeEntry *typeEntry = nullptr;
         int typeIndex = expressionNode->typeIndex;
@@ -368,27 +365,6 @@ namespace cshort {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //------------------------------------------------------------------------------------------
     //
     //                                Script Engine Context
@@ -505,11 +481,11 @@ namespace cshort {
 
     //------------------------------------------------------------------------------------------
     //
-    //                                       Script Engine
+    //                              Script Runner (static functions)
     //
     //------------------------------------------------------------------------------------------
 
-    // Script engine steps:
+    // steps for running a CShort script using the script engine:
     // 1. load the script
     // 2. validate scripts
     //    - set typeIndex for each expression node
