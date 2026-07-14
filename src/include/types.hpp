@@ -85,7 +85,6 @@ namespace cshort
         }
 
 
-        void initializeBuiltinTypeSelectors();
 
         int typeFromNode(NodeBase *expressionNode);
 
@@ -101,14 +100,13 @@ namespace cshort
         }
 
         void registerBuiltInTypes(ParseContext *context);
+        void initializeBuiltinTypeSelectors();
 
         static bool isValidTypeIndex(int typeIndex) {
             return typeIndex > 0; // && typeIndex < typeEntryListNextIndex;
         }
 
-        ParseContext *context;
         void init(ParseContext *context) {
-            this->context = context;
             typeEntryList = nullptr;
             typeEntryListNextIndex = 1;
             typeEntryListLength = 0;
