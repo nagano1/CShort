@@ -1,19 +1,6 @@
 ﻿#pragma once
 
 #include <stdlib.h>
-//#include <array>
-//
-//#include <cstdlib>
-//#include <cassert>
-//#include <cstdio>
-//#include <chrono>
-//#include <unordered_map>
-//
-//#include <cstdint> // uint64_t, int_fast32_t
-//#include <ctime>
-//
-//#include <string.h> // memcpy
-//
 #include "ParseUtil.hpp"
 #include "common.hpp"
 #include "parser.hpp"
@@ -172,17 +159,9 @@ namespace cshort
         }
     };
 
-
-    // // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
-    // using ValueBase = struct _valueBase {
-    //     int typeIndex;
-    //     void* ptr;
-    //     unsigned int size; // in byte
-    // };
-
-
     using ScriptEngineContext = struct _scriptEngineContext {
         CPUSim cpuRegister;
+        DocumentStruct *document;
 
         MemBuffer memBuffer; // for TypeEntry, variable->value map
 
@@ -223,16 +202,16 @@ namespace cshort
 
 
 
-    using ScriptEnv = struct _ScriptEnv {
+    struct ScriptRunner {
 
-        DocumentStruct* document;
+        //DocumentStruct* document;
 
-        int runScript();
+        static int runScript(ScriptEngineContext *context);
 
-        ScriptEngineContext *context;
+        //ScriptEngineContext *context;
 
-        static void deleteScriptEnv(_ScriptEnv *doc);
-        static _ScriptEnv *newScriptEnv(ParseContext *context);
+        static void deleteScriptEngineContext(ScriptEngineContext *doc);
+        static ScriptEngineContext *newScriptEngineContext(ParseContext *context);
         //TypeEntry *newTypeEntry() const;
 
         static int startScriptInternal(char* script, int byteLength);
@@ -247,44 +226,7 @@ namespace cshort
             return startScriptInternal((char*)script, byteLength);
         }
 
-        static _ScriptEnv* loadScript(char* script, int byteLength);
+        static ScriptEngineContext* loadScript(char* script, int byteLength);
 
     };
-
-
-    /*
-     *
-    // 11111111 11111111 11111111 11111111
-    static constexpr unsigned char BYTE_BIT_COUNTS[256]{
-        0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
-    };
-
-    // EXPECT_EQ(4, GetSetBitsCount(0b1111));
-
-    int GetSetBitsCount(uint32_t n)
-    {
-        auto counts = BYTE_BIT_COUNTS;
-        return n <= 0xff ? counts[n]
-            : n <= 0xffff ? counts[n & 0xff] + counts[n >> 8]
-            : n <= 0xffffff ? counts[n & 0xff] + counts[(n >> 8) & 0xff] + counts[(n >> 16) & 0xff]
-            : counts[n & 0xff] + counts[(n >> 8) & 0xff] + counts[(n >> 16) & 0xff] + counts[(n >> 24) & 0xff];
-    }
-     *
-     */
-
 }

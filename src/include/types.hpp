@@ -21,7 +21,7 @@
 namespace cshort
 {
     // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
-    // node->typeIndex is the index of the type entry in the ScriptEnv->typeEntryList, which is used to get the TypeEntry for the node.
+    // node->typeIndex is the index of the type entry in the ScriptRunner->typeEntryList, which is used to get the TypeEntry for the node.
     // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
     using TypeEntry = struct _typeEntry {
         int typeIndex;
@@ -83,6 +83,7 @@ namespace cshort
         TypeEntry* getTypeEntryByName(const char *typeName, int length) {
             return (TypeEntry*)this->typeNameMap->get(typeName, length);
         }
+
 
         void initializeBuiltinTypeSelectors();
 

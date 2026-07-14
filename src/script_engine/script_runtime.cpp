@@ -442,47 +442,7 @@ namespace cshort {
         return returnNode;
     }
 
-/*
-    // return: utf16
-    static int getPosInLine(NodeBase *node, bool beginningPos)
-    {
-        auto *codeLine = node->codeLine;
 
-        int utf16Pos = 0;
-        assert(codeLine);
-
-        NodeBase *currenNode = codeLine->firstNode;
-        while (currenNode) {
-
-            utf16Pos += currenNode->precedingSpaceCount;
-
-            if (currenNode == node) {
-                if (beginningPos) {
-                    break;
-                }
-            }
-
-            int textLength = VTableCall::selfTextLength(currenNode);
-            char *text = (char*)VTableCall::selfText(currenNode);
-
-            utf16Pos += ParseUtil::utf16_length(text, textLength);
-
-            if (currenNode == node) {
-                break;
-            }
-
-            currenNode = currenNode->nextNodeInLine;
-        }
-
-        return utf16Pos;
-    }
-*/
-
-
-    // //int32_t *int32ptr;
-    //            //auto *value = this->context->genValueBase(BuiltInTypeIndex::int32, sizeof(int32_t), &int32ptr);
-    //            //*int32ptr = numberNode->num;
-    //            \param type
     ValueBase *ScriptEngineContext::genValueBase(int type, int size, void *ptr)
     {
         auto *value = this->newValueForHeap();
@@ -550,33 +510,28 @@ namespace cshort {
     //------------------------------------------------------------------------------------------
 
     // Script engine steps:
-    // 1. load scripts.
+    // 1. load the script
     // 2. validate scripts
     //    - set typeIndex for each expression node
     //    - check type error
     //    - assign stack offset for variables
     //    - assign registers for expressions
     //    - find main entry func
-    // 3. run scripts (evaluate nodes)
+    // 3. run script by running main func
 
-    ScriptEnv *ScriptEnv::newScriptEnv(ParseContext *parseContext)
+    ScriptEngineContext *ScriptRunner::newScriptEngineContext(ParseContext *parseContext)
     {
-        auto *scriptEnv = (ScriptEnv*)malloc(sizeof(ScriptEnv));
-        if (scriptEnv != nullptr) {
-            auto *scriptContext = mallocForType<ScriptEngineContext>();
-            scriptContext->init(/*scriptEnv, */parseContext);
+        auto *scriptContext = mallocForType<ScriptEngineContext>();
+        scriptContext->init(parseContext)   ;
 
-            scriptEnv->context = scriptContext;
-            parseContext->scriptEngineContext = scriptContext;
-        }
-        return scriptEnv;
+        parseContext->scriptEngineContext = scriptContext;
+        return scriptContext;
     }
 
-    void ScriptEnv::deleteScriptEnv(ScriptEnv *scriptEnv)
+    void ScriptRunner::deleteScriptEngineContext(ScriptEngineContext *scriptContext)
     {
-        scriptEnv->context->freeAll();
-        free(scriptEnv->context);
-        free(scriptEnv);
+        scriptContext->freeAll();
+        free(scriptContext);
     }
 
 
@@ -585,18 +540,20 @@ namespace cshort {
         NodeBase *expressionNode;
     };
 
-    static TypeAndExpression executeFunc(ScriptEnv* env, FuncDefNodeStruct* mainFunc)
+    static TypeAndExpression executeFunc(FuncDefNodeStruct* mainFunc)
     {
         assignCalcOpRegister(mainFunc->context, mainFunc);
+        auto *context = mainFunc->context;
 
         int stackSize = mainFunc->stackSize;
-        int baseBytesMinusOne = env->context->stackMemory.baseBytes - 1;
+        auto *scriptEngineContext = context->scriptEngineContext;
+        int baseBytesMinusOne = scriptEngineContext->stackMemory.baseBytes - 1;
         const int alignedStackSize = (stackSize + baseBytesMinusOne) & ~baseBytesMinusOne; // Align to base bytes
 
         auto *typeManager = mainFunc->context->typeManager;
 
-        env->context->stackMemory.call(); // simulate call by pushing return address
-        env->context->stackMemory.localVariables(alignedStackSize); // allocate space for local variables
+        scriptEngineContext->stackMemory.call(); // simulate call by pushing return address
+        scriptEngineContext->stackMemory.localVariables(alignedStackSize); // allocate space for local variables
 
         auto* statementNode = mainFunc->bodyNode.firstChildNode;
         while (statementNode != nullptr)
@@ -605,11 +562,11 @@ namespace cshort {
             if (statementNode->vtable == VTables::AssignmentVTable) {
                 auto* assignStatement = Cast::downcast<AssignmentNodeStruct *>(statementNode);
                 if (assignStatement->expressionNode != nullptr) {
-                    env->context->evaluateExprNode(assignStatement->expressionNode);
+                    scriptEngineContext->evaluateExprNode(assignStatement->expressionNode);
                     auto *typeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
 
                     auto dataSize = typeEntry->getStackSizeForType();
-                    env->context->stackMemory.moveToStack(assignStatement->stackOffset, dataSize,
+                    scriptEngineContext->stackMemory.moveToStack(assignStatement->stackOffset, dataSize,
                                                      assignStatement->expressionNode->calcReg);
                 }
             }
@@ -617,46 +574,47 @@ namespace cshort {
             // return 3
             if (statementNode->vtable == VTables::ReturnStatementVTable) {
                 auto* returnNode = Cast::downcast<ReturnStatementNodeStruct*>(statementNode);
-                env->context->evaluateExprNode(returnNode->expressionNode);
+                scriptEngineContext->evaluateExprNode(returnNode->expressionNode);
                 auto* typeEntry = typeManager->getTypeEntryByIndex(returnNode->expressionNode->typeIndex);
 
-                env->context->stackMemory.ret(); // simulate return by popping return address
+                scriptEngineContext->stackMemory.ret(); // simulate return by popping return address
                 return TypeAndExpression{typeEntry, returnNode->expressionNode};
             }
 
             statementNode = statementNode->nextNode;
         }
 
-        env->context->stackMemory.ret();
+        scriptEngineContext->stackMemory.ret();
         return TypeAndExpression{nullptr, nullptr};
     }
 
 
-    _ScriptEnv* ScriptEnv::loadScript(char* script, int byteLength)
+    ScriptEngineContext* ScriptRunner::loadScript(char* script, int byteLength)
     {
         auto* document = Alloc::newDocument(DocumentType::CodeDocument);
-        ScriptEnv* env = ScriptEnv::newScriptEnv(document->context);
+        auto* scriptContext = ScriptRunner::newScriptEngineContext(document->context);
+        scriptContext->document = document;
 
         document->context->typeManager->initializeBuiltinTypeSelectors();
 
         DocumentUtils::parseText(document, script, byteLength);
-        env->document = document;
 
-        return env;
+        return scriptContext; // Adjusted since 'env' is no longer used
     }
 
 
 
-    int ScriptEnv::runScript()
+    int ScriptRunner::runScript(ScriptEngineContext *context)
     {
-        assert(this->document->context->syntaxErrorInfo.hasError == false);
-        assert(this->context->parseContext->semanticErrorInfo.hasError == false);
+        assert(context->parseContext->syntaxErrorInfo.hasError == false);
+        assert(context->parseContext->semanticErrorInfo.hasError == false);
 
+        auto *document = context->document;
         int ret = 0;
-        auto *mainFunc = this->document->mainFunc;
+        auto *mainFunc = document->mainFunc;
         if (mainFunc) {
             // printf("main found <%s()>\n", mainFunc2->nameNode.name);
-            TypeAndExpression typeAndExpression = executeFunc(this, mainFunc);
+            TypeAndExpression typeAndExpression = executeFunc(mainFunc);
             TypeEntry *typeEntry = typeAndExpression.typeEntry;
             if (typeEntry != nullptr) {
                 if (typeEntry->getStackSizeForType() == 8) {
@@ -669,7 +627,7 @@ namespace cshort {
             }
         }
 
-        auto *rootNode = this->document->firstRootNode;
+        auto *rootNode = document->firstRootNode;
         while (rootNode != nullptr) {
             if (rootNode->vtable == VTables::ClassVTable) {
                 // class
@@ -681,31 +639,32 @@ namespace cshort {
             rootNode = rootNode->nextNode;
         }
 
-        Alloc::deleteDocument(this->document);
-        ScriptEnv::deleteScriptEnv(this);
+        Alloc::deleteDocument(document);
+        ScriptRunner::deleteScriptEngineContext(context);
 
         return ret;
     }
 
 
-    int ScriptEnv::startScriptInternal(char* script, int scriptLength)
+    int ScriptRunner::startScriptInternal(char* script, int scriptLength)
     {
         // Load the script
-        ScriptEnv *env = ScriptEnv::loadScript(script, scriptLength);
+        auto *scriptContext = ScriptRunner::loadScript(script, scriptLength);
+        auto *document = scriptContext->document;
 
         // Return if there's a syntax error
-        if (env->document->context->syntaxErrorInfo.hasError) {
-            return env->document->context->syntaxErrorInfo.errorItem.errorId;
+        if (scriptContext->parseContext->syntaxErrorInfo.hasError) {
+            return scriptContext->parseContext->syntaxErrorInfo.errorItem.errorId;
         }
 
         // Validate types, values and finding Main(entry) function
-        Validator::validateScript(env->document);
+        Validator::validateScript(document);
         
-        if (env->context->parseContext->semanticErrorInfo.hasError) {
-            return env->context->parseContext->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
+        if (scriptContext->parseContext->semanticErrorInfo.hasError) {
+            return scriptContext->parseContext->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
         }
 
         // Run script
-        return env->runScript();
+        return ScriptRunner::runScript(scriptContext);
     }
 }

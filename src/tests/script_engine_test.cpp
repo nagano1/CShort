@@ -224,7 +224,7 @@ void testStackMemoryOverflowCall() {
 
 
 int startScript(const char* source) {
-    return ScriptEnv::startScript2(source, (int)strlen(source));
+    return ScriptRunner::startScript2(source, (int)strlen(source));
 /*
     auto* document = Alloc::newDocument(DocumentType::CodeDocument);
     auto *context = document->context;
@@ -236,7 +236,7 @@ int startScript(const char* source) {
     assert(!context->semanticErrorInfo.hasError);
 
 
-    auto* env = ScriptEnv::newScriptEnv(context);
+    auto* env = ScriptRunner::newScriptEnv(context);
     env->loadScript((char*)source, (int)strlen(source));
     int ret = env->runScript();
 
