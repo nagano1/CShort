@@ -323,7 +323,7 @@ fn Main()
         assert(ret == 0);
 }
 
-void testVarable() {
+void testVariable() {
             constexpr char source[] = R"(
 fn Main()
 {
@@ -358,8 +358,7 @@ void callTests()
     testNull();
     testHeapString();
     testScript2();
-    testVarable();
-    //testi64();
+    testVariable();
 
     checkSemanticError(R"(fn Main() { int a = 5
         int a = 6})", ErrorIndex::variable_name_duplicated);

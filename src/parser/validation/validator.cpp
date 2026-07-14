@@ -234,6 +234,7 @@ namespace cshort {
         }
 
         assign->stackOffset = varDeclarationStatement->stackOffset;
+        assign->typeIndex = varDeclarationStatement->typeIndex;
 
         if (varDeclarationStatement->hasTypeOrLet && varDeclarationStatement->typeOrLet.hasImmutableMark) {
             context->addErrorWithNode(ErrorIndex::assign_to_immutable, assign);
