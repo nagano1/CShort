@@ -355,12 +355,10 @@ void callTests()
     testStackMemoryOverflowCall();
 
     testScript();
-        /*
     testNull();
     testHeapString();
     testScript2();
     testVarable();
-    */
     //testi64();
 
     checkSemanticError(R"(fn Main() { int a = 5
