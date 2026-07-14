@@ -702,7 +702,6 @@ namespace cshort {
         Validator::validateScript(env->document);
         
         if (env->context->parseContext->semanticErrorInfo.hasError) {
-            env->context->setErrorPositions();
             return env->context->parseContext->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
         }
 
