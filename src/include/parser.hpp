@@ -84,6 +84,9 @@ namespace cshort {
         Bool = 3,
     };
 
+
+    using type_index = int;
+    const int ErrorTypeIndex = -1;
     struct BuiltInTypeIndex {
         static int int32;
         static int int64;

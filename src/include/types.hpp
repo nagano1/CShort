@@ -8,6 +8,14 @@
 
 namespace cshort
 {
+
+    enum class CanAssignResult {
+        CanAssign,
+        CannotAssign,
+        CannotAssignWitoutExplicitConversion, // e.g. int64 cannot be assigned to int32 without explicit conversion
+        CanAssignWithConversion // e.g. int32 can be assigned to int64 with conversion
+    };
+
     // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
     // node->typeIndex is the index of the type entry in the TypeManager->typeEntryList, which is used to get the TypeEntry for the node.
     // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
@@ -16,9 +24,9 @@ namespace cshort
         int dataSize;
         bool isReferenceType; // class rather than struct
 
-        int (*binary_operate)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
-        int (*binary_operate_type_check)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
-        int (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
+        void (*binary_operate)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
+        type_index (*binary_operate_type_check)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
+        CanAssignResult (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
         void (*evaluateNode)(ParseContext *context, NodeBase *node);
 
         char *typeChars;

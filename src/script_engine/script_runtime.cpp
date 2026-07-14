@@ -200,7 +200,8 @@ namespace cshort {
     {
         *(int32_t*)numberNode->calcReg = (int32_t)numberNode->num;
     }
-    static int int32_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+
+    static void int32_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         int32_t left32 = *(int32_t*)binaryNode->leftExprNode->calcReg;
         int32_t right32 = 0;
@@ -234,8 +235,6 @@ namespace cshort {
                 break;
             }
         }
-
-        return BuiltInTypeIndex::int32;
     }
 
     static void int64_evaluateNode(ParseContext *context, NumberNodeStruct *numberNode)
@@ -243,7 +242,7 @@ namespace cshort {
         *(int64_t*)numberNode->calcReg = numberNode->num;
     }
 
-    static int int64_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    static void int64_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         int64_t left64 = *(int64_t*)binaryNode->leftExprNode->calcReg;
         int64_t right64 = 0;
@@ -277,7 +276,6 @@ namespace cshort {
                 break;
             }
         }
-        return BuiltInTypeIndex::int64;
     }
 
 
@@ -303,11 +301,11 @@ namespace cshort {
         return 0;
     }
 
-    static int heapString_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    static void heapString_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         if (binaryNode->binaryOp != BinaryOperator::Add) {
             context->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
-            return BuiltInTypeIndex::heapString;
+            return;
         }
 
         auto *leftNode = binaryNode->leftExprNode;
@@ -316,7 +314,7 @@ namespace cshort {
         if (leftNode->typeIndex != BuiltInTypeIndex::heapString
              && rightNode->typeIndex != BuiltInTypeIndex::heapString) {
             context->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
-            return BuiltInTypeIndex::heapString;
+            return;
         }
 
         auto *leftValue = *(ValueBase **)leftNode->calcReg;
@@ -334,8 +332,6 @@ namespace cshort {
             chars[size - 1] = '\0';
             binaryNode->calcReg = (st_byte*)&value;
         }
-
-        return BuiltInTypeIndex::heapString;
     }
 
 
@@ -344,9 +340,8 @@ namespace cshort {
         return (char*)"null";
     }
 
-    static int null_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    static void null_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
-        return BuiltInTypeIndex::null;
     }
 
     static int canAssignType_null(ParseContext *context, _typeEntry *otherType)
@@ -432,7 +427,7 @@ namespace cshort {
 
     template<typename T>
     static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, int typeIndex
-        , int (*binary_func)(ParseContext *, BinaryOperationNodeStruct *),
+        , void (*binary_func)(ParseContext *, BinaryOperationNodeStruct *),
          void (*evalFunc)(ParseContext *, T *))
     {
         auto *typeEntry = context->typeManager->getTypeEntryByIndex(typeIndex);

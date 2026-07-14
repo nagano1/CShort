@@ -129,8 +129,8 @@ namespace cshort {
             else {
                 // check assignable
                 auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(childTypeIndex);
-                bool canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
-                if (!canAssign) {
+                CanAssignResult canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
+                if (canAssign == CanAssignResult::CannotAssign) {
                     context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assignment);
                 }
             }
