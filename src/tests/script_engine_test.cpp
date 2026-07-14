@@ -331,9 +331,6 @@ void callTests()
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
     testStackMemoryFuncCall();
-    testStackMemoryOverflowPush();
-    testStackMemoryOverflowLocalVariables();
-    testStackMemoryOverflowCall();
 
     testScript();
     testNull();
