@@ -565,7 +565,7 @@ namespace cshort {
     }
 
 
-    ScriptEngineContext* ScriptRunner::loadScript(char* script, int byteLength)
+    ScriptEngineContext* ScriptRunner::loadScript(const char* script, int byteLength)
     {
         auto* document = Alloc::newDocument(DocumentType::CodeDocument);
         auto* scriptContext = ScriptRunner::newScriptEngineContext(document->context);
@@ -580,7 +580,7 @@ namespace cshort {
 
 
 
-    static int runScript(ScriptEngineContext *context)
+    static int runScriptImpl(ScriptEngineContext *context)
     {
         assert(context->parseContext->syntaxErrorInfo.hasError == false);
         assert(context->parseContext->semanticErrorInfo.hasError == false);
@@ -622,7 +622,7 @@ namespace cshort {
     }
 
 
-    int ScriptRunner::startScriptInternal(char* script, int scriptLength)
+    int ScriptRunner::runScriptUsingLength(const char* script, int scriptLength)
     {
         // Load the script
         auto *scriptContext = ScriptRunner::loadScript(script, scriptLength);
@@ -641,6 +641,6 @@ namespace cshort {
         }
 
         // Run script
-        return runScript(scriptContext);
+        return runScriptImpl(scriptContext);
     }
 }

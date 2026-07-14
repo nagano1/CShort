@@ -223,27 +223,8 @@ void testStackMemoryOverflowCall() {
 }
 
 
-int startScript(const char* source) {
-    return ScriptRunner::startScript2(source, (int)strlen(source));
-/*
-    auto* document = Alloc::newDocument(DocumentType::CodeDocument);
-    auto *context = document->context;
-
-    DocumentUtils::parseText(document, source, (int)strlen(source));
-
-    Validator::validateScript(document);
-
-    assert(!context->semanticErrorInfo.hasError);
-
-
-    auto* env = ScriptRunner::newScriptEnv(context);
-    env->loadScript((char*)source, (int)strlen(source));
-    int ret = env->runScript();
-
-    Alloc::deleteDocument(document);
-
-    return ret;
-    */
+int runScript(const char* source) {
+    return ScriptRunner::runScriptUsingLength(source, (int)strlen(source));
 }
 
 int checkSemanticError(const char* source, ErrorIndex expectedError) {
@@ -275,7 +256,7 @@ fn Main()
     return c * 2 - b * a
 }
 )";
-        int ret = startScript(source);
+        int ret = runScript(source);
         printf("ret 1 = %d\n", ret);
         assert(ret == -3500);
 }
@@ -289,7 +270,7 @@ fn Main() {
 }
     )";
 
-    int ret = startScript(expressionFirstAssignment);
+    int ret = runScript(expressionFirstAssignment);
     printf("ret = %d\n", ret);
     assert(ret == 14);
 
@@ -305,7 +286,7 @@ fn Main()
     return ptr2
 }
 )";
-        int ret = startScript(source);
+        int ret = runScript(source);
         printf("ret = %d\n", ret);
         assert(ret != 0);
 }
@@ -319,7 +300,7 @@ fn Main()
     return ptr
 }
 )";
-        int ret = startScript(source);
+        int ret = runScript(source);
         assert(ret == 0);
 }
 
@@ -333,7 +314,7 @@ fn Main()
     return c + b
 }
 )";
-        int ret = startScript(source);
+        int ret = runScript(source);
         printf("ret = %d\n", ret);
         assert(ret == 18);
 }
