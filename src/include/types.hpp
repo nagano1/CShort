@@ -1,19 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
-//#include <array>
-//
-//#include <cstdlib>
-//#include <cassert>
-//#include <cstdio>
-//#include <chrono>
-//#include <unordered_map>
-//
-//#include <cstdint> // uint64_t, int_fast32_t
-//#include <ctime>
-//
-//#include <string.h> // memcpy
-//
+
 #include "ParseUtil.hpp"
 #include "common.hpp"
 #include "parser.hpp"
@@ -21,7 +9,7 @@
 namespace cshort
 {
     // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
-    // node->typeIndex is the index of the type entry in the ScriptRunner->typeEntryList, which is used to get the TypeEntry for the node.
+    // node->typeIndex is the index of the type entry in the TypeManager->typeEntryList, which is used to get the TypeEntry for the node.
     // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
     using TypeEntry = struct _typeEntry {
         int typeIndex;
