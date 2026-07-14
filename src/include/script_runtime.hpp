@@ -159,6 +159,13 @@ namespace cshort
         }
     };
 
+
+    // ----------------------------------------------------------------------------
+    //
+    //                              Script Engine 
+    //
+    // ----------------------------------------------------------------------------
+
     using ScriptEngineContext = struct _scriptEngineContext {
         CPUSim cpuRegister;
         DocumentStruct *document;
@@ -179,7 +186,8 @@ namespace cshort
 
         void init(ParseContext *context);
 
-        // allocating methods for objects in script running, which will be freed all together after script execution finishes, this is more efficient than malloc/free for each object, and also easier to manage memory in the script engine.
+        // allocating methods for objects in script running, 
+        // which will be freed all together after script execution finishes
         void* mallocHeapObject(int bytes) {
             return this->memBufferForHeap.mallocHeapEntry(bytes);
         }
@@ -193,7 +201,6 @@ namespace cshort
             this->memBufferForHeap.freeAll();
 
             this->memBufferForValueBase.freeAll();
-            // this->memBufferForError.freeAll();
             this->memBuffer.freeAll();
             this->stackMemory.freeAll();
         }
@@ -203,12 +210,11 @@ namespace cshort
 
 
     struct ScriptRunner {
-
-        static int runScript(ScriptEngineContext *context);
-
-
-        static void deleteScriptEngineContext(ScriptEngineContext *doc);
         static ScriptEngineContext *newScriptEngineContext(ParseContext *context);
+
+        static int runScript(ScriptEngineContext *ScriptEngineContext);
+
+        static void deleteScriptEngineContext(ScriptEngineContext *scriptEngineContext);
 
         static int startScriptInternal(char* script, int byteLength);
 
@@ -223,6 +229,5 @@ namespace cshort
         }
 
         static ScriptEngineContext* loadScript(char* script, int byteLength);
-
     };
 }
