@@ -288,7 +288,7 @@ namespace cshort {
 
         //SymbolTokenStruct pointerAsterisk; // *
 
-        int stackOffset; // stack offset for this variable from the base of the stack frame
+        int stackOffset; // stack offset for this variable from the base stack pointer
         IdentifierTokenStruct variableNameToken; // variable name
         SymbolTokenStruct equalSymbol; // =
         NodeBase *expressionNode; // 32
@@ -496,8 +496,6 @@ namespace cshort {
         MemBuffer memBufferForCodeLines;
         MemBuffer memBufferForError;
         MemBuffer memBufferForValidation;
-
-        FuncDefNodeStruct* mainFunc;
 
         SyntaxErrorInfo syntaxErrorInfo;
         SemanticErrorInfo semanticErrorInfo;

@@ -22,13 +22,6 @@
 #include "types.hpp"
 
 namespace cshort {
-
-    //------------------------------------------------------------------------------------------
-    //
-    //                                       Validate Script
-    //
-    //------------------------------------------------------------------------------------------
-  
     // ----------------------------------------------------------------
     //
     //                       Variable Block Chain
@@ -102,10 +95,10 @@ namespace cshort {
 
     //------------------------------------------------------------------------------------------
     //
-    //                                       Validate Code
+    //                                       Validate Script
     //
     //------------------------------------------------------------------------------------------
-
+  
     // validates an assignment node by checking type declarations, type compatibility, and other constraints.
     void validateAssignmentAndExpression(AssignmentNodeStruct *declarationStatement,
                                          AssignmentNodeStruct *assignment,
@@ -429,7 +422,7 @@ namespace cshort {
         // Ensure vtable type selectors are registered before typeFromNode() is used.
         document->context->typeManager->initializeBuiltinTypeSelectors();
 
-        // search all funcs
+        // validate all top level funcs
         auto *toplevelNode = document->firstRootNode;
         while (toplevelNode != nullptr) {
             if (toplevelNode->vtable == VTables::FuncDefVTable) {
@@ -442,7 +435,6 @@ namespace cshort {
 
         auto *mainFunc = findMainFunc(document);
         document->mainFunc = mainFunc;
-        document->context->mainFunc = mainFunc;
         if (mainFunc == nullptr) {
             // error: entry func not found
             document->context->addErrorWithNode(ErrorIndex::main_func_not_found, document);

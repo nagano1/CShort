@@ -182,7 +182,6 @@ namespace cshort
 
 
     using ScriptEngineContext = struct _scriptEngineContext {
-        //_ScriptEnv* scriptEnv;
         CPUSim cpuRegister;
 
         MemBuffer memBuffer; // for TypeEntry, variable->value map
@@ -199,7 +198,7 @@ namespace cshort
 
         ParseContext *parseContext;
 
-        void init(/*_ScriptEnv *scriptEnv, */ParseContext *context);
+        void init(ParseContext *context);
 
         // allocating methods for objects in script running, which will be freed all together after script execution finishes, this is more efficient than malloc/free for each object, and also easier to manage memory in the script engine.
         void* mallocHeapObject(int bytes) {
@@ -219,8 +218,6 @@ namespace cshort
             this->memBuffer.freeAll();
             this->stackMemory.freeAll();
         }
-
-        void setErrorPositions();
     };
 
 

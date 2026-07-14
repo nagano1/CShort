@@ -28,8 +28,6 @@ namespace cshort
 
     
     void ParseContext::init() {
-        mainFunc = nullptr;
-        
         memBuffer.init();
         memBufferForCodeLines.init();
         memBufferForValidation.init();

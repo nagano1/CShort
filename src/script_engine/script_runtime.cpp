@@ -479,42 +479,6 @@ namespace cshort {
 */
 
 
-    void ScriptEngineContext::setErrorPositions()
-    {
-        /*
-        reassignLineNumbers(this->scriptEnv->document);
-
-        auto *context = this->scriptEnv->document->context;
-        context->appendLineMode = AppendLineMode::DetectErrorSpanNodes;
-
-        auto *errorItem = this->semanticErrorInfo.firstErrorItem;
-        while (errorItem) {
-            auto *node = errorItem->node;
-
-            auto* firstCodeLine = context->newCodeLine();
-            firstCodeLine->init(context);
-            auto *lastCodeLine = VTableCall::callAppendToLine(node, firstCodeLine);
-
-            auto *firstNode = findFirstNodeInLine(firstCodeLine, lastCodeLine);
-            auto *lastNode = findLastNodeInLine(firstCodeLine, lastCodeLine);
-
-            int a = getPosInLine(firstNode, true);
-            int b = getPosInLine(lastNode, false);
-
-            errorItem->codeErrorItem.charPos1 = a;
-            errorItem->codeErrorItem.charPos2 = b;
-            errorItem->codeErrorItem.charPosition = a;
-            errorItem->codeErrorItem.charPosition2 = b;
-            errorItem->codeErrorItem.linePos1 = firstNode->codeLine->lineNumber;
-            errorItem->codeErrorItem.linePos2 = lastNode->codeLine->lineNumber;
-
-            errorItem = errorItem->next;
-        }
-
-        // DocumentUtils::regenerateCodeLines(docStruct);
-        static_assert(true, "not implemented");
-        */
-    }
     // //int32_t *int32ptr;
     //            //auto *value = this->context->genValueBase(BuiltInTypeIndex::int32, sizeof(int32_t), &int32ptr);
     //            //*int32ptr = numberNode->num;
@@ -559,14 +523,12 @@ namespace cshort {
                                                               null_evaluateNode);
     }
 
-    void ScriptEngineContext::init(/*ScriptEnv *scriptEnvArg, */ParseContext *context)
+    void ScriptEngineContext::init(ParseContext *context)
     {
-        //this->scriptEnv = scriptEnvArg;
         this->parseContext = context;
         
         this->memBuffer.init();
         this->memBufferForHeap.initWithHeapEntryEnabled();
-        //this->memBufferForError.init();
 
         this->memBufferForValueBase.init();
 
@@ -639,30 +601,13 @@ namespace cshort {
         auto* statementNode = mainFunc->bodyNode.firstChildNode;
         while (statementNode != nullptr)
         {
-            // call func: funcA(100)
-            /*
-            if (statementNode->vtable == VTables::FuncCallVTable) {
-                auto* funcCall = Cast::downcast<FuncCallNodeStruct*>(statementNode);
-                FuncCallArgItemStruct *arg = funcCall->firstArgumentItem;
-                while (arg != nullptr) {
-                    printf("arg = <%s>\n", arg->exprNode->vtable->typeChars);
-                    env->context->evaluateExprNode(arg->exprNode);
-                    if (arg->nextNode == nullptr) {
-                        break;
-                    }
-                    arg = Cast::downcast<FuncCallArgItemStruct *>(arg->nextNode);
-                }
-            }
-            */
-
-            // assignment: int a = 3
+            // perform assignment: int a = 3
             if (statementNode->vtable == VTables::AssignmentVTable) {
                 auto* assignStatement = Cast::downcast<AssignmentNodeStruct *>(statementNode);
                 if (assignStatement->expressionNode != nullptr) {
                     env->context->evaluateExprNode(assignStatement->expressionNode);
                     auto *typeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
 
-                    // 
                     auto dataSize = typeEntry->getStackSizeForType();
                     env->context->stackMemory.moveToStack(assignStatement->stackOffset, dataSize,
                                                      assignStatement->expressionNode->calcReg);
