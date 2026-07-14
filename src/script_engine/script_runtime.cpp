@@ -615,9 +615,6 @@ namespace cshort {
             rootNode = rootNode->nextNode;
         }
 
-        Alloc::deleteDocument(document);
-        ScriptRunner::deleteScriptEngineContext(context);
-
         return ret;
     }
 
@@ -641,6 +638,11 @@ namespace cshort {
         }
 
         // Run script
-        return runScriptImpl(scriptContext);
+        int ret = runScriptImpl(scriptContext);
+
+        Alloc::deleteDocument(document);
+        ScriptRunner::deleteScriptEngineContext(scriptContext);
+
+        return ret;
     }
 }

@@ -223,7 +223,7 @@ void testStackMemoryOverflowCall() {
 }
 
 
-int runScript(const char* source) {
+int startScript(const char* source) {
     return ScriptRunner::runScriptUsingLength(source, (int)strlen(source));
 }
 
@@ -256,7 +256,7 @@ fn Main()
     return c * 2 - b * a
 }
 )";
-        int ret = runScript(source);
+        int ret = startScript(source);
         printf("ret 1 = %d\n", ret);
         assert(ret == -3500);
 }
@@ -270,7 +270,7 @@ fn Main() {
 }
     )";
 
-    int ret = runScript(expressionFirstAssignment);
+    int ret = startScript(expressionFirstAssignment);
     printf("ret = %d\n", ret);
     assert(ret == 14);
 
@@ -286,7 +286,7 @@ fn Main()
     return ptr2
 }
 )";
-        int ret = runScript(source);
+        int ret = startScript(source);
         printf("ret = %d\n", ret);
         assert(ret != 0);
 }
@@ -300,7 +300,7 @@ fn Main()
     return ptr
 }
 )";
-        int ret = runScript(source);
+        int ret = startScript(source);
         assert(ret == 0);
 }
 
@@ -314,7 +314,7 @@ fn Main()
     return c + b
 }
 )";
-        int ret = runScript(source);
+        int ret = startScript(source);
         printf("ret = %d\n", ret);
         assert(ret == 18);
 }
