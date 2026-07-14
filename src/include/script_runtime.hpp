@@ -204,15 +204,11 @@ namespace cshort
 
     struct ScriptRunner {
 
-        //DocumentStruct* document;
-
         static int runScript(ScriptEngineContext *context);
 
-        //ScriptEngineContext *context;
 
         static void deleteScriptEngineContext(ScriptEngineContext *doc);
         static ScriptEngineContext *newScriptEngineContext(ParseContext *context);
-        //TypeEntry *newTypeEntry() const;
 
         static int startScriptInternal(char* script, int byteLength);
 
