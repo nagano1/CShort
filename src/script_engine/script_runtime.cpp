@@ -580,7 +580,7 @@ namespace cshort {
 
 
 
-    int ScriptRunner::runScript(ScriptEngineContext *context)
+    static int runScript(ScriptEngineContext *context)
     {
         assert(context->parseContext->syntaxErrorInfo.hasError == false);
         assert(context->parseContext->semanticErrorInfo.hasError == false);
@@ -641,6 +641,6 @@ namespace cshort {
         }
 
         // Run script
-        return ScriptRunner::runScript(scriptContext);
+        return runScript(scriptContext);
     }
 }

@@ -212,8 +212,6 @@ namespace cshort
     struct ScriptRunner {
         static ScriptEngineContext *newScriptEngineContext(ParseContext *context);
 
-        static int runScript(ScriptEngineContext *ScriptEngineContext);
-
         static void deleteScriptEngineContext(ScriptEngineContext *scriptEngineContext);
 
         static int startScriptInternal(char* script, int byteLength);
