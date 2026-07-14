@@ -93,9 +93,7 @@ namespace cshort
             return typeIndex > 0; // && typeIndex < typeEntryListNextIndex;
         }
 
-        ParseContext *context;
         void init(ParseContext *context) {
-            this->context = context;
             typeEntryList = nullptr;
             typeEntryListNextIndex = 1;
             typeEntryListLength = 0;
