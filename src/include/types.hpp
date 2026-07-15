@@ -9,6 +9,8 @@
 namespace cshort
 {
 
+    struct _scriptEngineContext;
+
     enum class CanAssignResult {
         CanAssign,
         CannotAssign,
@@ -24,10 +26,12 @@ namespace cshort
         int dataSize;
         bool isReferenceType; // class rather than struct
 
-        void (*binary_operate)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
         type_index (*binary_operate_type_check)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
         CanAssignResult (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
-        void (*evaluateNode)(ParseContext *context, NodeBase *node);
+
+        // script engine
+        void (*evaluateNode)(struct _scriptEngineContext *context, NodeBase *node);
+        void (*binary_operate)(struct _scriptEngineContext *context, BinaryOperationNodeStruct *binaryNode);
 
         char *typeChars;
         int typeCharsLength;

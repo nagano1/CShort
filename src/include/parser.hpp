@@ -505,7 +505,7 @@ namespace cshort {
         SyntaxErrorInfo syntaxErrorInfo;
         SemanticErrorInfo semanticErrorInfo;
 
-        struct _scriptEngineContext *scriptEngineContext;
+        //struct _scriptEngineContext *scriptEngineContext;
         TypeManager *typeManager;
 
         void init();

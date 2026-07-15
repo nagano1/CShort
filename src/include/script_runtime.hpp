@@ -214,12 +214,12 @@ namespace cshort
 
         static void deleteScriptEngineContext(ScriptEngineContext *scriptEngineContext);
 
-        static int runScriptUsingLength(const char* script, int byteLength);
+        static int runScriptWithLength(const char* script, int byteLength);
 
         template<std::size_t SIZE>
         static int runScript(const char(&text)[SIZE])
         {
-            return runScriptUsingLength((char*)text, SIZE - 1);
+            return runScriptWithLength((char*)text, SIZE - 1);
         }
 
         static ScriptEngineContext* loadScript(const char* script, int byteLength);

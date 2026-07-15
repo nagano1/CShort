@@ -224,7 +224,7 @@ void testStackMemoryOverflowCall() {
 
 
 int startScript(const char* source) {
-    return ScriptRunner::runScriptUsingLength(source, (int)strlen(source));
+    return ScriptRunner::runScriptWithLength(source, (int)strlen(source));
 }
 
 int checkSemanticError(const char* source, ErrorIndex expectedError) {
