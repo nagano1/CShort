@@ -179,8 +179,8 @@ namespace cshort
 
         void evaluateExprNode(NodeBase* expressionNode);
 
-        ValueBase *newValueForHeap();
-        ValueBase *genValueBase(int type, int size, void *ptr);
+        TypedValue *newTypedValueForHeap();
+        TypedValue *generateTypedValue(int type, int size, void *ptr);
 
         ParseContext *parseContext;
 

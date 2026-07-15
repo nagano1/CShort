@@ -291,13 +291,13 @@ namespace cshort {
         StringLiteralTokenStruct *stringLiteralToken = node->stringLiteralToken;
         char *chars;
         int size = (1 + stringLiteralToken->strLength) * (int)sizeof(char);
-        ValueBase *value = context->scriptEngineContext->genValueBase(BuiltInTypeIndex::heapString, size, &chars);
+        TypedValue *value = context->scriptEngineContext->generateTypedValue(BuiltInTypeIndex::heapString, size, &chars);
         memcpy(chars, stringLiteralToken->str, stringLiteralToken->strLength);
         chars[stringLiteralToken->strLength] = '\0';
-        *(ValueBase **)node->calcReg = value;
+        *(TypedValue **)node->calcReg = value;
     }
 
-    static char* heapString_toString(ParseContext *context, ValueBase* value)
+    static char* heapString_toString(ParseContext *context, TypedValue* value)
     {
         return (char*)value->ptr;
     }
@@ -324,8 +324,8 @@ namespace cshort {
             return;
         }
 
-        auto *leftValue = *(ValueBase **)leftNode->calcReg;
-        auto *rightValue = *(ValueBase **)rightNode->calcReg;
+        auto *leftValue = *(TypedValue **)leftNode->calcReg;
+        auto *rightValue = *(TypedValue **)rightNode->calcReg;
 
         // currently only support string concatenation with another string
         assert(leftValue->typeIndex == BuiltInTypeIndex::heapString);
@@ -333,7 +333,7 @@ namespace cshort {
         if (rightValue->typeIndex == BuiltInTypeIndex::heapString) {
             unsigned int size = (1 + leftValue->size + rightValue->size) * sizeof(char);
             char *chars;
-            auto *value = context->scriptEngineContext->genValueBase(BuiltInTypeIndex::heapString, (int)size, &chars);
+            auto *value = context->scriptEngineContext->generateTypedValue(BuiltInTypeIndex::heapString, (int)size, &chars);
             memcpy(chars, leftValue->ptr, leftValue->size);
             memcpy(chars + leftValue->size, rightValue->ptr, rightValue->size);
             chars[size - 1] = '\0';
@@ -342,7 +342,7 @@ namespace cshort {
     }
 
 
-    static char* null_toString(ParseContext *context, ValueBase* value)
+    static char* null_toString(ParseContext *context, TypedValue* value)
     {
         return (char*)"null";
     }
@@ -373,9 +373,9 @@ namespace cshort {
     //
     //------------------------------------------------------------------------------------------
 
-    ValueBase *ScriptEngineContext::newValueForHeap()
+    TypedValue *ScriptEngineContext::newTypedValueForHeap()
     {
-        auto *valueBase = (ValueBase *) memBufferForValueBase.newMem<ValueBase>(1);
+        auto *valueBase = (TypedValue *) memBufferForValueBase.newMem<TypedValue>(1);
         valueBase->ptr = nullptr;
         valueBase->size = 0;
         return valueBase;
@@ -421,9 +421,9 @@ namespace cshort {
     }
 
 
-    ValueBase *ScriptEngineContext::genValueBase(int type, int size, void *ptr)
+    TypedValue *ScriptEngineContext::generateTypedValue(int type, int size, void *ptr)
     {
-        auto *value = this->newValueForHeap();
+        auto *value = this->newTypedValueForHeap();
         value->typeIndex = type;
         // value->ptr = context->memBufferForMalloc.newBytesMem(size); ////malloc(size);
         value->ptr = (void*)this->mallocHeapObject(size);

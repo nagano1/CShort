@@ -70,7 +70,7 @@ namespace cshort {
     };
 
     // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
-    using ValueBase = struct _valueBase {
+    using TypedValue = struct _typedValue {
         int typeIndex;
         void* ptr;
         unsigned int size; // in byte
