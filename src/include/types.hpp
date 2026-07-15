@@ -8,7 +8,6 @@
 
 namespace cshort
 {
-
     struct _scriptEngineContext;
 
     enum class CanAssignResult {
@@ -65,6 +64,7 @@ namespace cshort
         static void validateFuncDef(FuncDefNodeStruct* funcDefNode);
     };
 
+    // Handle types and type checking
     struct TypeManager
     {
         TypeEntry **typeEntryList;
