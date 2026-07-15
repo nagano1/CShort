@@ -265,10 +265,12 @@ namespace cshort {
 
             auto *baseTypeEntry = context->typeManager->getTypeEntryByIndex(leftTypeIndex);
             auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(rightTypeIndex);
+            binary->useLeftAsBase = true; // default to use left as base for type selection
             if (baseTypeEntry->typeIndex == BuiltInTypeIndex::null) {
                 auto *temp = targetTypeEntry;
                 targetTypeEntry = baseTypeEntry;
                 baseTypeEntry = temp;
+                binary->useLeftAsBase = false; // use right as base for type selection
             }
 
             if (baseTypeEntry->typeIndex == BuiltInTypeIndex::null) {
@@ -276,13 +278,13 @@ namespace cshort {
                 return 0;
             }
 
-            int binaryType = baseTypeEntry->binary_operate_type_check(context, binary);
-             if (!TypeManager::isValidTypeIndex(binaryType)) { // invalid operator for the type
+            int binaryResultType = baseTypeEntry->binary_operate_type_check(context, binary);
+             if (!TypeManager::isValidTypeIndex(binaryResultType)) { // invalid operator for the type
                  context->addErrorWithNode(ErrorIndex::internal_error, binary);
                  binary->typeIndex = (int)TypeIndexConst::NotAssigned;
                  return 0;
              }
-            binary->typeIndex = binaryType;
+            binary->typeIndex = binaryResultType;
         }
         else if (node->vtable == VTables::ParenthesesVTable) {
             auto *parentheses = Cast::downcast<ParenthesesNodeStruct *>(node);

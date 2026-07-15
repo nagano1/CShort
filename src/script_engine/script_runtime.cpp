@@ -203,14 +203,18 @@ namespace cshort {
 
     static void int32_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
-        int32_t left32 = *(int32_t*)binaryNode->leftExprNode->calcReg;
+        NodeBase *baseNode = binaryNode->useLeftAsBase ? binaryNode->leftExprNode : binaryNode->rightExprNode;
+        NodeBase *otherNode = binaryNode->useLeftAsBase ? binaryNode->rightExprNode : binaryNode->leftExprNode;
+
+        int32_t left32 = *(int32_t*)baseNode->calcReg;
         int32_t right32 = 0;
-        if (binaryNode->rightExprNode->typeIndex == BuiltInTypeIndex::int32) {
-            right32 = *(int32_t*)binaryNode->rightExprNode->calcReg;
+        if (otherNode->typeIndex == BuiltInTypeIndex::int32) {
+            right32 = *(int32_t*)otherNode->calcReg;
         }
-        else if (binaryNode->rightExprNode->typeIndex == BuiltInTypeIndex::int64) {
-            right32 = (int32_t)(*(int64_t*)binaryNode->rightExprNode->calcReg);
+        else if (otherNode->typeIndex == BuiltInTypeIndex::int64) {
+            right32 = (int32_t)(*(int64_t*)otherNode->calcReg);
         }
+
 
         switch (binaryNode->binaryOp) {
             case BinaryOperator::Add: {
@@ -244,13 +248,16 @@ namespace cshort {
 
     static void int64_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
-        int64_t left64 = *(int64_t*)binaryNode->leftExprNode->calcReg;
+        NodeBase *baseNode = binaryNode->useLeftAsBase ? binaryNode->leftExprNode : binaryNode->rightExprNode;
+        NodeBase *otherNode = binaryNode->useLeftAsBase ? binaryNode->rightExprNode : binaryNode->leftExprNode;
+
+        int64_t left64 = *(int64_t*)baseNode->calcReg;
         int64_t right64 = 0;
-        if (binaryNode->rightExprNode->typeIndex == BuiltInTypeIndex::int32) {
-            right64 = *(int32_t *) binaryNode->rightExprNode->calcReg;
+        if (otherNode->typeIndex == BuiltInTypeIndex::int32) {
+            right64 = *(int32_t *) otherNode->calcReg;
         }
-        else if (binaryNode->rightExprNode->typeIndex == BuiltInTypeIndex::int64) {
-            right64 = *(int64_t *) binaryNode->rightExprNode->calcReg;
+        else if (otherNode->typeIndex == BuiltInTypeIndex::int64) {
+            right64 = *(int64_t *) otherNode->calcReg;
         }
 
         switch (binaryNode->binaryOp) {

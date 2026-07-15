@@ -427,6 +427,8 @@ namespace cshort {
 
         NodeBase *leftExprNode;
         NodeBase *rightExprNode;
+         
+        bool useLeftAsBase;
     };
 
     enum DocumentType {
