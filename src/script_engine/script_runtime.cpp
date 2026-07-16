@@ -404,44 +404,6 @@ namespace cshort {
         return typedValue;
     }
     
-    static void reassignLineNumbers(DocumentStruct *docStruct)
-    {
-        int lineNumber = 0;
-        auto *line = docStruct->firstCodeLine;
-        while (line) {
-            line->lineNumber = lineNumber++;
-            line = line->nextLine;
-        }
-    }
-
-
-    static TokenBase* findFirstNodeInLine(CodeLine *firstLine, CodeLine *lastLine)
-    {
-        CodeLine *currentLine = firstLine;
-        while (currentLine) {
-            TokenBase *node = currentLine->firstToken;
-            if (node) {
-                return node;
-            }
-
-            currentLine = currentLine->nextLine;
-        }
-
-        return nullptr;
-    }
-
-    static TokenBase* findLastNodeInLine(CodeLine *firstLine, CodeLine *lastLine)
-    {
-        TokenBase *returnNode = nullptr;
-        CodeLine *currentLine = firstLine;
-        while (currentLine) {
-            returnNode = currentLine->lastToken;
-            currentLine = currentLine->nextLine;
-        }
-
-        return returnNode;
-    }
-
 
     template<typename T>
     static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, int typeIndex
