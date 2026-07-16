@@ -269,7 +269,7 @@ namespace cshort {
                 return 0;
             }
 
-            int binaryType = baseTypeEntry->selectType(context, binary);
+            int binaryType = baseTypeEntry->selectTypeOnBinaryOperation(context, binary);
              if (!TypeManager::isValidTypeIndex(binaryType)) { // invalid operator for the type
                  context->addErrorWithNode(ErrorIndex::internal_error, binary);
                  binary->typeIndex = (int)TypeIndexConst::NotAssigned;

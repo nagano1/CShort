@@ -16,7 +16,7 @@ namespace cshort
         int dataSize;
         bool isReferenceType; // class rather than struct
 
-        int (*selectType)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
+        int (*selectTypeOnBinaryOperation)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
         int (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
         void (*evaluateNode)(ParseContext *context, NodeBase *node);
 
@@ -26,10 +26,10 @@ namespace cshort
         BuildinTypeId typeId;
 
         template<std::size_t SIZE>
-        void initAsBuiltInType(decltype(selectType) f2, decltype(canAssignTypeImplicitly) f8,
+        void initAsBuiltInType(decltype(selectTypeOnBinaryOperation) f2, decltype(canAssignTypeImplicitly) f8,
                                const char(&f3)[SIZE], decltype(typeId) f4, decltype(dataSize) f5, decltype(isReferenceType) f7
         ) {
-            this->selectType = f2;
+            this->selectTypeOnBinaryOperation = f2;
             this->canAssignTypeImplicitly = f8;
             this->typeChars = (char*)f3;
             this->typeCharsLength = SIZE;

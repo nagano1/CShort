@@ -31,7 +31,7 @@ namespace cshort {
     TypeEntry *TypeManager::newTypeEntry(ParseContext *context) const
     {
         auto *typeEntry = context->memBufferForValidation.newMem<TypeEntry>(1);
-        typeEntry->selectType = nullptr;
+        typeEntry->selectTypeOnBinaryOperation = nullptr;
         typeEntry->canAssignTypeImplicitly = nullptr;
         typeEntry->evaluateNode = nullptr;
         typeEntry->typeChars = nullptr;
