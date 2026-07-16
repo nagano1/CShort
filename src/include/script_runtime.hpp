@@ -140,11 +140,6 @@ namespace cshort
 
         bool isOverflowed;
 
-        // func(55, c:48) 0b101000...  for func(int a, int b = 32, int c = 8) // 32
-        uint32_t argumentBits;
-
-        bool useBigStructForReturnValue{false};
-
         st_byte *stackPointer; // esp, stack pointer, this points to the top of the stack
         st_byte *stackBasePointer; // ebp, stack base pointer. this points to the base of the current stack frame (function call)
 
