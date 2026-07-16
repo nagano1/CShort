@@ -108,7 +108,7 @@ void checkTextEquality(const char *name, const char* code)
     char *treeText = DocumentUtils::getTextFromTree(document);
 
     if (document->context->syntaxErrorInfo.hasError) {
-        fprintf(stderr, "unexpected syntax error: %s at position %lu\n", getErrorMessage(document->context->syntaxErrorInfo.errorItem.errorIndex), document->context->syntaxErrorInfo.errorItem.charPosition);
+        fprintf(stderr, "unexpected syntax error: %s at position %ld\n", getErrorMessage(document->context->syntaxErrorInfo.errorItem.errorIndex), document->context->syntaxErrorInfo.errorItem.charPosition);
         assert(false && "unexpected syntax error");
     }
     assert(document->context->syntaxErrorInfo.hasError == false);

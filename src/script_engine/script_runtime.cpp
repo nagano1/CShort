@@ -158,9 +158,13 @@ namespace cshort {
 
             // evaluate right first, then left, to avoid overwriting registers
             evaluateExprNode(scriptContext, binaryNode->rightExprNode);
-            uint64_t saved = *(uint64_t*)(binaryNode->rightExprNode->calcReg);
+            auto *rightTypeEntry = typeManager->getTypeEntryByIndex(binaryNode->rightExprNode->typeIndex);
+            const int rightSize = rightTypeEntry->getStackSizeForType();
+
+            std::array<st_byte, 8> saved{}; // max GPR size
+            memcpy(saved.data(), binaryNode->rightExprNode->calcReg, rightSize);
             evaluateExprNode(scriptContext, binaryNode->leftExprNode);
-            *(uint64_t*)(binaryNode->rightExprNode->calcReg) = saved;
+            memcpy(binaryNode->rightExprNode->calcReg, saved.data(), rightSize);
 
             auto *leftTypeEntry = typeManager->getTypeEntryByIndex(binaryNode->leftExprNode->typeIndex);
             leftTypeEntry->binary_operate(scriptContext, binaryNode);
@@ -196,8 +200,9 @@ namespace cshort {
     //                                      BuiltIn Type operations
     //
     //------------------------------------------------------------------------------------------
-    static void int32_evaluateNode(ScriptEngineContext *scriptContext, NumberNodeStruct *numberNode)
+    static void int32_evaluateNode(ScriptEngineContext *scriptContext, NodeBase *nodeBase)
     {
+        NumberNodeStruct *numberNode = Cast::downcast<NumberNodeStruct *>(nodeBase);
         *(int32_t*)numberNode->calcReg = (int32_t)numberNode->num;
     }
 
@@ -241,8 +246,9 @@ namespace cshort {
         }
     }
 
-    static void int64_evaluateNode(ScriptEngineContext *scriptContext, NumberNodeStruct *numberNode)
+    static void int64_evaluateNode(ScriptEngineContext *scriptContext, NodeBase *nodeBase)
     {
+        NumberNodeStruct *numberNode = Cast::downcast<NumberNodeStruct *>(nodeBase);
         *(int64_t*)numberNode->calcReg = numberNode->num;
     }
 
@@ -286,8 +292,11 @@ namespace cshort {
     }
 
 
-    static void heapString_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node)
+    static void heapString_evaluateNode(ScriptEngineContext *scriptContext, NodeBase *nodeBase)
     {
+        assert(nodeBase->vtable == VTables::FixedLiteralVTable);
+        LiteralValueNodeStruct *node = Cast::downcast<LiteralValueNodeStruct *>(nodeBase);
+
         StringLiteralTokenStruct *stringLiteralToken = node->stringLiteralToken;
         char *chars;
         int size = (1 + stringLiteralToken->strLength) * (int)sizeof(char);
@@ -322,17 +331,23 @@ namespace cshort {
         auto *leftTypedValue = *(TypedValue **)leftNode->calcReg;
         auto *rightTypedValue = *(TypedValue **)rightNode->calcReg;
 
-        // currently only support string concatenation with another string
-        assert(leftTypedValue->typeIndex == BuiltInTypeIndex::heapString);
+         if (leftTypedValue == nullptr || rightTypedValue == nullptr ||
+             leftTypedValue->typeIndex != BuiltInTypeIndex::heapString ||
+             rightTypedValue->typeIndex != BuiltInTypeIndex::heapString) {
+             scriptContext->parseContext->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
+             return;
+         }
 
         if (rightTypedValue->typeIndex == BuiltInTypeIndex::heapString) {
-            unsigned int size = (1 + leftTypedValue->size + rightTypedValue->size) * sizeof(char);
+            const unsigned int leftLen = leftTypedValue->size > 0 ? leftTypedValue->size - 1 : 0;
+            const unsigned int rightLen = rightTypedValue->size > 0 ? rightTypedValue->size - 1 : 0;
+            const unsigned int size = leftLen + rightLen + 1; // includes trailing '\0'
             char *chars;
             auto *value = scriptContext->generateTypedValue(BuiltInTypeIndex::heapString, (int)size, &chars);
-            memcpy(chars, leftTypedValue->ptr, leftTypedValue->size);
-            memcpy(chars + leftTypedValue->size, rightTypedValue->ptr, rightTypedValue->size);
+            memcpy(chars, leftTypedValue->ptr, leftLen);
+            memcpy(chars + leftLen, rightTypedValue->ptr, rightLen);
             chars[size - 1] = '\0';
-            binaryNode->calcReg = (st_byte*)&value;
+            *(TypedValue **)binaryNode->calcReg = value;
         }
     }
 
@@ -342,8 +357,10 @@ namespace cshort {
         // null + "string" will be handled by the string binary operation function
     }
 
-    static void null_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node)
+    static void null_evaluateNode(ScriptEngineContext *scriptContext, NodeBase *nodeBase)
     {
+        assert(nodeBase->vtable == VTables::FixedLiteralVTable);
+        LiteralValueNodeStruct *node = Cast::downcast<LiteralValueNodeStruct *>(nodeBase);
         assert(node->calcReg != nullptr);
         *(int64_t*)node->calcReg = 0;
     }
@@ -375,7 +392,9 @@ namespace cshort {
         }
     }
 
-    static void bool_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node) {
+    static void bool_evaluateNode(ScriptEngineContext *scriptContext, NodeBase *nodeBase) {
+        assert(nodeBase->vtable == VTables::FixedLiteralVTable);
+        LiteralValueNodeStruct *node = Cast::downcast<LiteralValueNodeStruct *>(nodeBase);
         assert(node->calcReg != nullptr);
         *(bool*)node->calcReg = node->isTrue ? 1 : 0; // internally represent bool as 1 or 0, but when printing, print as true or false
     }
@@ -405,14 +424,13 @@ namespace cshort {
     }
     
 
-    template<typename T>
     static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, int typeIndex
         , void (*binary_func)(ScriptEngineContext *, BinaryOperationNodeStruct *),
-         void (*evalFunc)(ScriptEngineContext *, T *))
+         void (*evalFunc)(ScriptEngineContext *, NodeBase *))
     {
         auto *typeEntry = context->typeManager->getTypeEntryByIndex(typeIndex);
-        typeEntry->binary_operate = binary_func;// static_cast<int (*)(ParseContext *, BinaryOperationNodeStruct *)>(func);
-        typeEntry->evaluateNode = reinterpret_cast<void (*)(ScriptEngineContext *, NodeBase *)>(evalFunc);
+        typeEntry->binary_operate = binary_func;
+        typeEntry->evaluateNode = evalFunc;
     }
 
     static void setBuiltinTypeOperations(ScriptEngineContext *context, ParseContext *parseContext) {
@@ -577,7 +595,9 @@ namespace cshort {
 
         // Quit if there's a syntax error
         if (document->context->syntaxErrorInfo.hasError) {
-            return document->context->syntaxErrorInfo.errorItem.errorId;
+             int err = document->context->syntaxErrorInfo.errorItem.errorId;
+             Alloc::deleteDocument(document);
+             return err;
         }
 
         auto *scriptContext = mallocForType<ScriptEngineContext>();
@@ -589,11 +609,20 @@ namespace cshort {
         
         if (document->context->semanticErrorInfo.hasError) {
             // Return the error ID of the first semantic error encountered
-            return document->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
+            int err = document->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
+            scriptContext->freeAll();
+            free(scriptContext);
+            Alloc::deleteDocument(document);
+            return err;
         }
 
         // Run script
         int ret = runScriptImpl(document, scriptContext);
+
+        if (document->context->semanticErrorInfo.hasError) {
+            // Return the error ID of the first semantic error encountered during execution
+            ret = document->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
+        }
 
 
         Alloc::deleteDocument(document);

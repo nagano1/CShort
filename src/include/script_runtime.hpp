@@ -209,7 +209,7 @@ namespace cshort
         template<std::size_t SIZE>
         static int runScript(const char(&text)[SIZE])
         {
-            return runScriptWithLength((char*)text, SIZE - 1);
+            return runScriptWithLength(text, SIZE - 1);
         }
     };
 }
