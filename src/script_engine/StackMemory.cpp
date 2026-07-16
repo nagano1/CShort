@@ -39,13 +39,13 @@ namespace cshort {
 
         this->stackSize = 2 * 1024 * 1024; // 2MB
         this->stackChunk = (st_byte*)malloc(this->stackSize);
-         if (this->stackChunk == nullptr) {
-             this->isOverflowed = true;
-             this->stackPointer = nullptr;
-             this->stackBasePointer = nullptr;
-             return;
-         }
-         this->returnValue = 0;
+        if (this->stackChunk == nullptr) {
+            this->isOverflowed = true;
+            this->stackPointer = nullptr;
+            this->stackBasePointer = nullptr;
+            return;
+        }
+        this->returnValue = 0;
 
         // stack grows downwards, so the initial stack pointer is at the end of the allocated stackChunk.
         this->stackPointer = this->stackChunk + this->stackSize;
@@ -109,8 +109,11 @@ namespace cshort {
         assert(!this->isOverflowed && "moveTo: stack is overflowed");
 
         auto* stackEnd = this->stackChunk + this->stackSize;
-        auto* target = this->stackBasePointer + offsetFromBase;
-        if (target < this->stackPointer || target < this->stackChunk || target + byteCount > stackEnd) {
+        auto* dataPosition = this->stackBasePointer + offsetFromBase;
+
+        if (dataPosition < this->stackPointer
+             || dataPosition < this->stackChunk
+             || dataPosition + byteCount > stackEnd) {
             overflowed();
             return false;
         }
@@ -143,16 +146,16 @@ namespace cshort {
     // this is used for reading values from the stack, such as local variables or function arguments without popping them.
     bool StackMemory::moveFromStack(int offsetFromBase, int byteCount, st_byte* ptr) const
     {
-        auto* target = this->stackBasePointer + offsetFromBase;
+        auto* dataPosition = this->stackBasePointer + offsetFromBase;
         auto* stackEnd = this->stackChunk + this->stackSize;
-        // ensure that the stackChunk is not null, the byteCount is positive, and the target address is within the valid stack range.
+        // ensure that the stackChunk is not null, the byteCount is positive, and the dataPosition address is within the valid stack range.
         assert(this->stackChunk != nullptr);
         assert(byteCount > 0);
         // https://tamaron.hatenablog.com/entry/2020/04/02/003805
         // https://zenn.dev/yasu01/articles/1f92df34f54c31
-        assert(target >= this->stackPointer);
-        assert(target >= this->stackChunk);
-        assert(target + byteCount <= stackEnd);
+        assert(dataPosition >= this->stackPointer);
+        assert(dataPosition >= this->stackChunk);
+        assert(dataPosition + byteCount <= stackEnd);
 
         if (byteCount == 1) { // 8bit
             *(uint8_t*)(ptr) = *(uint8_t*)(this->stackBasePointer + offsetFromBase);

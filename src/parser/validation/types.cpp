@@ -32,6 +32,7 @@ namespace cshort {
     {
         auto *typeEntry = context->memBufferForValidation.newMem<TypeEntry>(1);
         typeEntry->selectTypeOnBinaryOperation = nullptr;
+        typeEntry->binary_operate = nullptr;
         typeEntry->canAssignTypeImplicitly = nullptr;
         typeEntry->evaluateNode = nullptr;
         typeEntry->typeChars = nullptr;
@@ -99,62 +100,77 @@ namespace cshort {
     //
     //------------------------------------------------------------------------------------------
 
-    int canAssignType_i32(ParseContext *context, TypeEntry *otherType)
+    CanAssignResult canAssignType_i32(ParseContext *context, TypeEntry *otherType)
     {
-        return 0;
+        return otherType->typeIndex == BuiltInTypeIndex::int32 ? CanAssignResult::CanAssign : CanAssignResult::CannotAssign;
     }
 
-    int canAssignType_i64(ParseContext *context, TypeEntry *otherType)
+    CanAssignResult canAssignType_i64(ParseContext *context, TypeEntry *otherType)
     {
         if (otherType->typeIndex == BuiltInTypeIndex::int32) {
-            return 1;
+            return CanAssignResult::CanAssignWithConversion;
         }
-        return 0;
+        return otherType->typeIndex == BuiltInTypeIndex::int64 ? CanAssignResult::CanAssign : CanAssignResult::CannotAssign;
     }
 
-    int int32_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    type_index int32_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
+        if (binaryNode->leftExprNode->typeIndex == BuiltInTypeIndex::int64
+            || binaryNode->rightExprNode->typeIndex == BuiltInTypeIndex::int64) {
+            return BuiltInTypeIndex::int64;
+        }
         return BuiltInTypeIndex::int32;
     }
 
-    int int64_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    type_index int64_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::int64;
     }
 
 
-    int canAssignType_String(ParseContext *context, _typeEntry *otherType)
+    CanAssignResult canAssignType_String(ParseContext *context, _typeEntry *otherType)
     {
-        return 0;
+        return CanAssignResult::CannotAssign;
     }
 
-    int heapString_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    type_index heapString_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
+        if (binaryNode->leftExprNode->typeIndex != BuiltInTypeIndex::heapString
+             && binaryNode->rightExprNode->typeIndex != BuiltInTypeIndex::heapString) {
+            context->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
+            return ErrorTypeIndex;
+
+        }
+
+        if (binaryNode->binaryOp != BinaryOperator::Add) {
+            context->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
+            return ErrorTypeIndex;
+        }
+
         return BuiltInTypeIndex::heapString;
-
     }
 
-    int null_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    type_index null_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::null;
     }
 
-    int canAssignType_null(ParseContext *context, TypeEntry *otherType)
+    CanAssignResult canAssignType_null(ParseContext *context, TypeEntry *otherType)
     {
-        return 0;
+        return CanAssignResult::CannotAssign;
     }
 
-    int bool_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    type_index bool_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         if (binaryNode->binaryOp == BinaryOperator::And || binaryNode->binaryOp == BinaryOperator::Or) {
             return BuiltInTypeIndex::boolIdx;
         }
-        return -1; // invalid operator for bool type
+        return ErrorTypeIndex; // invalid operator for bool type
     }
 
-    int canAssignType_bool(ParseContext *context, TypeEntry *otherType) {
+    CanAssignResult canAssignType_bool(ParseContext *context, TypeEntry *otherType) {
         // currently only allow bool to be assigned to bool
-        return otherType->typeIndex == BuiltInTypeIndex::boolIdx ? 1 : 0;
+        return otherType->typeIndex == BuiltInTypeIndex::boolIdx ? CanAssignResult::CanAssign : CanAssignResult::CannotAssign;
     }
 
     void TypeManager::registerBuiltInTypes(ParseContext *context)

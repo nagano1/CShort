@@ -22,6 +22,11 @@
 #include "types.hpp"
 
 namespace cshort {
+    // ----------------------------------------------------------------
+    //
+    //                       Variable Block Chain
+    //
+    // ----------------------------------------------------------------
 
     struct VariableBlock {
         VoidHashMap *variableMap;
@@ -37,6 +42,7 @@ namespace cshort {
         }
     };
 
+    // This structure represents a chain of variable blocks, where each block contains a mapping of variable names to their corresponding assignment nodes. It allows for efficient management of variable scopes and declarations within a function body.
     struct LocalVariableChain
     {
         VariableBlock *firstVariableBlock;
@@ -89,10 +95,10 @@ namespace cshort {
 
     //------------------------------------------------------------------------------------------
     //
-    //                                       Validate Code
+    //                                       Validate Script
     //
     //------------------------------------------------------------------------------------------
-
+  
     // validates an assignment node by checking type declarations, type compatibility, and other constraints.
     void validateAssignmentAndExpression(AssignmentNodeStruct *declarationStatement,
                                          AssignmentNodeStruct *assignment,
@@ -123,8 +129,8 @@ namespace cshort {
             else {
                 // check assignable
                 auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(childTypeIndex);
-                bool canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
-                if (!canAssign) {
+                CanAssignResult canAssign = declaredType->canAssignTypeImplicitly(context, targetTypeEntry);
+                if (canAssign == CanAssignResult::CannotAssign) {
                     context->addErrorWithNode(ErrorIndex::type_is_not_assignable, assignment);
                 }
             }
@@ -221,6 +227,7 @@ namespace cshort {
         }
 
         assign->stackOffset = varDeclarationStatement->stackOffset;
+        assign->typeIndex = varDeclarationStatement->typeIndex;
 
         if (varDeclarationStatement->hasTypeOrLet && varDeclarationStatement->typeOrLet.hasImmutableMark) {
             context->addErrorWithNode(ErrorIndex::assign_to_immutable, assign);
@@ -244,7 +251,7 @@ namespace cshort {
 
     // This function is called for each expression node in the AST to determine its type and perform necessary validations.
     // children come first
-    static int callTypeSelectorOnExpressions(NodeBase *node, ApplyFunc_params2)
+    static int assignAndValidateTypesOnExpressions(NodeBase *node, ApplyFunc_params2)
     {
         if (node->vtable == VTables::BinaryOperationVTable) {
             auto *binary = Cast::downcast<BinaryOperationNodeStruct *>(node);
@@ -258,10 +265,12 @@ namespace cshort {
 
             auto *baseTypeEntry = context->typeManager->getTypeEntryByIndex(leftTypeIndex);
             auto *targetTypeEntry = context->typeManager->getTypeEntryByIndex(rightTypeIndex);
+            binary->useLeftAsBase = true; // default to use left as base for type selection
             if (baseTypeEntry->typeIndex == BuiltInTypeIndex::null) {
                 auto *temp = targetTypeEntry;
                 targetTypeEntry = baseTypeEntry;
                 baseTypeEntry = temp;
+                binary->useLeftAsBase = false; // use right as base for type selection
             }
 
             if (baseTypeEntry->typeIndex == BuiltInTypeIndex::null) {
@@ -269,13 +278,13 @@ namespace cshort {
                 return 0;
             }
 
-            int binaryType = baseTypeEntry->selectTypeOnBinaryOperation(context, binary);
-             if (!TypeManager::isValidTypeIndex(binaryType)) { // invalid operator for the type
+            int binaryResultType = baseTypeEntry->selectTypeOnBinaryOperation(context, binary);
+             if (!TypeManager::isValidTypeIndex(binaryResultType)) { // invalid operator for the type
                  context->addErrorWithNode(ErrorIndex::internal_error, binary);
                  binary->typeIndex = (int)TypeIndexConst::NotAssigned;
                  return 0;
              }
-            binary->typeIndex = binaryType;
+            binary->typeIndex = binaryResultType;
         }
         else if (node->vtable == VTables::ParenthesesVTable) {
             auto *parentheses = Cast::downcast<ParenthesesNodeStruct *>(node);
@@ -328,6 +337,8 @@ namespace cshort {
             }
         }
         else {
+            // for other node types, assign typeIndex based on the node's type using the TypeManager.
+            // e.g., for literals, function calls, etc.
             node->typeIndex = context->typeManager->typeFromNode(node);
         }
 
@@ -354,36 +365,48 @@ namespace cshort {
     }
 
 
+
     // This function executes type selection for the body of a function definition,
     // determining the types of expressions and assignments within the function body.
-    static void validateExpressionsOnFuncBody(ParseContext *context, FuncDefNodeStruct *func)
+    // fun A () {
+    //     let a = 3
+    //     int k = 5
+    //     return (a + k)
+    //}
+    // what validation does:
+    // - Validate types for expressions and assignments
+    // - For each assignment, it checks if the variable is already declared in the current scope.
+    // - Calculate the stack offset for each variable based on its type size.
+
+    void Validator::validateFuncDef(FuncDefNodeStruct *func)
     {
+        // set typeIndex to all expressions and assignments
         func->bodyNode.localVariableChain = func->context->memBuffer.newMem<LocalVariableChain>(1);
 
         auto *statement = func->bodyNode.firstChildNode;
         int currentStackOffset = 0;
         while (statement != nullptr) {
-            // call type selector to all expressions in the statement
+            // call type selector for all expressions in the statement
             statement->vtable->applyFuncToDescendants(
                     statement,
-                    context,
+                    func->context,
                     nullptr,
-                    callTypeSelectorOnExpressions,
-                    /* children first */false,
+                    assignAndValidateTypesOnExpressions,
+                    false, // children first 
                     (void *) statement,
                     nullptr);
 
             if (statement->vtable == VTables::AssignmentVTable) {
-                // add variable of assignment(declaration) to local variable chain
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(statement);
-                if (assign->hasTypeOrLet)
-                {
+                if (assign->hasTypeOrLet) {
+                    // add variable declaration(assignment node) to local variable chain
                     func->bodyNode.localVariableChain->addToCurrentBlock(assign, func->context);
 
-                    if (TypeManager::isValidTypeIndex(assign->typeIndex)) { // typeIndex is not valid if the type is not found
+                    if (TypeManager::isValidTypeIndex(assign->typeIndex)) { // only assign stack offset for valid type index
                         assign->stackOffset = currentStackOffset;
                         TypeEntry *typeEntry = func->context->typeManager->getTypeEntryByIndex(assign->typeIndex);
-                        currentStackOffset += typeEntry->getStackSizeForType();
+                        assert(typeEntry != nullptr);
+                        currentStackOffset -= typeEntry->getStackSizeForType();
                     }
                 }
             }
@@ -394,13 +417,6 @@ namespace cshort {
         func->stackSize = -currentStackOffset;
     }
 
-
-    void Validator::validateFuncDef(FuncDefNodeStruct *func)
-    {
-        // set typeIndex to all expressions and assignments
-        validateExpressionsOnFuncBody(func->context, func);
-    }
-
     void Validator::validateScript(DocumentStruct *document)
     {
         assert(document->context->syntaxErrorInfo.hasError == false);
@@ -408,18 +424,19 @@ namespace cshort {
         // Ensure vtable type selectors are registered before typeFromNode() is used.
         document->context->typeManager->initializeBuiltinTypeSelectors();
 
-        // search all funcs
-        auto *rootNode = document->firstRootNode;
-        while (rootNode != nullptr) {
-            if (rootNode->vtable == VTables::FuncDefVTable) {
+        // validate all top level funcs
+        auto *toplevelNode = document->firstRootNode;
+        while (toplevelNode != nullptr) {
+            if (toplevelNode->vtable == VTables::FuncDefVTable) {
                 // fn
-                auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(rootNode);
+                auto *fnNode = Cast::downcast<FuncDefNodeStruct*>(toplevelNode);
                 Validator::validateFuncDef(fnNode);
             }
-            rootNode = rootNode->nextNode;
+            toplevelNode = toplevelNode->nextNode;
         }
 
         auto *mainFunc = findMainFunc(document);
+        document->mainFunc = mainFunc;
         if (mainFunc == nullptr) {
             // error: entry func not found
             document->context->addErrorWithNode(ErrorIndex::main_func_not_found, document);

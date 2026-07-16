@@ -8,17 +8,29 @@
 
 namespace cshort
 {
+    struct _scriptEngineContext;
+
+    enum class CanAssignResult {
+        CanAssign,
+        CannotAssign,
+        CannotAssignWitoutExplicitConversion, // e.g. int64 cannot be assigned to int32 without explicit conversion
+        CanAssignWithConversion // e.g. int32 can be assigned to int64 with conversion
+    };
+
     // Node->TypeEntry mapping, used for type checking and type inference during script validation and execution.
-    // node->typeIndex is the index of the type entry in the ScriptEnv->typeEntryList, which is used to get the TypeEntry for the node.
+    // node->typeIndex is the index of the type entry in the TypeManager->typeEntryList, which is used to get the TypeEntry for the node.
     // this is mainly because the node->typeIndex is an int (we want NodeBase to be independent to script engine as much as possible).
     using TypeEntry = struct _typeEntry {
         int typeIndex;
         int dataSize;
         bool isReferenceType; // class rather than struct
 
-        int (*selectTypeOnBinaryOperation)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
-        int (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
-        void (*evaluateNode)(ParseContext *context, NodeBase *node);
+        type_index (*selectTypeOnBinaryOperation)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
+        CanAssignResult (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
+
+        // script engine
+        void (*evaluateNode)(struct _scriptEngineContext *context, NodeBase *node);
+        void (*binary_operate)(struct _scriptEngineContext *context, BinaryOperationNodeStruct *binaryNode);
 
         char *typeChars;
         int typeCharsLength;
@@ -52,6 +64,7 @@ namespace cshort
         static void validateFuncDef(FuncDefNodeStruct* funcDefNode);
     };
 
+    // Handle types and type checking
     struct TypeManager
     {
         TypeEntry **typeEntryList;
@@ -72,7 +85,6 @@ namespace cshort
         }
 
 
-        void initializeBuiltinTypeSelectors();
 
         int typeFromNode(NodeBase *expressionNode);
 
@@ -88,6 +100,7 @@ namespace cshort
         }
 
         void registerBuiltInTypes(ParseContext *context);
+        void initializeBuiltinTypeSelectors();
 
         static bool isValidTypeIndex(int typeIndex) {
             return typeIndex > 0; // && typeIndex < typeEntryListNextIndex;
