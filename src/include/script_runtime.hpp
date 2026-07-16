@@ -103,8 +103,15 @@ namespace cshort
         return nullptr;
     }
 
+    // get the pointer to the data in the register based on the data size (1, 2, 4, or 8 bytes)
     static inline st_byte* GetDataPointerFromGPRRegister(const GPRRegister* gpr, int dataSize)
     {
+        if (dataSize == 1) {
+            return (st_byte*)&CS_H(gpr);
+        }
+        else if (dataSize == 2) {
+            return (st_byte*)&CS_X(gpr);
+        }
         if (dataSize == 4) {
             return (st_byte*)&CS_EX(gpr);
         }
@@ -132,11 +139,6 @@ namespace cshort
         int stackSize; // 2MB
 
         bool isOverflowed;
-
-        // func(55, c:48) 0b101000...  for func(int a, int b = 32, int c = 8) // 32
-        uint32_t argumentBits;
-
-        bool useBigStructForReturnValue{false};
 
         st_byte *stackPointer; // esp, stack pointer, this points to the top of the stack
         st_byte *stackBasePointer; // ebp, stack base pointer. this points to the base of the current stack frame (function call)

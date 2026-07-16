@@ -319,6 +319,16 @@ fn Main()
         assert(ret == 18);
 }
 
+void testBool() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    bool b = true
+})";
+        int ret = startScript(source);
+        printf("ret = %d\n", ret);
+        //assert(ret == 1);
+}
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()
 {
@@ -337,6 +347,7 @@ void callTests()
     testHeapString();
     testScript2();
     testVariable();
+    testBool();
 
     checkSemanticError(R"(fn Main() { int a = 5
         int a = 6})", ErrorIndex::variable_name_duplicated);
@@ -346,4 +357,5 @@ void callTests()
     checkSemanticError(R"(fn Main() { a = null })", ErrorIndex::no_variable_defined);
     checkSemanticError(R"(fn Main() { let a })", ErrorIndex::let_without_value);
     checkSemanticError(R"(fn Main() { int a = "fwe" })", ErrorIndex::type_is_not_assignable);
+    checkSemanticError(R"(fn Main() { bool b = 32 })", ErrorIndex::type_is_not_assignable);
 }

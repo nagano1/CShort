@@ -66,7 +66,7 @@ namespace cshort {
 
     enum class TypeIndexConst {
         NotAssigned = -1,
-        Empty = 0,
+        Empty = 0
     };
 
     // value base is used for storing values of variables, literals, and temporary results during expression evaluation.

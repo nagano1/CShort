@@ -25,7 +25,7 @@ namespace cshort
         int dataSize;
         bool isReferenceType; // class rather than struct
 
-        type_index (*binary_operate_type_check)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
+        type_index (*selectTypeOnBinaryOperation)(ParseContext *context, BinaryOperationNodeStruct *binaryNode);
         CanAssignResult (*canAssignTypeImplicitly)(ParseContext *context, _typeEntry *typeEntry);
 
         // script engine
@@ -38,10 +38,10 @@ namespace cshort
         BuildinTypeId typeId;
 
         template<std::size_t SIZE>
-        void initAsBuiltInType(decltype(binary_operate_type_check) f2, decltype(canAssignTypeImplicitly) f8,
+        void initAsBuiltInType(decltype(selectTypeOnBinaryOperation) f2, decltype(canAssignTypeImplicitly) f8,
                                const char(&f3)[SIZE], decltype(typeId) f4, decltype(dataSize) f5, decltype(isReferenceType) f7
         ) {
-            this->binary_operate_type_check = f2;
+            this->selectTypeOnBinaryOperation = f2;
             this->canAssignTypeImplicitly = f8;
             this->typeChars = (char*)f3;
             this->typeCharsLength = SIZE;
