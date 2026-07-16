@@ -132,7 +132,7 @@ namespace cshort {
     //
     //------------------------------------------------------------------------------------------
 
-    void ScriptEngineContext::evaluateExprNode(NodeBase *expressionNode)
+    static void evaluateExprNode(ScriptEngineContext *scriptContext, NodeBase *expressionNode)
     {
         assert(expressionNode != nullptr);
         assert(expressionNode->vtable != nullptr);
@@ -144,13 +144,13 @@ namespace cshort {
             auto* variableNode = Cast::downcast<IdentifiersAccessNodeStruct *>(expressionNode);
             TypeEntry *typeEntry = typeManager->getTypeEntryByIndex(variableNode->typeIndex);
             int dataSize = typeEntry->getStackSizeForType();
-            this->stackMemory.moveFromStack(variableNode->stackOffset, dataSize, variableNode->calcReg);
+            scriptContext->stackMemory.moveFromStack(variableNode->stackOffset, dataSize, variableNode->calcReg);
             return;
         }
         
         if (expressionNode->vtable == VTables::ParenthesesVTable) {
             auto* parentheses = Cast::downcast<ParenthesesNodeStruct *>(expressionNode);
-            evaluateExprNode(parentheses->valueNode);
+            evaluateExprNode(scriptContext, parentheses->valueNode);
             return;
         }
 
@@ -159,13 +159,13 @@ namespace cshort {
             auto* binaryNode = Cast::downcast<BinaryOperationNodeStruct *>(expressionNode);
 
             // evaluate right first, then left, to avoid overwriting registers
-            this->evaluateExprNode(binaryNode->rightExprNode);
+            evaluateExprNode(scriptContext, binaryNode->rightExprNode);
             uint64_t saved = *(uint64_t*)(binaryNode->rightExprNode->calcReg);
-            this->evaluateExprNode(binaryNode->leftExprNode);
+            evaluateExprNode(scriptContext, binaryNode->leftExprNode);
             *(uint64_t*)(binaryNode->rightExprNode->calcReg) = saved;
 
             auto *leftTypeEntry = typeManager->getTypeEntryByIndex(binaryNode->leftExprNode->typeIndex);
-            leftTypeEntry->binary_operate(this, binaryNode);
+            leftTypeEntry->binary_operate(scriptContext, binaryNode);
 
             return;
         }
@@ -177,7 +177,7 @@ namespace cshort {
         /*
         if (expressionNode->vtable == VTables::FuncCallVTable) {
             auto *funcCall = Cast::downcast<FuncCallNodeStruct *>(expressionNode);
-            this->evaluateExprNode(funcCall->callerExprNode);
+            evaluateExprNode(scriptContext, funcCall->callerExprNode);
         }
         */
 
@@ -188,7 +188,7 @@ namespace cshort {
         }
 
         if (typeEntry) {
-            typeEntry->evaluateNode(this, expressionNode);
+            typeEntry->evaluateNode(scriptContext, expressionNode);
         }
     }
 
@@ -559,7 +559,7 @@ namespace cshort {
             if (statementNode->vtable == VTables::AssignmentVTable) {
                 auto* assignStatement = Cast::downcast<AssignmentNodeStruct *>(statementNode);
                 if (assignStatement->expressionNode != nullptr) {
-                    scriptContext->evaluateExprNode(assignStatement->expressionNode);
+                    evaluateExprNode(scriptContext, assignStatement->expressionNode);
                     auto *typeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
 
                     auto dataSize = typeEntry->getStackSizeForType();
@@ -571,7 +571,7 @@ namespace cshort {
             // return 3
             if (statementNode->vtable == VTables::ReturnStatementVTable) {
                 auto* returnNode = Cast::downcast<ReturnStatementNodeStruct*>(statementNode);
-                scriptContext->evaluateExprNode(returnNode->expressionNode);
+                evaluateExprNode(scriptContext, returnNode->expressionNode);
                 auto* typeEntry = typeManager->getTypeEntryByIndex(returnNode->expressionNode->typeIndex);
 
                 scriptContext->stackMemory.ret(); // simulate return by popping return address
@@ -652,7 +652,7 @@ namespace cshort {
         // Run script
         int ret = runScriptImpl(document, scriptContext);
 
-        
+
         Alloc::deleteDocument(document);
 
         scriptContext->freeAll();

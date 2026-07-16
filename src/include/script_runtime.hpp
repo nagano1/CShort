@@ -170,14 +170,11 @@ namespace cshort
 
     using ScriptEngineContext = struct _scriptEngineContext {
         CPUSim cpuRegister;
-        //DocumentStruct *document;
 
         MemBuffer memBufferForValueBase; // for value base
         MemBuffer memBufferForHeap; // for value
 
         StackMemory stackMemory;
-
-        void evaluateExprNode(NodeBase* expressionNode);
 
         TypedValue *newTypedValueForHeap();
         TypedValue *generateTypedValue(int type, int size, void *ptr);
