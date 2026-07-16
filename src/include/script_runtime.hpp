@@ -171,12 +171,11 @@ namespace cshort
     using ScriptEngineContext = struct _scriptEngineContext {
         CPUSim cpuRegister;
 
-        MemBuffer memBufferForValueBase; // for value base
+        MemBuffer memBufferForTypedValue; // for TypedValue
         MemBuffer memBufferForHeap; // for value
 
         StackMemory stackMemory;
 
-        TypedValue *newTypedValueForHeap();
         TypedValue *generateTypedValue(int type, int size, void *ptr);
 
         ParseContext *parseContext;
@@ -196,7 +195,7 @@ namespace cshort
         void freeAll()
         {
             this->memBufferForHeap.freeAll();
-            this->memBufferForValueBase.freeAll();
+            this->memBufferForTypedValue.freeAll();
             this->stackMemory.freeAll();
         }
     };

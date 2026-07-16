@@ -55,9 +55,7 @@ namespace cshort {
     static void assignCalcRegToNode(NodeBase *node, const ScriptEngineContext *scriptContext)
     {
         int typeIndex = node->typeIndex;
-        if (typeIndex == -1) {
-            typeIndex = BuiltInTypeIndex::int64;
-        }
+        assert(typeIndex != (int)TypeIndexConst::NotAssigned);
 
         auto *typeManager = scriptContext->parseContext->typeManager;
         auto *typeEntry = typeManager->getTypeEntryByIndex(typeIndex);
@@ -305,11 +303,6 @@ namespace cshort {
     }
 
 
-    static int canAssignType_String(ParseContext *context, _typeEntry *otherType)
-    {
-        return 0;
-    }
-
     static void heapString_binary_operate(ScriptEngineContext *scriptContext, BinaryOperationNodeStruct *binaryNode)
     {
         if (binaryNode->binaryOp != BinaryOperator::Add) {
@@ -326,31 +319,27 @@ namespace cshort {
             return;
         }
 
-        auto *leftValue = *(TypedValue **)leftNode->calcReg;
-        auto *rightValue = *(TypedValue **)rightNode->calcReg;
+        auto *leftTypedValue = *(TypedValue **)leftNode->calcReg;
+        auto *rightTypedValue = *(TypedValue **)rightNode->calcReg;
 
         // currently only support string concatenation with another string
-        assert(leftValue->typeIndex == BuiltInTypeIndex::heapString);
+        assert(leftTypedValue->typeIndex == BuiltInTypeIndex::heapString);
 
-        if (rightValue->typeIndex == BuiltInTypeIndex::heapString) {
-            unsigned int size = (1 + leftValue->size + rightValue->size) * sizeof(char);
+        if (rightTypedValue->typeIndex == BuiltInTypeIndex::heapString) {
+            unsigned int size = (1 + leftTypedValue->size + rightTypedValue->size) * sizeof(char);
             char *chars;
             auto *value = scriptContext->generateTypedValue(BuiltInTypeIndex::heapString, (int)size, &chars);
-            memcpy(chars, leftValue->ptr, leftValue->size);
-            memcpy(chars + leftValue->size, rightValue->ptr, rightValue->size);
+            memcpy(chars, leftTypedValue->ptr, leftTypedValue->size);
+            memcpy(chars + leftTypedValue->size, rightTypedValue->ptr, rightTypedValue->size);
             chars[size - 1] = '\0';
             binaryNode->calcReg = (st_byte*)&value;
         }
     }
 
-
-    static char* null_toString(ParseContext *context, TypedValue* value)
-    {
-        return (char*)"null";
-    }
-
     static void null_binary_operate(ScriptEngineContext *scriptContext, BinaryOperationNodeStruct *binaryNode)
     {
+        // currently null is not supported as base node for binary operation, so this function should not be called.
+        // null + "string" will be handled by the string binary operation function
     }
 
     static void null_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node)
@@ -403,15 +392,18 @@ namespace cshort {
     //
     //------------------------------------------------------------------------------------------
 
-    TypedValue *ScriptEngineContext::newTypedValueForHeap()
+    TypedValue *ScriptEngineContext::generateTypedValue(int type, int size, void *ptr)
     {
-        auto *valueBase = (TypedValue *) memBufferForValueBase.newMem<TypedValue>(1);
-        valueBase->ptr = nullptr;
-        valueBase->size = 0;
-        return valueBase;
+        auto *typedValue = (TypedValue *) memBufferForTypedValue.newMem<TypedValue>(1);
+
+        typedValue->typeIndex = type;
+        // typedValue->ptr = context->memBufferForMalloc.newBytesMem(size); ////malloc(size);
+        typedValue->ptr = (void*)this->mallocHeapObject(size);
+        *(void**)ptr = typedValue->ptr;
+        typedValue->size = size;
+        return typedValue;
     }
-
-
+    
     static void reassignLineNumbers(DocumentStruct *docStruct)
     {
         int lineNumber = 0;
@@ -450,17 +442,6 @@ namespace cshort {
         return returnNode;
     }
 
-
-    TypedValue *ScriptEngineContext::generateTypedValue(int type, int size, void *ptr)
-    {
-        auto *value = this->newTypedValueForHeap();
-        value->typeIndex = type;
-        // value->ptr = context->memBufferForMalloc.newBytesMem(size); ////malloc(size);
-        value->ptr = (void*)this->mallocHeapObject(size);
-        *(void**)ptr = value->ptr;
-        value->size = size;
-        return value;
-    }
 
     template<typename T>
     static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, int typeIndex
@@ -502,7 +483,7 @@ namespace cshort {
         this->parseContext = context;
         
         this->memBufferForHeap.initWithHeapEntryEnabled();
-        this->memBufferForValueBase.init();
+        this->memBufferForTypedValue.init();
 
         this->stackMemory.init();
 

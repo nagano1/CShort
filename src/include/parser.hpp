@@ -64,14 +64,17 @@ namespace cshort {
         utf8byte *text; \
         int_fast32_t textLength;
 
+
+    using type_index = int;
+
     enum class TypeIndexConst {
         NotAssigned = -1,
         Empty = 0
     };
 
-    // value base is used for storing values of variables, literals, and temporary results during expression evaluation.
+    // TypedValue is used for storing values of variables, literals, and temporary results during expression evaluation.
     using TypedValue = struct _typedValue {
-        int typeIndex;
+        type_index typeIndex;
         void* ptr;
         unsigned int size; // in byte
     };
@@ -85,7 +88,6 @@ namespace cshort {
     };
 
 
-    using type_index = int;
     const int ErrorTypeIndex = -1;
     struct BuiltInTypeIndex {
         static int int32;
