@@ -144,6 +144,19 @@ namespace cshort {
         return 0;
     }
 
+    int bool_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    {
+        if (binaryNode->binaryOp == BinaryOperator::And || binaryNode->binaryOp == BinaryOperator::Or) {
+            return BuiltInTypeIndex::boolIdx;
+        }
+        return -1; // invalid operator for bool type
+    }
+
+    int canAssignType_bool(ParseContext *context, TypeEntry *otherType) {
+        // currently only allow bool to be assigned to bool
+        return otherType->typeIndex == BuiltInTypeIndex::boolIdx ? 1 : 0;
+    }
+
     void TypeManager::registerBuiltInTypes(ParseContext *context)
     {
         TypeManager *typeManager = context->typeManager;
@@ -188,6 +201,16 @@ namespace cshort {
             typeManager->registerTypeEntry(nullTypeEntry);
             typeManager->addTypeAlias(nullTypeEntry, "Null");
             BuiltInTypeIndex::null = nullTypeEntry->typeIndex;
+        }
+
+        {
+            // bool
+            TypeEntry *boolTypeEntry = TypeManager::newTypeEntry(context);
+            boolTypeEntry->initAsBuiltInType(bool_binaryOp_selectType, canAssignType_bool,
+                                             "bool", BuildinTypeId::Bool, 1, false); // 1byte
+            typeManager->registerTypeEntry(boolTypeEntry);
+            typeManager->addTypeAlias(boolTypeEntry, "bool");
+            BuiltInTypeIndex::boolIdx = boolTypeEntry->typeIndex;
         }
     }
 
