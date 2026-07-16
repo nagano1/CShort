@@ -170,9 +170,7 @@ namespace cshort
 
     using ScriptEngineContext = struct _scriptEngineContext {
         CPUSim cpuRegister;
-        DocumentStruct *document;
-
-        MemBuffer memBuffer; // for TypeEntry, variable->value map
+        //DocumentStruct *document;
 
         MemBuffer memBufferForValueBase; // for value base
         MemBuffer memBufferForHeap; // for value
@@ -201,9 +199,7 @@ namespace cshort
         void freeAll()
         {
             this->memBufferForHeap.freeAll();
-
             this->memBufferForValueBase.freeAll();
-            this->memBuffer.freeAll();
             this->stackMemory.freeAll();
         }
     };
@@ -212,10 +208,6 @@ namespace cshort
 
 
     struct ScriptRunner {
-        static ScriptEngineContext *newScriptEngineContext(ParseContext *context);
-
-        static void deleteScriptEngineContext(ScriptEngineContext *scriptEngineContext);
-
         static int runScriptWithLength(const char* script, int byteLength);
 
         template<std::size_t SIZE>
@@ -223,7 +215,5 @@ namespace cshort
         {
             return runScriptWithLength((char*)text, SIZE - 1);
         }
-
-        static ScriptEngineContext* loadScript(const char* script, int byteLength);
     };
 }

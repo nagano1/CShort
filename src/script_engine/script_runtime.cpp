@@ -501,9 +501,7 @@ namespace cshort {
     {
         this->parseContext = context;
         
-        this->memBuffer.init();
         this->memBufferForHeap.initWithHeapEntryEnabled();
-
         this->memBufferForValueBase.init();
 
         this->stackMemory.init();
@@ -532,20 +530,6 @@ namespace cshort {
     //    - assign registers for expressions
     //    - find main entry func
     // 3. run script by running main func
-
-    ScriptEngineContext *ScriptRunner::newScriptEngineContext(ParseContext *parseContext)
-    {
-        auto *scriptContext = mallocForType<ScriptEngineContext>();
-        scriptContext->init(parseContext)   ;
-
-        return scriptContext;
-    }
-
-    void ScriptRunner::deleteScriptEngineContext(ScriptEngineContext *scriptContext)
-    {
-        scriptContext->freeAll();
-        free(scriptContext);
-    }
 
 
     struct TypeAndExpression {
@@ -602,31 +586,15 @@ namespace cshort {
     }
 
 
-    ScriptEngineContext* ScriptRunner::loadScript(const char* script, int byteLength)
-    {
-        auto* document = Alloc::newDocument(DocumentType::CodeDocument);
-        auto* scriptContext = ScriptRunner::newScriptEngineContext(document->context);
-        scriptContext->document = document;
-
-        document->context->typeManager->initializeBuiltinTypeSelectors();
-
-        DocumentUtils::parseText(document, script, byteLength);
-
-        return scriptContext; // Adjusted since 'env' is no longer used
-    }
-
-
-
-    static int runScriptImpl(ScriptEngineContext *scriptContext)
+    static int runScriptImpl(DocumentStruct *document, ScriptEngineContext *scriptContext)
     {
         assert(scriptContext->parseContext->syntaxErrorInfo.hasError == false);
         assert(scriptContext->parseContext->semanticErrorInfo.hasError == false);
 
-        auto *document = scriptContext->document;
         int ret = 0;
         FuncDefNodeStruct *mainFunc = document->mainFunc;
         if (mainFunc != nullptr) {
-            printf("main found <%s()>\n", mainFunc->funcNameToken.name);
+            // printf("main found <%s()>\n", mainFunc->funcNameToken.name);
             TypeAndExpression typeAndExpression = executeFunc(mainFunc, scriptContext);
             TypeEntry *typeEntry = typeAndExpression.typeEntry;
             if (typeEntry != nullptr) {
@@ -659,26 +627,36 @@ namespace cshort {
     int ScriptRunner::runScriptWithLength(const char* script, int scriptLength)
     {
         // Load the script
-        auto *scriptContext = ScriptRunner::loadScript(script, scriptLength);
-        auto *document = scriptContext->document;
+        auto* document = Alloc::newDocument(DocumentType::CodeDocument);
+        document->context->typeManager->initializeBuiltinTypeSelectors();
 
-        // Return if there's a syntax error
-        if (scriptContext->parseContext->syntaxErrorInfo.hasError) {
-            return scriptContext->parseContext->syntaxErrorInfo.errorItem.errorId;
+        DocumentUtils::parseText(document, script, scriptLength);
+
+        // Quit if there's a syntax error
+        if (document->context->syntaxErrorInfo.hasError) {
+            return document->context->syntaxErrorInfo.errorItem.errorId;
         }
+
+        auto *scriptContext = mallocForType<ScriptEngineContext>();
+        scriptContext->init(document->context);
+
 
         // Validate types, values and finding Main(entry) function
         Validator::validateScript(document);
         
-        if (scriptContext->parseContext->semanticErrorInfo.hasError) {
-            return scriptContext->parseContext->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
+        if (document->context->semanticErrorInfo.hasError) {
+            // Return the error ID of the first semantic error encountered
+            return document->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
         }
 
         // Run script
-        int ret = runScriptImpl(scriptContext);
+        int ret = runScriptImpl(document, scriptContext);
 
+        
         Alloc::deleteDocument(document);
-        ScriptRunner::deleteScriptEngineContext(scriptContext);
+
+        scriptContext->freeAll();
+        free(scriptContext);
 
         return ret;
     }
