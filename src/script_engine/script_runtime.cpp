@@ -355,7 +355,40 @@ namespace cshort {
 
     static void null_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node)
     {
+        assert(node->calcReg != nullptr);
         *(int64_t*)node->calcReg = 0;
+    }
+
+    static void bool_binary_operate(ScriptEngineContext *scriptContext, BinaryOperationNodeStruct *binaryNode)
+    {
+        NodeBase *baseNode = binaryNode->useLeftAsBase ? binaryNode->leftExprNode : binaryNode->rightExprNode;
+        NodeBase *otherNode = binaryNode->useLeftAsBase ? binaryNode->rightExprNode : binaryNode->leftExprNode;
+
+        bool leftBool = *(bool*)baseNode->calcReg;
+        bool rightBool = *(bool*)otherNode->calcReg;
+
+        switch (binaryNode->binaryOp) {
+            case BinaryOperator::And: {
+                *(bool*)binaryNode->calcReg = leftBool && rightBool;
+                break;
+            }
+            case BinaryOperator::Or: {
+                *(bool*)binaryNode->calcReg = leftBool || rightBool;
+                break;
+            }
+            default: {
+                assert(false);
+                // this should not happen, as the type selector should have already filtered out invalid operators for bool type
+                //scriptContext->parseContext->addErrorWithNode(ErrorIndex::invalid_operator_for_bool, binaryNode);
+                //*(bool*)binaryNode->calcReg = false;
+                break;
+            }
+        }
+    }
+
+    static void bool_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node) {
+        assert(node->calcReg != nullptr);
+        *(bool*)node->calcReg = node->isTrue ? 1 : 0;
     }
 
 
@@ -456,6 +489,12 @@ namespace cshort {
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::null,
                                                               null_binary_operate,
                                                               null_evaluateNode);
+
+        setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::boolIdx,
+                                                              bool_binary_operate,
+                                                              bool_evaluateNode);
+
+
     }
 
     void ScriptEngineContext::init(ParseContext *context)

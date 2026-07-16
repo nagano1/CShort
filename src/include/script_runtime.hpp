@@ -105,6 +105,12 @@ namespace cshort
 
     static inline st_byte* GetDataPointerFromGPRRegister(const GPRRegister* gpr, int dataSize)
     {
+        if (dataSize == 1) {
+            return (st_byte*)&CS_H(gpr);
+        }
+        else if (dataSize == 2) {
+            return (st_byte*)&CS_X(gpr);
+        }
         if (dataSize == 4) {
             return (st_byte*)&CS_EX(gpr);
         }
