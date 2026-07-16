@@ -31,7 +31,7 @@ namespace cshort {
     TypeEntry *TypeManager::newTypeEntry(ParseContext *context) const
     {
         auto *typeEntry = context->memBufferForValidation.newMem<TypeEntry>(1);
-        typeEntry->binary_operate = nullptr;
+        typeEntry->selectType = nullptr;
         typeEntry->canAssignTypeImplicitly = nullptr;
         typeEntry->evaluateNode = nullptr;
         typeEntry->typeChars = nullptr;
@@ -112,12 +112,12 @@ namespace cshort {
         return 0;
     }
 
-    int int32_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    int int32_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::int32;
     }
 
-    int int64_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    int int64_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::int64;
     }
@@ -128,13 +128,13 @@ namespace cshort {
         return 0;
     }
 
-    int heapString_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    int heapString_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::heapString;
 
     }
 
-    int null_binary_operate(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
+    int null_binaryOp_selectType(ParseContext *context, BinaryOperationNodeStruct *binaryNode)
     {
         return BuiltInTypeIndex::null;
     }
@@ -150,7 +150,7 @@ namespace cshort {
         // int
         {
             TypeEntry *int32Type = TypeManager::newTypeEntry(context);
-            int32Type->initAsBuiltInType(int32_binary_operate, canAssignType_i32,
+            int32Type->initAsBuiltInType(int32_binaryOp_selectType, canAssignType_i32,
                                          "int", BuildinTypeId::Int32, 4, false); // 4byte
             typeManager->registerTypeEntry(int32Type);
             BuiltInTypeIndex::int32 = int32Type->typeIndex;
@@ -161,7 +161,7 @@ namespace cshort {
         {
             // i64
             TypeEntry *int64Type = TypeManager::newTypeEntry(context);
-            int64Type->initAsBuiltInType(int64_binary_operate, canAssignType_i64,
+            int64Type->initAsBuiltInType(int64_binaryOp_selectType, canAssignType_i64,
                                          "i64", BuildinTypeId::Int64, 8, false); // 4byte
             typeManager->registerTypeEntry(int64Type);
             BuiltInTypeIndex::int64 = int64Type->typeIndex;
@@ -171,7 +171,7 @@ namespace cshort {
         {
             // heap string
             TypeEntry *heapStringType = TypeManager::newTypeEntry(context);
-            heapStringType->initAsBuiltInType(heapString_binary_operate,
+            heapStringType->initAsBuiltInType(heapString_binaryOp_selectType,
                                               canAssignType_String,
                                               "heapString", BuildinTypeId::HeapString, 8, /*heap only*/true); //
             typeManager->registerTypeEntry(heapStringType);
@@ -183,7 +183,7 @@ namespace cshort {
         {
             // null
             TypeEntry *nullTypeEntry = TypeManager::newTypeEntry(context);
-            nullTypeEntry->initAsBuiltInType(null_binary_operate,  canAssignType_null,
+            nullTypeEntry->initAsBuiltInType(null_binaryOp_selectType,  canAssignType_null,
                                              "null", BuildinTypeId::Null, 8, /*heap only*/true); //
             typeManager->registerTypeEntry(nullTypeEntry);
             typeManager->addTypeAlias(nullTypeEntry, "Null");
