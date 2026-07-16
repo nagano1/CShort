@@ -223,7 +223,7 @@ void testStackMemoryOverflowCall() {
 }
 
 
-int startScript(const char* source) {
+int64_t startScript(const char* source) {
     return ScriptRunner::runScriptWithLength(source, (int)strlen(source));
 }
 
@@ -256,8 +256,8 @@ fn Main()
     return c * 2 - b * a
 }
 )";
-        int ret = startScript(source);
-        printf("ret 1 = %d\n", ret);
+        int64_t ret = startScript(source);
+        printf("ret 1 = %ld\n", ret);
         assert(ret == -3500);
 }
 
@@ -270,8 +270,8 @@ fn Main() {
 }
     )";
 
-    int ret = startScript(expressionFirstAssignment);
-    printf("ret = %d\n", ret);
+    int64_t ret = startScript(expressionFirstAssignment);
+    printf("ret = %ld\n", ret);
     assert(ret == 14);
 
 }
@@ -286,8 +286,8 @@ fn Main()
     return ptr2
 }
 )";
-        int ret = startScript(source);
-        printf("ret = %d\n", ret);
+        int64_t ret = startScript(source);
+        printf("ret = %ld\n", ret);
         assert(ret != 0);
 }
 
@@ -300,7 +300,7 @@ fn Main()
     return ptr
 }
 )";
-        int ret = startScript(source);
+        int64_t ret = startScript(source);
         assert(ret == 0);
 }
 
@@ -314,8 +314,8 @@ fn Main()
     return c + b
 }
 )";
-        int ret = startScript(source);
-        printf("ret = %d\n", ret);
+        int64_t ret = startScript(source);
+        printf("ret = %ld\n", ret);
         assert(ret == 18);
 }
 
@@ -324,10 +324,11 @@ void testBool() {
 fn Main()
 {
     bool b = true
+    return b
 })";
-        int ret = startScript(source);
-        printf("ret = %d\n", ret);
-        //assert(ret == 1);
+        int64_t ret = startScript(source);
+        printf("ret = %ld\n", ret);
+        assert(ret == 1); // 0 for false, 1 for true
 }
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()

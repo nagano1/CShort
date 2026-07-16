@@ -74,7 +74,7 @@ namespace cshort
 
         VoidHashMap *typeNameMap;
 
-        TypeEntry* getTypeEntryByIndex(int typeIndex) {
+        TypeEntry* getTypeEntryByIndex(type_index typeIndex) {
             assert(TypeManager::isValidTypeIndex(typeIndex));
             assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
             return this->typeEntryList[typeIndex];

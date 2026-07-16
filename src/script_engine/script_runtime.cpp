@@ -323,7 +323,7 @@ namespace cshort {
         auto *rightNode = binaryNode->rightExprNode;
 
         if (leftNode->typeIndex != BuiltInTypeIndex::heapString
-             && rightNode->typeIndex != BuiltInTypeIndex::heapString) {
+             || rightNode->typeIndex != BuiltInTypeIndex::heapString) {
             scriptContext->parseContext->addErrorWithNode(ErrorIndex::invalid_operator_for_string, binaryNode);
             return;
         }
@@ -424,7 +424,7 @@ namespace cshort {
     }
     
 
-    static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, int typeIndex
+    static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, type_index typeIndex
         , void (*binary_func)(ScriptEngineContext *, BinaryOperationNodeStruct *),
          void (*evalFunc)(ScriptEngineContext *, NodeBase *))
     {
@@ -547,24 +547,26 @@ namespace cshort {
     }
 
 
-    static int runScriptImpl(DocumentStruct *document, ScriptEngineContext *scriptContext)
+    static int64_t runScriptImpl(DocumentStruct *document, ScriptEngineContext *scriptContext)
     {
         assert(scriptContext->parseContext->syntaxErrorInfo.hasError == false);
         assert(scriptContext->parseContext->semanticErrorInfo.hasError == false);
 
-        int ret = 0;
+        int64_t ret = 0;
         FuncDefNodeStruct *mainFunc = document->mainFunc;
         if (mainFunc != nullptr) {
             // printf("main found <%s()>\n", mainFunc->funcNameToken.name);
             TypeAndExpression typeAndExpression = executeFunc(mainFunc, scriptContext);
             TypeEntry *typeEntry = typeAndExpression.typeEntry;
-            if (typeEntry != nullptr) {
-                if (typeEntry->getStackSizeForType() == 8) {
-                    int64_t v = *(int64_t*)typeAndExpression.expressionNode->calcReg;
-                    ret = (int32_t)v; // return of main entry func is always int32, so cast to int32
-                }
-                else {
-                    ret = *(int32_t*)typeAndExpression.expressionNode->calcReg;
+            if (typeEntry != nullptr && typeAndExpression.expressionNode != nullptr) {
+                const int size = typeEntry->getStackSizeForType();
+                st_byte *p = typeAndExpression.expressionNode->calcReg;
+                switch (size) {
+                    case 1: ret = *(uint8_t*)p; break;
+                    case 2: ret = *(uint16_t*)p; break;
+                    case 4: ret = *(int32_t*)p; break;
+                    case 8: ret = *(int64_t*)p; break;
+                    default: assert(false && "unsupported return size"); ret = 0; break;
                 }
             }
         }
@@ -585,7 +587,7 @@ namespace cshort {
     }
 
 
-    int ScriptRunner::runScriptWithLength(const char* script, int scriptLength)
+    int64_t ScriptRunner::runScriptWithLength(const char* script, int scriptLength)
     {
         // Load the script
         auto* document = Alloc::newDocument(DocumentType::CodeDocument);
@@ -617,11 +619,11 @@ namespace cshort {
         }
 
         // Run script
-        int ret = runScriptImpl(document, scriptContext);
+        int64_t ret = runScriptImpl(document, scriptContext);
 
         if (document->context->semanticErrorInfo.hasError) {
             // Return the error ID of the first semantic error encountered during execution
-            ret = document->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
+            ret = (int64_t)document->context->semanticErrorInfo.firstErrorItem->codeErrorItem.errorId;
         }
 
 
