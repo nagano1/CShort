@@ -388,7 +388,7 @@ namespace cshort {
 
     static void bool_evaluateNode(ScriptEngineContext *scriptContext, LiteralValueNodeStruct *node) {
         assert(node->calcReg != nullptr);
-        *(bool*)node->calcReg = node->isTrue ? 1 : 0;
+        *(bool*)node->calcReg = node->isTrue ? 1 : 0; // internally represent bool as 1 or 0, but when printing, print as true or false
     }
 
 

@@ -103,6 +103,7 @@ namespace cshort
         return nullptr;
     }
 
+    // get the pointer to the data in the register based on the data size (1, 2, 4, or 8 bytes)
     static inline st_byte* GetDataPointerFromGPRRegister(const GPRRegister* gpr, int dataSize)
     {
         if (dataSize == 1) {
