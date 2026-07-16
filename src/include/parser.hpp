@@ -350,7 +350,6 @@ namespace cshort {
         SymbolTokenStruct parameterEndNode; // )
 
         FuncBodyNodeStruct bodyNode;
-        VoidHashMap *localVariableMap;
 
         int parameterParsePhase;
         FuncParameterItemStruct *firstChildParameterNode;
