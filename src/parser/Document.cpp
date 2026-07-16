@@ -213,6 +213,7 @@ namespace cshort {
         docStruct->firstRootNode = nullptr;
         docStruct->lastRootNode = nullptr;
         docStruct->nodeCount = 0;
+        docStruct->mainFunc = nullptr;
 
         // Ensure the embedded EOF node doesn't retain links from a previous parse.
         INIT_NODE(&docStruct->endOfFile, context, docStruct, VTables::EndOfFileVTable);

@@ -44,7 +44,6 @@ void testCPURegister() {
     AL(&reg) = 0x00;
     assert(AX(&reg) == 0xFF00);
 
-
     RAX(&reg) = 25;
     RAX(&reg) = RAX(&reg) + 35; // add 35 to RAX
     assert(RAX(&reg) == 60);

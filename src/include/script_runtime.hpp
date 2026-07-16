@@ -1,19 +1,6 @@
 ﻿#pragma once
 
 #include <stdlib.h>
-//#include <array>
-//
-//#include <cstdlib>
-//#include <cassert>
-//#include <cstdio>
-//#include <chrono>
-//#include <unordered_map>
-//
-//#include <cstdint> // uint64_t, int_fast32_t
-//#include <ctime>
-//
-//#include <string.h> // memcpy
-//
 #include "ParseUtil.hpp"
 #include "common.hpp"
 #include "parser.hpp"
@@ -116,8 +103,15 @@ namespace cshort
         return nullptr;
     }
 
+    // get the pointer to the data in the register based on the data size (1, 2, 4, or 8 bytes)
     static inline st_byte* GetDataPointerFromGPRRegister(const GPRRegister* gpr, int dataSize)
     {
+        if (dataSize == 1) {
+            return (st_byte*)&CS_H(gpr);
+        }
+        else if (dataSize == 2) {
+            return (st_byte*)&CS_X(gpr);
+        }
         if (dataSize == 4) {
             return (st_byte*)&CS_EX(gpr);
         }
