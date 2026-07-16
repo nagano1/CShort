@@ -499,7 +499,6 @@ namespace cshort {
         auto *scriptContext = mallocForType<ScriptEngineContext>();
         scriptContext->init(parseContext)   ;
 
-        //parseContext->scriptEngineContext = scriptContext;
         return scriptContext;
     }
 
@@ -533,7 +532,7 @@ namespace cshort {
         auto* statementNode = mainFunc->bodyNode.firstChildNode;
         while (statementNode != nullptr)
         {
-            // perform assignment: int a = 3
+            // execute assignment: int a = 3
             if (statementNode->vtable == VTables::AssignmentVTable) {
                 auto* assignStatement = Cast::downcast<AssignmentNodeStruct *>(statementNode);
                 if (assignStatement->expressionNode != nullptr) {
