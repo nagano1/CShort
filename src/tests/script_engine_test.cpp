@@ -330,6 +330,21 @@ fn Main()
         printf("ret = %ld\n", ret);
         assert(ret == 1); // 0 for false, 1 for true
 }
+
+
+void testi64() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    i64 a = 100 // implicit conversion to i64
+    return a
+})";
+        int64_t ret = startScript(source);
+        printf("ret = %ld\n", ret);
+        assert(ret == 100);
+}
+
+
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()
 {
@@ -349,6 +364,7 @@ void callTests()
     testScript2();
     testVariable();
     testBool();
+    testi64();
 
     checkSemanticError(R"(fn Main() { int a = 5
         int a = 6})", ErrorIndex::variable_name_duplicated);

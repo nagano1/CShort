@@ -95,9 +95,9 @@ namespace cshort {
         }
 
         if (node->vtable == VTables::AssignmentVTable) {
-            auto *assign = Cast::downcast<AssignmentNodeStruct *>(node);
-            if (assign->expressionNode != nullptr) {
-                assignCalcRegToNode(assign->expressionNode, scriptContext);
+            auto *assignment = Cast::downcast<AssignmentNodeStruct *>(node);
+            if (assignment->expressionNode != nullptr) {
+                assignCalcRegToNode(assignment->expressionNode, scriptContext);
             }
         }
 
@@ -246,10 +246,25 @@ namespace cshort {
         }
     }
 
+    static bool int32_convert_value_implicit(st_byte *dest, st_byte *src, ParseContext *context, TypeEntry *srcType, TypeEntry *destType) {
+        return false;
+    }
+
     static void int64_evaluateNode(ScriptEngineContext *scriptContext, NodeBase *nodeBase)
     {
         NumberNodeStruct *numberNode = Cast::downcast<NumberNodeStruct *>(nodeBase);
         *(int64_t*)numberNode->calcReg = numberNode->num;
+    }
+
+    static bool int64_convert_value_implicit(st_byte *dest, st_byte *src, ParseContext *context, TypeEntry *srcType, TypeEntry *destType) {
+        // i64 a = 100
+        if (srcType->typeIndex == BuiltInTypeIndex::int32 && destType->typeIndex == BuiltInTypeIndex::int64) {
+            // Implicit conversion from int32 to int64
+            *(int64_t*)dest = (int64_t)*(int32_t*)src;
+            return true;
+        }
+
+        return false;
     }
 
     static void int64_binary_operate(ScriptEngineContext *scriptContext, BinaryOperationNodeStruct *binaryNode)
@@ -304,6 +319,11 @@ namespace cshort {
         memcpy(chars, stringLiteralToken->str, stringLiteralToken->strLength);
         chars[stringLiteralToken->strLength] = '\0';
         *(TypedValue **)node->calcReg = value;
+    }
+
+    static bool heapString_convert_value_implicit(st_byte *dest, st_byte *src, ParseContext *context, TypeEntry *srcType, TypeEntry *destType) {
+        // currently, heapString does not support implicit conversion from other types
+        return false;
     }
 
     static char* heapString_toString(ParseContext *context, TypedValue* value)
@@ -365,6 +385,11 @@ namespace cshort {
         *(int64_t*)node->calcReg = 0;
     }
 
+    static bool null_convert_value_implicit(st_byte *dest, st_byte *src, ParseContext *context, TypeEntry *srcType, TypeEntry *destType) {
+        // currently null does not support implicit conversion from other types
+        return false;
+    }
+
     static void bool_binary_operate(ScriptEngineContext *scriptContext, BinaryOperationNodeStruct *binaryNode)
     {
         NodeBase *baseNode = binaryNode->useLeftAsBase ? binaryNode->leftExprNode : binaryNode->rightExprNode;
@@ -399,6 +424,11 @@ namespace cshort {
         *(bool*)node->calcReg = node->isTrue ? 1 : 0; // internally represent bool as 1 or 0, but when printing, print as true or false
     }
 
+    static bool bool_convert_value_implicit(st_byte *dest, st_byte *src, ParseContext *context, TypeEntry *srcType, TypeEntry *destType) {
+        // currently bool does not support implicit conversion from other types
+        return false;
+    }
+
 
 
 
@@ -426,34 +456,43 @@ namespace cshort {
 
     static void setBinaryOperateAndEvaluateForTypeEntry(ParseContext *context, type_index typeIndex
         , void (*binary_func)(ScriptEngineContext *, BinaryOperationNodeStruct *),
-         void (*evalFunc)(ScriptEngineContext *, NodeBase *))
+         void (*evalFunc)(ScriptEngineContext *, NodeBase *),
+         bool (*convert_value_implicit)(st_byte *dest, st_byte *src, ParseContext *context, TypeEntry *srcType, TypeEntry *destType)
+        
+        )
     {
         auto *typeEntry = context->typeManager->getTypeEntryByIndex(typeIndex);
         typeEntry->binary_operate = binary_func;
         typeEntry->evaluateNode = evalFunc;
+        typeEntry->convert_value_implicit = convert_value_implicit;
     }
 
     static void setBuiltinTypeOperations(ScriptEngineContext *context, ParseContext *parseContext) {
         TypeManager *typeManager = parseContext->typeManager;
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::int32,
                                                               int32_binary_operate, 
-                                                              int32_evaluateNode);
+                                                              int32_evaluateNode,
+                                                              int32_convert_value_implicit);
 
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::int64,
                                                               int64_binary_operate,
-                                                              int64_evaluateNode);
+                                                              int64_evaluateNode,
+                                                              int64_convert_value_implicit);
 
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::heapString,
                                                               heapString_binary_operate,
-                                                              heapString_evaluateNode);
+                                                              heapString_evaluateNode,
+                                                              heapString_convert_value_implicit);
 
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::null,
                                                               null_binary_operate,
-                                                              null_evaluateNode);
+                                                              null_evaluateNode,
+                                                              null_convert_value_implicit);
 
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::boolIdx,
                                                               bool_binary_operate,
-                                                              bool_evaluateNode);
+                                                              bool_evaluateNode,
+                                                              bool_convert_value_implicit);
 
 
     }
@@ -498,6 +537,22 @@ namespace cshort {
         NodeBase *expressionNode;
     };
 
+
+    static st_byte *ConvertImplicitForAssignment(int dstTypeIndex, int srcTypeIndex, st_byte* srcCalcReg) {
+        if (dstTypeIndex == srcTypeIndex) {
+            return srcCalcReg;
+        }
+        else if (dstTypeIndex == BuiltInTypeIndex::int64 && srcTypeIndex == BuiltInTypeIndex::int32) {
+            // Implicit conversion from int32 to int64
+            int64_t* tmp = new int64_t((int64_t)*(int32_t*)srcCalcReg);
+            return (st_byte*)tmp;
+        }
+        else {
+            assert(false && "unsupported implicit conversion in assignment");
+            return nullptr;
+        }
+    }
+
     static TypeAndExpression executeFunc(FuncDefNodeStruct* mainFunc, ScriptEngineContext *scriptContext)
     {
         assignCalcOpRegister(scriptContext, mainFunc);
@@ -521,11 +576,28 @@ namespace cshort {
                 auto* assignStatement = Cast::downcast<AssignmentNodeStruct *>(statementNode);
                 if (assignStatement->expressionNode != nullptr) {
                     evaluateExprNode(scriptContext, assignStatement->expressionNode);
-                    auto *typeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
+                    TypeEntry *dstTypeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
+                    const int dstSize = dstTypeEntry->getStackSizeForType();
 
-                    auto dataSize = typeEntry->getStackSizeForType();
-                    scriptContext->stackMemory.moveToStack(assignStatement->stackOffset, dataSize,
-                                                     assignStatement->expressionNode->calcReg);
+                    st_byte tmpBuffer[8]; // temporary buffer for implicit conversion, 8 is the maximum size of a GPR register (for int64)
+                    st_byte* dstPtr;
+                    if (assignStatement->typeIndex == assignStatement->expressionNode->typeIndex){
+                        dstPtr = assignStatement->expressionNode->calcReg;
+                    }
+                    else if (assignStatement->expressionNode->typeIndex == BuiltInTypeIndex::null) {
+                        // null can be assigned to any type
+                        dstPtr = tmpBuffer; // 
+                        //dstPtr = assignStatement->expressionNode->calcReg;
+                    }
+                    else {
+                        bool handled = dstTypeEntry->convert_value_implicit(tmpBuffer, assignStatement->expressionNode->calcReg, context,
+                                                         typeManager->getTypeEntryByIndex(assignStatement->expressionNode->typeIndex),
+                                                         dstTypeEntry);
+                        assert(handled && "unsupported implicit conversion in assignment");
+                        dstPtr = tmpBuffer;
+                    }
+
+                    scriptContext->stackMemory.moveToStack(assignStatement->stackOffset, dstSize, dstPtr);
                 }
             }
 
