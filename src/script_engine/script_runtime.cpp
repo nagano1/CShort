@@ -469,7 +469,6 @@ namespace cshort {
     }
 
     static void setBuiltinTypeOperations(ScriptEngineContext *context, ParseContext *parseContext) {
-        TypeManager *typeManager = parseContext->typeManager;
         setBinaryOperateAndEvaluateForTypeEntry(parseContext, BuiltInTypeIndex::int32,
                                                               int32_binary_operate, 
                                                               int32_evaluateNode,
