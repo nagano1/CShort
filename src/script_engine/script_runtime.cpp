@@ -580,7 +580,7 @@ namespace cshort {
                     TypeEntry *dstTypeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
                     const int dstSize = dstTypeEntry->getStackSizeForType();
 
-                    st_byte tmpBuffer[8]; // temporary buffer for implicit conversion, 8 is the maximum size of a GPR register (for int64)
+                    st_byte tmpBuffer[8] = {0}; // temporary buffer for implicit conversion, 8 is the maximum size of a GPR register (for int64)
                     st_byte* dstPtr;
                     if (assignStatement->typeIndex == assignStatement->expressionNode->typeIndex){
                         dstPtr = assignStatement->expressionNode->calcReg;
