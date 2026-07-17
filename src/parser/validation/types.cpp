@@ -215,6 +215,7 @@ namespace cshort {
             nullTypeEntry->initAsBuiltInType(null_binaryOp_selectType,  canAssignType_null,
                                              "null", BuildinTypeId::Null, 8, /*heap only*/true); //
             typeManager->registerTypeEntry(nullTypeEntry);
+            typeManager->addTypeAlias(nullTypeEntry, "null");
             typeManager->addTypeAlias(nullTypeEntry, "Null");
             BuiltInTypeIndex::null = nullTypeEntry->typeIndex;
         }
