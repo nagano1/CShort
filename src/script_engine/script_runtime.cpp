@@ -578,7 +578,6 @@ namespace cshort {
                     evaluateExprNode(scriptContext, assignStatement->expressionNode);
                     TypeEntry *dstTypeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
                     // int variableSize = assignStatement->typeOrLet.hasNullableMark dstTypeEntry->getStackSizeForType();
-                    TypeEntry *srcTypeEntry = typeManager->getTypeEntryByIndex(assignStatement->expressionNode->typeIndex);
                     const int dstSize = dstTypeEntry->getStackSizeForType();
 
                     st_byte tmpBuffer[8] = {0}; // temporary buffer for implicit conversion, 8 is the maximum size of a GPR register (for int64)
