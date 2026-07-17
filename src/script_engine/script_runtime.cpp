@@ -578,17 +578,14 @@ namespace cshort {
                 if (assignStatement->expressionNode != nullptr) {
                     evaluateExprNode(scriptContext, assignStatement->expressionNode);
                     TypeEntry *dstTypeEntry = typeManager->getTypeEntryByIndex(assignStatement->typeIndex);
+                    // int variableSize = assignStatement->typeOrLet.hasNullableMark dstTypeEntry->getStackSizeForType();
+                    TypeEntry *srcTypeEntry = typeManager->getTypeEntryByIndex(assignStatement->expressionNode->typeIndex);
                     const int dstSize = dstTypeEntry->getStackSizeForType();
 
                     st_byte tmpBuffer[8] = {0}; // temporary buffer for implicit conversion, 8 is the maximum size of a GPR register (for int64)
                     st_byte* dstPtr;
-                    if (assignStatement->typeIndex == assignStatement->expressionNode->typeIndex){
+                    if (assignStatement->typeIndex == assignStatement->expressionNode->typeIndex || srcTypeEntry->getStackSizeForType() == dstTypeEntry->getStackSizeForType()) {
                         dstPtr = assignStatement->expressionNode->calcReg;
-                    }
-                    else if (assignStatement->expressionNode->typeIndex == BuiltInTypeIndex::null) {
-                        // null can be assigned to any type
-                        dstPtr = tmpBuffer; // 
-                        //dstPtr = assignStatement->expressionNode->calcReg;
                     }
                     else {
                         bool handled = dstTypeEntry->convert_value_implicit(tmpBuffer, assignStatement->expressionNode->calcReg, context,
