@@ -35,6 +35,7 @@ namespace cshort {
         typeEntry->binary_operate = nullptr;
         typeEntry->canAssignTypeImplicitly = nullptr;
         typeEntry->evaluateNode = nullptr;
+        typeEntry->convert_value_implicit = nullptr;
         typeEntry->typeChars = nullptr;
         typeEntry->typeCharsLength = 0;
         typeEntry->typeId = BuildinTypeId::Null;

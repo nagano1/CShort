@@ -584,8 +584,14 @@ namespace cshort {
 
                     st_byte tmpBuffer[8] = {0}; // temporary buffer for implicit conversion, 8 is the maximum size of a GPR register (for int64)
                     st_byte* dstPtr;
-                    if (assignStatement->typeIndex == assignStatement->expressionNode->typeIndex || srcTypeEntry->getStackSizeForType() == dstTypeEntry->getStackSizeForType()) {
+                    if (assignStatement->typeIndex == assignStatement->expressionNode->typeIndex) {
                         dstPtr = assignStatement->expressionNode->calcReg;
+                    }
+                    else if (assignStatement->expressionNode->typeIndex == BuiltInTypeIndex::null) {
+                        // null can be assigned to any type; represent it as all-zero bytes
+                        assert(dstSize <= (int)sizeof(tmpBuffer));
+                        memset(tmpBuffer, 0, (size_t)dstSize);
+                        dstPtr = tmpBuffer;
                     }
                     else {
                         bool handled = dstTypeEntry->convert_value_implicit(tmpBuffer, assignStatement->expressionNode->calcReg, context,
