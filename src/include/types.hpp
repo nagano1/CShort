@@ -31,6 +31,7 @@ namespace cshort
         // script engine
         void (*evaluateNode)(struct _scriptEngineContext *context, NodeBase *node);
         void (*binary_operate)(struct _scriptEngineContext *context, BinaryOperationNodeStruct *binaryNode);
+        bool (*convert_value_implicit)(st_byte *dest, st_byte *src, ParseContext *context, _typeEntry *srcType, _typeEntry *destType);
 
         char *typeChars;
         int typeCharsLength;
@@ -74,7 +75,7 @@ namespace cshort
 
         VoidHashMap *typeNameMap;
 
-        TypeEntry* getTypeEntryByIndex(int typeIndex) {
+        TypeEntry* getTypeEntryByIndex(type_index typeIndex) {
             assert(TypeManager::isValidTypeIndex(typeIndex));
             assert(typeIndex >= 0 && typeIndex < this->typeEntryListNextIndex);
             return this->typeEntryList[typeIndex];

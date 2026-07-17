@@ -160,4 +160,56 @@ namespace cshort
             this->isOverflowed = true;
         }
     };
+
+
+    // ----------------------------------------------------------------------------
+    //
+    //                              Script Engine 
+    //
+    // ----------------------------------------------------------------------------
+
+    using ScriptEngineContext = struct _scriptEngineContext {
+        CPUSim cpuRegister;
+
+        MemBuffer memBufferForTypedValue; // for TypedValue
+        MemBuffer memBufferForHeap; // for value
+
+        StackMemory stackMemory;
+
+        TypedValue *generateTypedValue(int type, int size, void *ptr);
+
+        ParseContext *parseContext;
+
+        void init(ParseContext *context);
+
+        // allocating methods for objects in script running, 
+        // which will be freed all together after script execution finishes
+        void* mallocHeapObject(int bytes) {
+            return this->memBufferForHeap.mallocHeapEntry(bytes);
+        }
+
+        void freeHeapObject(void *ptr) {
+            this->memBufferForHeap.freeHeapEntry(ptr);
+        }
+
+        void freeAll()
+        {
+            this->memBufferForHeap.freeAll();
+            this->memBufferForTypedValue.freeAll();
+            this->stackMemory.freeAll();
+        }
+    };
+
+
+
+
+    struct ScriptRunner {
+        static int64_t runScriptWithLength(const char* script, int byteLength);
+
+        template<std::size_t SIZE>
+        static int64_t runScript(const char(&text)[SIZE])
+        {
+            return runScriptWithLength(text, SIZE - 1);
+        }
+    };
 }

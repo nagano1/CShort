@@ -223,19 +223,8 @@ void testStackMemoryOverflowCall() {
 }
 
 
-int startScript(const char* source) {
-    auto* document = Alloc::newDocument(DocumentType::CodeDocument);
-    auto *context = document->context;
-
-    DocumentUtils::parseText(document, source, (int)strlen(source));
-
-    Validator::validateScript(document);
-
-    assert(!context->semanticErrorInfo.hasError);
-
-    Alloc::deleteDocument(document);
-
-    return 0;
+int64_t startScript(const char* source) {
+    return ScriptRunner::runScriptWithLength(source, (int)strlen(source));
 }
 
 int checkSemanticError(const char* source, ErrorIndex expectedError) {
@@ -267,9 +256,9 @@ fn Main()
     return c * 2 - b * a
 }
 )";
-        int ret = startScript(source);
-        printf("ret 1 = %d\n", ret);
-        //assert(ret == -3500);
+        int64_t ret = startScript(source);
+        printf("ret 1 = %lld\n", (long long)ret);
+        assert(ret == -3500);
 }
 
 void testScript2() {
@@ -281,9 +270,9 @@ fn Main() {
 }
     )";
 
-    int ret = startScript(expressionFirstAssignment);
-    printf("ret = %d\n", ret);
-    //assert(ret == 14);
+    int64_t ret = startScript(expressionFirstAssignment);
+    printf("ret = %lld\n", (long long)ret);
+    assert(ret == 14);
 
 }
 
@@ -297,9 +286,9 @@ fn Main()
     return ptr2
 }
 )";
-        int ret = startScript(source);
-        printf("ret = %d\n", ret);
-        //assert(ret != 0);
+        int64_t ret = startScript(source);
+        printf("ret = %lld\n", (long long)ret);
+        assert(ret != 0);
 }
 
 void testNull() {
@@ -311,11 +300,11 @@ fn Main()
     return ptr
 }
 )";
-        int ret = startScript(source);
-//        assert(ret == 0);
+        int64_t ret = startScript(source);
+        assert(ret == 0);
 }
 
-void testVarable() {
+void testVariable() {
             constexpr char source[] = R"(
 fn Main()
 {
@@ -325,9 +314,9 @@ fn Main()
     return c + b
 }
 )";
-        int ret = startScript(source);
-        printf("ret = %d\n", ret);
-        //assert(ret == 18);
+        int64_t ret = startScript(source);
+        printf("ret = %lld\n", (long long)ret);
+        assert(ret == 18);
 }
 
 void testBool() {
@@ -335,13 +324,27 @@ void testBool() {
 fn Main()
 {
     bool b = true
-    bool c = false
-    //return b && !c
+    return b
 })";
-        int ret = startScript(source);
-        printf("ret = %d\n", ret);
-        //assert(ret == 1);
+        int64_t ret = startScript(source);
+        printf("ret = %lld\n", (long long)ret);
+        assert(ret == 1); // 0 for false, 1 for true
 }
+
+
+void testi64() {
+            constexpr char source[] = R"(
+fn Main()
+{
+    i64 a = 100 // implicit conversion to i64
+    return a
+})";
+        int64_t ret = startScript(source);
+        printf("ret = %lld\n", (long long)ret);
+        assert(ret == 100);
+}
+
+
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()
 {
@@ -350,16 +353,18 @@ void callTests()
     testStackMemoryMoveToFrom();
     testStackMemoryCallRet();
     testStackMemoryCallRet2();
-    testStackMemoryFuncCall();
     testStackMemoryOverflowPush();
     testStackMemoryOverflowLocalVariables();
     testStackMemoryOverflowCall();
-    testHeapString();
-    testNull();
+    testStackMemoryFuncCall();
+
     testScript();
+    testNull();
+    testHeapString();
     testScript2();
-    testVarable();
+    testVariable();
     testBool();
+    testi64();
 
     checkSemanticError(R"(fn Main() { int a = 5
         int a = 6})", ErrorIndex::variable_name_duplicated);
