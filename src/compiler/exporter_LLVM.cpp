@@ -28,6 +28,7 @@ namespace cshort {
     
     char *CompilerForLLVM::compile(DocumentStruct *document, ParseContext *context) {
         int outputTextLength = 500;
+
         utf8byte *text = context->newText(outputTextLength);
         text[0] = 'a';
         return text;

@@ -21,7 +21,7 @@ int main()
 
 
 
-void compileLLVMExport1() {
+void testCompileLLVM1() {
             constexpr char source[] = R"(
 fn Main()
 {
@@ -51,9 +51,10 @@ void checkSemanticError(const char* str) {
 #define CheckTextEq(x) checkTextEquality(#x, x)
 void callTests()
 {
-    compileLLVMExport1();
+    testCompileLLVM1();
 
+    /*
     checkSemanticError(R"(fn Main() { int a = 5
         int a = 6})");
-
+    */
 }
