@@ -7,6 +7,7 @@ file(GLOB cpp_lib_files CONFIGURE_DEPENDS
     "${SRC_ROOT}/parser/tokens/*.cpp"
     "${SRC_ROOT}/parser/validation/*.cpp"
     "${SRC_ROOT}/script_engine/*.cpp"
+    "${SRC_ROOT}/compiler/*.cpp"
 )
 
 file(GLOB test_files CONFIGURE_DEPENDS
