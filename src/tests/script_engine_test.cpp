@@ -257,7 +257,7 @@ fn Main()
 }
 )";
         int64_t ret = startScript(source);
-        printf("ret 1 = %ld\n", ret);
+        printf("ret 1 = %lld\n", (long long)ret);
         assert(ret == -3500);
 }
 
@@ -271,7 +271,7 @@ fn Main() {
     )";
 
     int64_t ret = startScript(expressionFirstAssignment);
-    printf("ret = %ld\n", ret);
+    printf("ret = %lld\n", (long long)ret);
     assert(ret == 14);
 
 }
@@ -287,7 +287,7 @@ fn Main()
 }
 )";
         int64_t ret = startScript(source);
-        printf("ret = %ld\n", ret);
+        printf("ret = %lld\n", (long long)ret);
         assert(ret != 0);
 }
 
@@ -315,7 +315,7 @@ fn Main()
 }
 )";
         int64_t ret = startScript(source);
-        printf("ret = %ld\n", ret);
+        printf("ret = %lld\n", (long long)ret);
         assert(ret == 18);
 }
 
@@ -327,7 +327,7 @@ fn Main()
     return b
 })";
         int64_t ret = startScript(source);
-        printf("ret = %ld\n", ret);
+        printf("ret = %lld\n", (long long)ret);
         assert(ret == 1); // 0 for false, 1 for true
 }
 
@@ -340,7 +340,7 @@ fn Main()
     return a
 })";
         int64_t ret = startScript(source);
-        printf("ret = %ld\n", ret);
+        printf("ret = %lld\n", (long long)ret);
         assert(ret == 100);
 }
 

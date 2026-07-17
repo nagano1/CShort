@@ -160,11 +160,12 @@ namespace cshort {
             evaluateExprNode(scriptContext, binaryNode->rightExprNode);
             auto *rightTypeEntry = typeManager->getTypeEntryByIndex(binaryNode->rightExprNode->typeIndex);
             const int rightSize = rightTypeEntry->getStackSizeForType();
+             assert(rightSize <= 8 && "expression value larger than GPR register");
 
             std::array<st_byte, 8> saved{}; // max GPR size
-            memcpy(saved.data(), binaryNode->rightExprNode->calcReg, rightSize);
+            memcpy(saved.data(), binaryNode->rightExprNode->calcReg, (size_t)rightSize);
             evaluateExprNode(scriptContext, binaryNode->leftExprNode);
-            memcpy(binaryNode->rightExprNode->calcReg, saved.data(), rightSize);
+            memcpy(binaryNode->rightExprNode->calcReg, saved.data(), (size_t)rightSize);
 
             auto *leftTypeEntry = typeManager->getTypeEntryByIndex(binaryNode->leftExprNode->typeIndex);
             leftTypeEntry->binary_operate(scriptContext, binaryNode);
