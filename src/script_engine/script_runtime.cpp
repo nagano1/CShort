@@ -538,20 +538,7 @@ namespace cshort {
     };
 
 
-    static st_byte *ConvertImplicitForAssignment(int dstTypeIndex, int srcTypeIndex, st_byte* srcCalcReg) {
-        if (dstTypeIndex == srcTypeIndex) {
-            return srcCalcReg;
-        }
-        else if (dstTypeIndex == BuiltInTypeIndex::int64 && srcTypeIndex == BuiltInTypeIndex::int32) {
-            // Implicit conversion from int32 to int64
-            int64_t* tmp = new int64_t((int64_t)*(int32_t*)srcCalcReg);
-            return (st_byte*)tmp;
-        }
-        else {
-            assert(false && "unsupported implicit conversion in assignment");
-            return nullptr;
-        }
-    }
+    // ConvertImplicitForAssignment removed (unused). Use TypeEntry::convert_value_implicit + tmpBuffer in executeFunc instead.
 
     static TypeAndExpression executeFunc(FuncDefNodeStruct* mainFunc, ScriptEngineContext *scriptContext)
     {
