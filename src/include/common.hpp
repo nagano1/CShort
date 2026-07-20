@@ -56,22 +56,23 @@ static inline T *mallocForType() {
 
 struct StringBuilder {
     utf8byte *str = nullptr;
-    size_t currentLength = 0;
+    size_t currentStrLength = 0;
     size_t currentCapacity = 0;
 
-    bool initWithInitialCapacity(size_t initialCapacity) {
-        if (initialCapacity + 1 < initialCapacity) {
-            currentLength = 0;
-            currentCapacity = 0;
-            return false;
-        }
-        str = (utf8byte *)malloc(initialCapacity + 1);
-        if (str == nullptr) {
-            currentLength = 0;
+    bool initWithInitialCapacity(size_t initialCapacity) {
+        if (initialCapacity + 1 < initialCapacity) { // overflow
+            currentStrLength = 0;
             currentCapacity = 0;
             return false;
         }
-        currentLength = 0;
+
+        str = (utf8byte *)malloc(initialCapacity + 1);
+        if (str == nullptr) {
+            currentStrLength = 0;
+            currentCapacity = 0;
+            return false;
+        }
+        currentStrLength = 0;
         currentCapacity = initialCapacity;
         str[0] = '\0';
         return true;
@@ -82,7 +83,7 @@ struct StringBuilder {
             free(str);
             str = nullptr;
         }
-        currentLength = 0;
+        currentStrLength = 0;
         currentCapacity = 0;
     }
 
@@ -91,78 +92,50 @@ struct StringBuilder {
         return appendImpl(text, SIZE - 1);
     }
 
+    const size_t CapacityGrowthAmount = 200;
     bool appendImpl(const char *text, size_t length) {
-
         if (length == 0) {
-
             return true;
-
         }
 
-
-
-        size_t needed = currentLength + length;
-
-        if (needed < currentLength) {
-
+        size_t needed = currentStrLength + length + 1; // +1 for null terminator
+        if (needed < currentStrLength) {
             return false; // overflow
-
         }
-
-
 
         if (needed > currentCapacity) {
-
             utf8byte *oldStr = str;
-
             size_t oldCapacity = currentCapacity;
-
-            size_t newCapacity = needed * 2;
-
+            size_t newCapacity = needed + CapacityGrowthAmount;
             if (newCapacity < needed) {
-
                 return false; // overflow
-
             }
 
-
-
-            utf8byte *newStr = (utf8byte *)malloc(newCapacity + 1);
-
+            utf8byte *newStr = (utf8byte *)malloc(newCapacity);
             if (newStr == nullptr) {
-
                 str = oldStr;
-
                 currentCapacity = oldCapacity;
-
                 return false;
             }
 
-
             if (oldStr != nullptr) {
-                if (currentLength > 0) {
-
-                    memcpy(newStr, oldStr, currentLength);
-
+                if (currentStrLength > 0) {
+                    memcpy(newStr, oldStr, currentStrLength);
                 }
 
                 free(oldStr);
             }
 
-
             str = newStr;
-
             currentCapacity = newCapacity;
-
-            str[currentLength] = '\0';
-
+            str[currentStrLength] = '\0';
         }
 
 
-        memcpy(str + currentLength, text, length);
-        str[currentLength + length] = '\0';
+        memcpy(str + currentStrLength, text, length);
+        str[currentStrLength + length] = '\0';
 
-        currentLength += length;
+        currentStrLength += length;
         return true;
     }
 
@@ -171,7 +144,7 @@ struct StringBuilder {
     }
 
     int length() const {
-        return (int)currentLength;
+        return (int)currentStrLength;
     }
 };
 
