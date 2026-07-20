@@ -169,6 +169,8 @@ namespace cshort {
 
         sb.append("}\n");
 
-        return irToText(sb.c_str(), context);
+        const char *str = sb.copy_str();
+        sb.freeAll();
+        return irToText(str, context);
     }
 }
