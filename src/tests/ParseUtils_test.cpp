@@ -135,7 +135,7 @@ int testParseUtil() {
 
 
 void testStringBuilder() {
-    StringBuilder sb;
+    StringBuilder sb{};
     sb.initWithInitialCapacity(10);
     assert(sb.currentCapacity == 10);
     sb.append("Hello");

@@ -59,9 +59,6 @@ struct StringBuilder {
     size_t currentStrLength = 0;
     size_t currentCapacity = 0;
 
-    StringBuilder(const StringBuilder&) = delete; // disable copy constructor
-    StringBuilder& operator=(const StringBuilder&) = delete; // disable copy assignment
-
     void initWithInitialCapacity(size_t initialCapacity) {
         assert(currentCapacity == 0 && str == nullptr); // ensure not initialized yet
         assert(initialCapacity > 0);
