@@ -95,7 +95,7 @@ namespace cshort {
                 }
 
                 const char *dstType = llvmTypeName(dstTypeIdx);
-                varTypeIndex.put(varName, (int)strlen(varName), (void *)(intptr_t)dstTypeIdx);
+                varTypeIndex.put(varName, (int)strlen(varName), (void *)(intptr_t)(dstTypeIdx + 1)); // store typeIndex + 1 to avoid nullptr ambiguity
 
                 // alloca
                 snprintf(buf, sizeof(buf), "  %%%s = alloca %s\n", varName, dstType);
@@ -131,7 +131,7 @@ namespace cshort {
 
                     void *item;
                     if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
-                        int srcTypeIdx = (int)(intptr_t)item;
+                        int srcTypeIdx = (int)(intptr_t)item + 1; // stored value is typeIndex + 1 to avoid nullptr ambiguity
                         const char *srcType = llvmTypeName(srcTypeIdx);
 
                         snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
