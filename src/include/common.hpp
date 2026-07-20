@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <array>
 
+#include <string.h>
 #include <cstdlib>
 #include <cassert>
 #include <cstdio>
@@ -53,7 +54,88 @@ static inline T *mallocForType() {
 }
 
 
+struct StringBuilder {
+    utf8byte *str = nullptr;
+    size_t currentStrLength = 0;
+    size_t currentCapacity = 0;
 
+    void initWithInitialCapacity(size_t initialCapacity) {
+        assert(currentCapacity == 0 && str == nullptr); // ensure not initialized yet
+        assert(initialCapacity > 0);
+
+        currentStrLength = 0;
+        str = (utf8byte *)malloc(initialCapacity);
+        if (str == nullptr) {
+            currentCapacity = 0;
+            return; // allocation failed, do nothing
+        }
+        currentCapacity = initialCapacity;
+        str[0] = '\0';
+    }
+
+    void freeAll() {
+        if (str != nullptr) {
+            free(str);
+            str = nullptr;
+            currentStrLength = 0;
+            currentCapacity = 0;
+        }
+    }
+
+    template<std::size_t SIZE>
+    void append(const char (&text)[SIZE]) {
+        appendImpl(text, SIZE - 1);
+    }
+
+    static constexpr size_t CapacityGrowthAmount = 200;
+    void appendImpl(const char *text, size_t length) {
+        if (text == nullptr || length == 0) {
+            assert(false && "text is nullptr or length is 0"); // if length is not 0, text should not be nullptr
+            return; // nothing to append
+        }
+
+        size_t needed = currentStrLength + length + 1; // +1 for null terminator
+        if (needed < currentStrLength) {
+            return; // overflow, do nothing
+        }
+
+        if (needed > currentCapacity) {
+            size_t newCapacity = needed + CapacityGrowthAmount;
+            if (newCapacity < needed) {
+                return; // overflow, do nothing
+            }
+
+            utf8byte *newStr = (utf8byte *)malloc(newCapacity);
+            if (newStr == nullptr) {
+                return; // allocation failed, do nothing
+            }
+
+            if (str != nullptr) {
+                if (currentStrLength > 0) {
+                    memcpy(newStr, str, currentStrLength);
+                }
+                free(str);
+            }
+
+            str = newStr;
+            currentCapacity = newCapacity;
+            str[currentStrLength] = '\0';
+        }
+
+        memcpy(str + currentStrLength, text, length);
+        str[currentStrLength + length] = '\0';
+        currentStrLength += length;
+    }
+
+    const char *c_str() const {
+        assert(str != nullptr && "StringBuilder is not initialized or has been freed");
+        return str;
+    }
+
+    size_t length() const {
+        return currentStrLength;
+    }
+};
 
 // heap entry on MemBuffer
 using HeapEntry = struct Item {

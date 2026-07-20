@@ -134,8 +134,33 @@ int testParseUtil() {
 }
 
 
+void testStringBuilder() {
+    StringBuilder sb{};
+    sb.initWithInitialCapacity(10);
+    assert(sb.currentCapacity == 10);
+    sb.append("Hello");
+    sb.append(" ");
+    sb.append("World!");
+
+    assert(sb.currentCapacity >= 12);
+    assert(sb.length() == 12);
+    assert(strcmp(sb.c_str(), "Hello World!") == 0);
+
+    sb.freeAll();
+
+    // boundary: exactly fills the initial capacity
+    StringBuilder sb2;
+    sb2.initWithInitialCapacity(13);
+    sb2.append("Hello World!");
+    assert(sb2.currentCapacity == 13);
+    assert(sb2.length() == 12);
+    assert(strcmp(sb2.c_str(), "Hello World!") == 0);
+    sb2.freeAll();
+}
+
 void callAllTests() {
     testParseUtil();
+    testStringBuilder();
 }
 
 #if defined(_MSC_VER)
