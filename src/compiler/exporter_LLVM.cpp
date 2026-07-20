@@ -1,6 +1,5 @@
 #include <cstdio>
 #include <iostream>
-#include <string>
 #include <array>
 #include <algorithm>
 #include <cinttypes>
@@ -33,17 +32,15 @@ namespace cshort {
         return "i64";
     }
 
-    // Writes the IR string into a context-allocated buffer and returns it.
-    static char *irToText(const std::string &ir, ParseContext *context) {
-        utf8byte *text = context->newText((int)ir.size());
-        memcpy(text, ir.c_str(), ir.size());
-        text[ir.size()] = '\0';
-        return text;
-    }
 
     // Safe fallback: a minimal function that returns 0.
     static char *emitFallback(ParseContext *context) {
-        return irToText("define i64 @main() {\nentry:\n  ret i64 0\n}\n", context);
+        auto *consttext = "define i64 @main() {\nentry:\n  ret i64 0\n}\n";
+        int len = (int)strlen(consttext);
+        utf8byte *text = context->newText(len);
+        memcpy(text, consttext, len);
+        text[len] = '\0';
+        return text;
     }
 
     char *CompilerForLLVM::compile(DocumentStruct *document, ParseContext *context) {
@@ -63,9 +60,10 @@ namespace cshort {
             return emitFallback(context);
         }
 
-        std::string ir;
-        ir += "define i64 @main() {\n";
-        ir += "entry:\n";
+        StringBuilder sb;
+        sb.initWithInitialCapacity(1024);
+        sb.appendWithAutoLength("define i64 @main() {\n");
+        sb.appendWithAutoLength("entry:\n");
 
         // Track type of each named local variable (varName -> typeIndex)
         std::unordered_map<std::string, int> varTypeIndex;
@@ -102,18 +100,18 @@ namespace cshort {
 
                 // alloca
                 snprintf(buf, sizeof(buf), "  %%%s = alloca %s\n", varName, dstType);
-                ir += buf;
+                sb.append(buf);
 
                 // store
                 if (assign->expressionNode->vtable == VTables::NumberVTable) {
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(assign->expressionNode);
                     snprintf(buf, sizeof(buf), "  store %s %" PRId64 ", %s* %%%s\n",
                              dstType, numNode->num, dstType, varName);
-                    ir += buf;
+                    sb.append(buf);
                 } else {
                     // Unsupported expression: store 0 as fallback value
                     snprintf(buf, sizeof(buf), "  store %s 0, %s* %%%s\n", dstType, dstType, varName);
-                    ir += buf;
+                    sb.append(buf);
                 }
             }
             // Return statement: return <expr>
@@ -121,12 +119,12 @@ namespace cshort {
                 auto *retNode = Cast::downcast<ReturnStatementNodeStruct *>(statementNode);
 
                 if (retNode->expressionNode == nullptr) {
-                    ir += "  ret i64 0\n";
+                    sb.append("  ret i64 0\n");
                 } else if (retNode->expressionNode->vtable == VTables::NumberVTable) {
                     // return 100
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(retNode->expressionNode);
                     snprintf(buf, sizeof(buf), "  ret i64 %" PRId64 "\n", numNode->num);
-                    ir += buf;
+                    sb.append(buf);
                 } else if (retNode->expressionNode->vtable == VTables::IdentifiersAccessVTable) {
                     // return a
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
@@ -139,22 +137,22 @@ namespace cshort {
 
                         snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
                                  varName, srcType, srcType, varName);
-                        ir += buf;
+                        sb.append(buf);
 
                         if (srcTypeIdx == BuiltInTypeIndex::int32) {
                             // Widen i32 to i64 for the return value
                             snprintf(buf, sizeof(buf), "  %%ret_ext = sext i32 %%%s_load to i64\n", varName);
-                            ir += buf;
-                            ir += "  ret i64 %ret_ext\n";
+                            sb.append(buf);
+                            sb.append("  ret i64 %ret_ext\n");
                         } else {
                             snprintf(buf, sizeof(buf), "  ret i64 %%%s_load\n", varName);
-                            ir += buf;
+                            sb.append(buf);
                         }
                     } else {
-                        ir += "  ret i64 0\n";
+                        sb.append("  ret i64 0\n");
                     }
                 } else {
-                    ir += "  ret i64 0\n";
+                    sb.append("  ret i64 0\n");
                 }
 
                 emittedRet = true;
@@ -164,11 +162,15 @@ namespace cshort {
         }
 
         if (!emittedRet) {
-            ir += "  ret i64 0\n";
+            sb.append("  ret i64 0\n");
         }
 
-        ir += "}\n";
+        sb.append("}\n");
 
-        return irToText(ir, context);
+        utf8byte *text = context->newText((int)sb.length());
+        memcpy(text, sb.str, sb.length());
+        text[sb.length()] = '\0';
+        sb.freeAll();
+        return text;
     }
 }

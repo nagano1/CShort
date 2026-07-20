@@ -83,8 +83,11 @@ struct StringBuilder {
     }
 
     template<std::size_t SIZE>
-    void append(const char (&text)[SIZE]) {
+    void appendWithAutoLength(const char (&text)[SIZE]) {
         appendImpl(text, SIZE - 1);
+    }
+    void append(const char *text) {
+        appendImpl(text, strlen(text));
     }
 
     static constexpr size_t CapacityGrowthAmount = 200;

@@ -154,7 +154,7 @@ void testStringBuilder() {
     sb2.append("Hello World!");
     assert(sb2.currentCapacity == 13);
     assert(sb2.length() == 12);
-    assert(strcmp(sb2.c_str(), "Hello World!") == 0);
+    assert(strcmp(sb2.str, "Hello World!") == 0);
     sb2.freeAll();
 }
 
