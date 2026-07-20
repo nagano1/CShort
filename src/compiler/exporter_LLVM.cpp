@@ -85,6 +85,7 @@ namespace cshort {
                 // Only integer types are supported
                 if (dstTypeIdx != BuiltInTypeIndex::int64 && dstTypeIdx != BuiltInTypeIndex::int32) {
                     varTypeIndexMemBuffer.freeAll();
+                    sb.freeAll();
                     return emitFallback(memBufferForText);
                 }
 
@@ -131,7 +132,7 @@ namespace cshort {
 
                     void *item;
                     if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
-                        int srcTypeIdx = (int)(intptr_t)item + 1; // stored value is typeIndex + 1 to avoid nullptr ambiguity
+                        int srcTypeIdx = (int)(intptr_t)item - 1; // stored value is typeIndex + 1 to avoid nullptr ambiguity
                         const char *srcType = llvmTypeName(srcTypeIdx);
 
                         snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
