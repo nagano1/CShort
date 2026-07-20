@@ -139,9 +139,9 @@ void testStringBuilder() {
     bool success = sb.initWithInitialCapacity(10);
     assert(success);
     assert(sb.currentCapacity == 10);
-    sb.append("Hello");
-    sb.append(" ");
-    sb.append("World!");
+    assert(sb.append("Hello"));
+    assert(sb.append(" "));
+    assert(sb.append("World!"));
 
     assert(sb.currentCapacity >= 12);
     assert(sb.length() == 12);
