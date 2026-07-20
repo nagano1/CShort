@@ -20,6 +20,6 @@ namespace cshort
     };
     */
     struct CompilerForLLVM {
-        static char *compile(DocumentStruct *document, ParseContext *context);
+        static char *compile(DocumentStruct *document, MemBuffer &memBuffer);
     };
 }

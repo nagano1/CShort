@@ -46,7 +46,7 @@ fn Main()
 
     Validator::validateScript(document);
 
-    char *outputText = CompilerForLLVM::compile(document, context);
+    char *outputText = CompilerForLLVM::compile(document, context->memBuffer);
     printf("testCompileLLVM1 outputText =\n%s\n", outputText);
 
     assertContains(outputText, "define i64 @main()");
@@ -71,8 +71,7 @@ fn Main()
     DocumentUtils::parseText(document, source, (int)strlen(source));
 
     Validator::validateScript(document);
-
-    char *outputText = CompilerForLLVM::compile(document, context);
+    char *outputText = CompilerForLLVM::compile(document, context->memBuffer);
     printf("testCompileLLVM2 outputText =\n%s\n", outputText);
 
     assertContains(outputText, "define i64 @main()");
