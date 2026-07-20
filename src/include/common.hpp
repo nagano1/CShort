@@ -59,7 +59,12 @@ struct StringBuilder {
     size_t currentLength = 0;
     size_t currentCapacity = 0;
 
-    bool initWithInitialCapacity(int initialCapacity) {
+    bool initWithInitialCapacity(size_t initialCapacity) {
+        if (initialCapacity + 1 < initialCapacity) {
+            currentLength = 0;
+            currentCapacity = 0;
+            return false;
+        }
         str = (utf8byte *)malloc(initialCapacity + 1);
         if (str == nullptr) {
             currentLength = 0;
@@ -86,45 +91,77 @@ struct StringBuilder {
         return appendImpl(text, SIZE - 1);
     }
 
-    bool appendImpl(const char *text, size_t length) {
-        if (length == 0) {
-            return true;
-        }
-
-        size_t needed = currentLength + length;
-        if (needed < currentLength) {
-            return false; // overflow
-        }
-
-        if (needed > currentCapacity) {
-            utf8byte *oldStr = str;
-            size_t oldCapacity = currentCapacity;
-            size_t newCapacity = needed * 2;
-            if (newCapacity < needed) {
-                return false; // overflow
-            }
-
-            utf8byte *newStr = (utf8byte *)malloc(newCapacity + 1);
-            if (newStr == nullptr) {
-                str = oldStr;
-                currentCapacity = oldCapacity;
+    bool appendImpl(const char *text, size_t length) {
+
+        if (length == 0) {
+
+            return true;
+
+        }
+
+
+
+        size_t needed = currentLength + length;
+
+        if (needed < currentLength) {
+
+            return false; // overflow
+
+        }
+
+
+
+        if (needed > currentCapacity) {
+
+            utf8byte *oldStr = str;
+
+            size_t oldCapacity = currentCapacity;
+
+            size_t newCapacity = needed * 2;
+
+            if (newCapacity < needed) {
+
+                return false; // overflow
+
+            }
+
+
+
+            utf8byte *newStr = (utf8byte *)malloc(newCapacity + 1);
+
+            if (newStr == nullptr) {
+
+                str = oldStr;
+
+                currentCapacity = oldCapacity;
+
                 return false;
             }
-
+
+
             if (oldStr != nullptr) {
-                if (currentLength > 0) {
-                    memcpy(newStr, oldStr, currentLength);
-                }
+                if (currentLength > 0) {
+
+                    memcpy(newStr, oldStr, currentLength);
+
+                }
+
                 free(oldStr);
             }
-
-            str = newStr;
-            currentCapacity = newCapacity;
-            str[currentLength] = '\0';
+
+
+            str = newStr;
+
+            currentCapacity = newCapacity;
+
+            str[currentLength] = '\0';
+
         }
-
+
+
         memcpy(str + currentLength, text, length);
-        str[currentLength + length] = '\0';
+        str[currentLength + length] = '\0';
+
         currentLength += length;
         return true;
     }
