@@ -34,30 +34,25 @@ namespace cshort {
 
 
     // Safe fallback: a minimal function that returns 0.
-    static char *emitFallback(ParseContext *context) {
+    static char *emitFallback(MemBuffer &context) {
         auto *consttext = "define i64 @main() {\nentry:\n  ret i64 0\n}\n";
         int len = (int)strlen(consttext);
-        utf8byte *text = context->newText(len);
+        utf8byte *text = context.newText(len);
         memcpy(text, consttext, len);
         text[len] = '\0';
         return text;
     }
 
-    char *CompilerForLLVM::compile(DocumentStruct *document, ParseContext *context) {
-        // Return safe fallback on parse/semantic errors
-        if (context->syntaxErrorInfo.hasError || context->semanticErrorInfo.hasError) {
-            return emitFallback(context);
-        }
-
+    char *CompilerForLLVM::compile(DocumentStruct *document, MemBuffer &memBufferForText) {
         FuncDefNodeStruct *mainFunc = document->mainFunc;
         if (mainFunc == nullptr) {
-            return emitFallback(context);
+            return emitFallback(memBufferForText);
         }
 
         // Only fn Main() is supported as the entry point
         const char *funcName = mainFunc->funcNameToken.name;
         if (funcName == nullptr || strcmp(funcName, "Main") != 0) {
-            return emitFallback(context);
+            return emitFallback(memBufferForText);
         }
 
         StringBuilder sb;
@@ -66,7 +61,10 @@ namespace cshort {
         sb.appendWithAutoLength("entry:\n");
 
         // Track type of each named local variable (varName -> typeIndex)
-        std::unordered_map<std::string, int> varTypeIndex;
+        MemBuffer varTypeIndexMemBuffer;
+        varTypeIndexMemBuffer.init();
+        VoidHashMap varTypeIndex;
+        varTypeIndex.init(&varTypeIndexMemBuffer);
 
         auto *statementNode = mainFunc->bodyNode.firstChildNode;
         bool emittedRet = false;
@@ -86,7 +84,7 @@ namespace cshort {
 
                 // Only integer types are supported
                 if (dstTypeIdx != BuiltInTypeIndex::int64 && dstTypeIdx != BuiltInTypeIndex::int32) {
-                    return emitFallback(context);
+                    return emitFallback(memBufferForText);
                 }
 
                 const char *varName = assign->variableNameToken.name;
@@ -96,7 +94,7 @@ namespace cshort {
                 }
 
                 const char *dstType = llvmTypeName(dstTypeIdx);
-                varTypeIndex[std::string(varName)] = dstTypeIdx;
+                varTypeIndex.put(varName, (int)strlen(varName), (void *)(intptr_t)dstTypeIdx);
 
                 // alloca
                 snprintf(buf, sizeof(buf), "  %%%s = alloca %s\n", varName, dstType);
@@ -129,10 +127,10 @@ namespace cshort {
                     // return a
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
-                    auto it = varName ? varTypeIndex.find(std::string(varName)) : varTypeIndex.end();
+                    void *item = varTypeIndex.get(varName, (int)strlen(varName));
 
-                    if (varName != nullptr && it != varTypeIndex.end()) {
-                        int srcTypeIdx = it->second;
+                    if (varName != nullptr && item != nullptr) {
+                        int srcTypeIdx = (int)(intptr_t)item;
                         const char *srcType = llvmTypeName(srcTypeIdx);
 
                         snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
@@ -167,7 +165,9 @@ namespace cshort {
 
         sb.append("}\n");
 
-        utf8byte *text = context->newText((int)sb.length());
+        varTypeIndexMemBuffer.freeAll();
+
+        utf8byte *text = memBufferForText.newText((int)sb.length());
         memcpy(text, sb.str, sb.length());
         text[sb.length()] = '\0';
         sb.freeAll();
