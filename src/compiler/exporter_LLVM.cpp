@@ -32,17 +32,15 @@ namespace cshort {
         return "i64";
     }
 
-    // Writes the IR string into a context-allocated buffer and returns it.
-    static char *irToText(const std::string &ir, ParseContext *context) {
-        utf8byte *text = context->newText((int)ir.size());
-        memcpy(text, ir.c_str(), ir.size());
-        text[ir.size()] = '\0';
-        return text;
-    }
 
     // Safe fallback: a minimal function that returns 0.
     static char *emitFallback(ParseContext *context) {
-        return irToText("define i64 @main() {\nentry:\n  ret i64 0\n}\n", context);
+        auto *consttext = "define i64 @main() {\nentry:\n  ret i64 0\n}\n";
+        int len = (int)strlen(consttext);
+        utf8byte *text = context->newText(len);
+        memcpy(text, consttext, len);
+        text[len] = '\0';
+        return text;
     }
 
     char *CompilerForLLVM::compile(DocumentStruct *document, ParseContext *context) {
@@ -169,8 +167,10 @@ namespace cshort {
 
         sb.append("}\n");
 
-        const char *str = sb.copy_str();
+        utf8byte *text = context->newText((int)sb.length());
+        memcpy(text, sb.str, sb.length());
+        text[sb.length()] = '\0';
         sb.freeAll();
-        return irToText(str, context);
+        return text;
     }
 }

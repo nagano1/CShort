@@ -144,9 +144,7 @@ void testStringBuilder() {
 
     assert(sb.currentCapacity >= 12);
     assert(sb.length() == 12);
-    const char *str = sb.copy_str();
-    assert(strcmp(str   , "Hello World!") == 0);
-    free((void *)str);
+    assert(strcmp(sb.c_str(), "Hello World!") == 0);
 
     sb.freeAll();
 

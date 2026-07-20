@@ -130,17 +130,9 @@ struct StringBuilder {
         currentStrLength += length;
     }
 
-    const char *copy_str() const {
-        assert(str != nullptr && "StringBuilder is not initialized or has been freed");
-        if (str == nullptr) {
-            return nullptr; // not initialized or has been freed
-        }
-        char *copy = (char *)malloc(currentStrLength + 1);
-        if (copy != nullptr) {
-            memcpy(copy, str, currentStrLength);
-            copy[currentStrLength] = '\0';
-        }
-        return copy;
+    const char *c_str() const {
+        assert(str != nullptr && currentStrLength < currentCapacity && currentStrLength > 0);
+        return str;
     }
 
     size_t length() const {
