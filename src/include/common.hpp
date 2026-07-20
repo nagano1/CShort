@@ -61,12 +61,12 @@ struct StringBuilder {
 
     void initWithInitialCapacity(size_t initialCapacity) {
         assert(currentCapacity == 0 && str == nullptr); // ensure not initialized yet
-
-        assert(initialCapacity > 0 && initialCapacity + 1 < SIZE_MAX); // check for overflow
+        assert(initialCapacity > 0);
         str = (utf8byte *)malloc(initialCapacity + 1);
         if (str == nullptr) {
             currentStrLength = 0;
             currentCapacity = 0;
+            return; // allocation failed, do nothing
         }
         currentStrLength = 0;
         currentCapacity = initialCapacity;
