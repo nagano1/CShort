@@ -134,8 +134,24 @@ int testParseUtil() {
 }
 
 
+void testStringBuilder() {
+    StringBuilder sb;
+    sb.initWithInitialCapacity(10);
+    assert(sb.currentCapacity == 10);
+    sb.append("Hello");
+    sb.append(" ");
+    sb.append("World!");
+
+    assert(sb.currentCapacity >= 12);
+    assert(sb.length() == 12);
+    assert(strcmp(sb.c_str(), "Hello World!") == 0);
+
+    sb.freeAll();
+}
+
 void callAllTests() {
     testParseUtil();
+    testStringBuilder();
 }
 
 #if defined(_MSC_VER)

@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <array>
 
+#include <string.h>
 #include <cstdlib>
 #include <cassert>
 #include <cstdio>
@@ -53,7 +54,53 @@ static inline T *mallocForType() {
 }
 
 
+struct StringBuilder {
+    utf8byte *str = nullptr;
+    size_t currentLength = 0;
+    size_t currentCapacity = 0;
 
+    void initWithInitialCapacity(int initialCapacity) {
+        str = (utf8byte *)malloc(initialCapacity);
+        currentLength = 0;
+        currentCapacity = initialCapacity;
+    }
+
+    void freeAll() {
+        if (str != nullptr) {
+            free(str);
+            str = nullptr;
+        }
+        currentLength = 0;
+        currentCapacity = 0;
+    }
+
+    template<std::size_t SIZE>
+    void append(const char (&text)[SIZE]) {
+        appendImpl(text, SIZE - 1);
+    }
+
+    void appendImpl(const char *text, int length) {
+        if (currentLength + length > currentCapacity) {
+            currentCapacity = (currentLength + length) * 2;
+            auto *oldStr = str;
+            str = (utf8byte *)malloc(currentCapacity);
+            memcpy(str, oldStr, currentLength); // copy the existing content to the new buffer
+            str[currentLength] = '\0'; // null-terminate the string
+            free(oldStr);
+        }
+        memcpy(str + currentLength, text, length);
+        str[currentLength + length] = '\0'; // null-terminate the string
+        currentLength += length;
+    }
+
+    const char *c_str() const {
+        return str;
+    }
+
+    int length() const {
+        return (int)currentLength;
+    }
+};
 
 // heap entry on MemBuffer
 using HeapEntry = struct Item {
