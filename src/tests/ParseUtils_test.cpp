@@ -153,7 +153,7 @@ void testStringBuilder() {
     StringBuilder sb2;
     bool success2 = sb2.initWithInitialCapacity(12);
     assert(success2);
-    sb2.append("Hello World!");
+    assert(sb2.append("Hello World!"));
     assert(sb2.currentCapacity == 12);
     assert(sb2.length() == 12);
     assert(strcmp(sb2.c_str(), "Hello World!") == 0);
