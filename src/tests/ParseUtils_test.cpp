@@ -136,12 +136,11 @@ int testParseUtil() {
 
 void testStringBuilder() {
     StringBuilder sb;
-    bool success = sb.initWithInitialCapacity(10);
-    assert(success);
+    sb.initWithInitialCapacity(10);
     assert(sb.currentCapacity == 10);
-    assert(sb.append("Hello"));
-    assert(sb.append(" "));
-    assert(sb.append("World!"));
+    sb.append("Hello");
+    sb.append(" ");
+    sb.append("World!");
 
     assert(sb.currentCapacity >= 12);
     assert(sb.length() == 12);
@@ -151,10 +150,9 @@ void testStringBuilder() {
 
     // boundary: exactly fills the initial capacity
     StringBuilder sb2;
-    bool success2 = sb2.initWithInitialCapacity(12);
-    assert(success2);
-    assert(sb2.append("Hello World!"));
-    assert(sb2.currentCapacity == 12);
+    sb2.initWithInitialCapacity(13);
+    sb2.append("Hello World!");
+    assert(sb2.currentCapacity == 13);
     assert(sb2.length() == 12);
     assert(strcmp(sb2.c_str(), "Hello World!") == 0);
     sb2.freeAll();

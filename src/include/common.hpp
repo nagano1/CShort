@@ -59,23 +59,18 @@ struct StringBuilder {
     size_t currentStrLength = 0;
     size_t currentCapacity = 0;
 
-    bool initWithInitialCapacity(size_t initialCapacity) {
-        if (initialCapacity + 1 < initialCapacity) { // overflow
-            currentStrLength = 0;
-            currentCapacity = 0;
-            return false;
-        }
+    void initWithInitialCapacity(size_t initialCapacity) {
+        assert(currentCapacity == 0 && str == nullptr); // ensure not initialized yet
 
+        assert(initialCapacity > 0 && initialCapacity + 1 < SIZE_MAX); // check for overflow
         str = (utf8byte *)malloc(initialCapacity + 1);
         if (str == nullptr) {
             currentStrLength = 0;
             currentCapacity = 0;
-            return false;
         }
         currentStrLength = 0;
         currentCapacity = initialCapacity;
         str[0] = '\0';
-        return true;
     }
 
     void freeAll() {
@@ -88,19 +83,15 @@ struct StringBuilder {
     }
 
     template<std::size_t SIZE>
-    bool append(const char (&text)[SIZE]) {
-        return appendImpl(text, SIZE - 1);
+    void append(const char (&text)[SIZE]) {
+        appendImpl(text, SIZE - 1);
     }
 
-    const size_t CapacityGrowthAmount = 200;
-    bool appendImpl(const char *text, size_t length) {
-        if (length == 0) {
-            return true;
-        }
-
+    static constexpr size_t CapacityGrowthAmount = 200;
+    void appendImpl(const char *text, size_t length) {
         size_t needed = currentStrLength + length + 1; // +1 for null terminator
         if (needed < currentStrLength) {
-            return false; // overflow
+            return; // overflow, do nothing
         }
 
         if (needed > currentCapacity) {
@@ -108,14 +99,14 @@ struct StringBuilder {
             size_t oldCapacity = currentCapacity;
             size_t newCapacity = needed + CapacityGrowthAmount;
             if (newCapacity < needed) {
-                return false; // overflow
+                return; // overflow, do nothing
             }
 
             utf8byte *newStr = (utf8byte *)malloc(newCapacity);
             if (newStr == nullptr) {
                 str = oldStr;
                 currentCapacity = oldCapacity;
-                return false;
+                return; // allocation failed, do nothing
             }
 
             if (oldStr != nullptr) {
@@ -136,15 +127,14 @@ struct StringBuilder {
         str[currentStrLength + length] = '\0';
 
         currentStrLength += length;
-        return true;
     }
 
     const char *c_str() const {
         return str;
     }
 
-    int length() const {
-        return (int)currentStrLength;
+    size_t length() const {
+        return currentStrLength;
     }
 };
 
