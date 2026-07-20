@@ -129,27 +129,23 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-                    if (varName != nullptr) {
-                        void *item = varTypeIndex.get(varName, (int)strlen(varName));
-                        if (item != nullptr) {
-                            int srcTypeIdx = (int)(intptr_t)item;
-                            const char *srcType = llvmTypeName(srcTypeIdx);
+                    void *item;
+                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
+                        int srcTypeIdx = (int)(intptr_t)item;
+                        const char *srcType = llvmTypeName(srcTypeIdx);
 
-                            snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
-                                    varName, srcType, srcType, varName);
+                        snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
+                                varName, srcType, srcType, varName);
+                        sb.append(buf);
+
+                        if (srcTypeIdx == BuiltInTypeIndex::int32) {
+                            // Widen i32 to i64 for the return value
+                            snprintf(buf, sizeof(buf), "  %%ret_ext = sext i32 %%%s_load to i64\n", varName);
                             sb.append(buf);
-
-                            if (srcTypeIdx == BuiltInTypeIndex::int32) {
-                                // Widen i32 to i64 for the return value
-                                snprintf(buf, sizeof(buf), "  %%ret_ext = sext i32 %%%s_load to i64\n", varName);
-                                sb.append(buf);
-                                sb.append("  ret i64 %ret_ext\n");
-                            } else {
-                                snprintf(buf, sizeof(buf), "  ret i64 %%%s_load\n", varName);
-                                sb.append(buf);
-                            }
+                            sb.append("  ret i64 %ret_ext\n");
                         } else {
-                            sb.append("  ret i64 0\n");
+                            snprintf(buf, sizeof(buf), "  ret i64 %%%s_load\n", varName);
+                            sb.append(buf);
                         }
                     }
                     else {
