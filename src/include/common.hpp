@@ -89,6 +89,11 @@ struct StringBuilder {
 
     static constexpr size_t CapacityGrowthAmount = 200;
     void appendImpl(const char *text, size_t length) {
+        if (text == nullptr || length == 0) {
+            assert(false && "text is nullptr or length is 0"); // if length is not 0, text should not be nullptr
+            return; // nothing to append
+        }
+
         size_t needed = currentStrLength + length + 1; // +1 for null terminator
         if (needed < currentStrLength) {
             return; // overflow, do nothing
@@ -123,6 +128,7 @@ struct StringBuilder {
     }
 
     const char *c_str() const {
+        assert(str != nullptr && "StringBuilder is not initialized or has been freed");
         return str;
     }
 
