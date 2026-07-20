@@ -95,7 +95,6 @@ struct StringBuilder {
         }
 
         if (needed > currentCapacity) {
-            size_t oldCapacity = currentCapacity;
             size_t newCapacity = needed + CapacityGrowthAmount;
             if (newCapacity < needed) {
                 return; // overflow, do nothing
@@ -103,7 +102,6 @@ struct StringBuilder {
 
             utf8byte *newStr = (utf8byte *)malloc(newCapacity);
             if (newStr == nullptr) {
-                currentCapacity = oldCapacity;
                 return; // allocation failed, do nothing
             }
 
@@ -111,7 +109,6 @@ struct StringBuilder {
                 if (currentStrLength > 0) {
                     memcpy(newStr, str, currentStrLength);
                 }
-
                 free(str);
             }
 
