@@ -123,10 +123,8 @@ struct StringBuilder {
             str[currentStrLength] = '\0';
         }
 
-
         memcpy(str + currentStrLength, text, length);
         str[currentStrLength + length] = '\0';
-
         currentStrLength += length;
     }
 
