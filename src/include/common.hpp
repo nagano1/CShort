@@ -59,16 +59,19 @@ struct StringBuilder {
     size_t currentStrLength = 0;
     size_t currentCapacity = 0;
 
+    StringBuilder(const StringBuilder&) = delete; // disable copy constructor
+    StringBuilder& operator=(const StringBuilder&) = delete; // disable copy assignment
+
     void initWithInitialCapacity(size_t initialCapacity) {
         assert(currentCapacity == 0 && str == nullptr); // ensure not initialized yet
         assert(initialCapacity > 0);
+
+        currentStrLength = 0;
         str = (utf8byte *)malloc(initialCapacity);
         if (str == nullptr) {
-            currentStrLength = 0;
             currentCapacity = 0;
             return; // allocation failed, do nothing
         }
-        currentStrLength = 0;
         currentCapacity = initialCapacity;
         str[0] = '\0';
     }
@@ -77,9 +80,9 @@ struct StringBuilder {
         if (str != nullptr) {
             free(str);
             str = nullptr;
+            currentStrLength = 0;
+            currentCapacity = 0;
         }
-        currentStrLength = 0;
-        currentCapacity = 0;
     }
 
     template<std::size_t SIZE>
@@ -95,7 +98,6 @@ struct StringBuilder {
         }
 
         if (needed > currentCapacity) {
-            utf8byte *oldStr = str;
             size_t oldCapacity = currentCapacity;
             size_t newCapacity = needed + CapacityGrowthAmount;
             if (newCapacity < needed) {
@@ -104,17 +106,16 @@ struct StringBuilder {
 
             utf8byte *newStr = (utf8byte *)malloc(newCapacity);
             if (newStr == nullptr) {
-                str = oldStr;
                 currentCapacity = oldCapacity;
                 return; // allocation failed, do nothing
             }
 
-            if (oldStr != nullptr) {
+            if (str != nullptr) {
                 if (currentStrLength > 0) {
-                    memcpy(newStr, oldStr, currentStrLength);
+                    memcpy(newStr, str, currentStrLength);
                 }
 
-                free(oldStr);
+                free(str);
             }
 
             str = newStr;
