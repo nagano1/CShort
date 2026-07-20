@@ -59,10 +59,17 @@ struct StringBuilder {
     size_t currentLength = 0;
     size_t currentCapacity = 0;
 
-    void initWithInitialCapacity(int initialCapacity) {
-        str = (utf8byte *)malloc(initialCapacity);
+    bool initWithInitialCapacity(int initialCapacity) {
+        str = (utf8byte *)malloc(initialCapacity + 1);
+        if (str == nullptr) {
+            currentLength = 0;
+            currentCapacity = 0;
+            return false;
+        }
         currentLength = 0;
         currentCapacity = initialCapacity;
+        str[0] = '\0';
+        return true;
     }
 
     void freeAll() {
@@ -75,22 +82,29 @@ struct StringBuilder {
     }
 
     template<std::size_t SIZE>
-    void append(const char (&text)[SIZE]) {
-        appendImpl(text, SIZE - 1);
+    bool append(const char (&text)[SIZE]) {
+        return appendImpl(text, SIZE - 1);
     }
 
-    void appendImpl(const char *text, int length) {
+    bool appendImpl(const char *text, int length) {
         if (currentLength + length > currentCapacity) {
             currentCapacity = (currentLength + length) * 2;
             auto *oldStr = str;
-            str = (utf8byte *)malloc(currentCapacity);
-            memcpy(str, oldStr, currentLength); // copy the existing content to the new buffer
-            str[currentLength] = '\0'; // null-terminate the string
-            free(oldStr);
+            str = (utf8byte *)malloc(currentCapacity + 1);
+            if (str == nullptr) {
+                str = oldStr; // restore the old pointer if allocation fails
+                return false;
+            }
+            if (oldStr != nullptr) {
+                memcpy(str, oldStr, currentLength); // copy the existing content to the new buffer
+                str[currentLength] = '\0'; // null-terminate the string
+                free(oldStr);
+            }
         }
         memcpy(str + currentLength, text, length);
         str[currentLength + length] = '\0'; // null-terminate the string
         currentLength += length;
+        return true;
     }
 
     const char *c_str() const {
