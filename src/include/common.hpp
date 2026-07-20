@@ -86,23 +86,45 @@ struct StringBuilder {
         return appendImpl(text, SIZE - 1);
     }
 
-    bool appendImpl(const char *text, int length) {
-        if (currentLength + length > currentCapacity) {
-            currentCapacity = (currentLength + length) * 2;
-            auto *oldStr = str;
-            str = (utf8byte *)malloc(currentCapacity + 1);
-            if (str == nullptr) {
-                str = oldStr; // restore the old pointer if allocation fails
+    bool appendImpl(const char *text, size_t length) {
+        if (length == 0) {
+            return true;
+        }
+
+        size_t needed = currentLength + length;
+        if (needed < currentLength) {
+            return false; // overflow
+        }
+
+        if (needed > currentCapacity) {
+            utf8byte *oldStr = str;
+            size_t oldCapacity = currentCapacity;
+            size_t newCapacity = needed * 2;
+            if (newCapacity < needed) {
+                return false; // overflow
+            }
+
+            utf8byte *newStr = (utf8byte *)malloc(newCapacity + 1);
+            if (newStr == nullptr) {
+                str = oldStr;
+                currentCapacity = oldCapacity;
                 return false;
             }
+
             if (oldStr != nullptr) {
-                memcpy(str, oldStr, currentLength); // copy the existing content to the new buffer
-                str[currentLength] = '\0'; // null-terminate the string
+                if (currentLength > 0) {
+                    memcpy(newStr, oldStr, currentLength);
+                }
                 free(oldStr);
             }
+
+            str = newStr;
+            currentCapacity = newCapacity;
+            str[currentLength] = '\0';
         }
+
         memcpy(str + currentLength, text, length);
-        str[currentLength + length] = '\0'; // null-terminate the string
+        str[currentLength + length] = '\0';
         currentLength += length;
         return true;
     }
