@@ -84,6 +84,7 @@ namespace cshort {
 
                 // Only integer types are supported
                 if (dstTypeIdx != BuiltInTypeIndex::int64 && dstTypeIdx != BuiltInTypeIndex::int32) {
+                    varTypeIndexMemBuffer.freeAll();
                     return emitFallback(memBufferForText);
                 }
 
@@ -127,26 +128,31 @@ namespace cshort {
                     // return a
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
-                    void *item = varTypeIndex.get(varName, (int)strlen(varName));
 
-                    if (varName != nullptr && item != nullptr) {
-                        int srcTypeIdx = (int)(intptr_t)item;
-                        const char *srcType = llvmTypeName(srcTypeIdx);
+                    if (varName != nullptr) {
+                        void *item = varTypeIndex.get(varName, (int)strlen(varName));
+                        if (item != nullptr) {
+                            int srcTypeIdx = (int)(intptr_t)item;
+                            const char *srcType = llvmTypeName(srcTypeIdx);
 
-                        snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
-                                 varName, srcType, srcType, varName);
-                        sb.append(buf);
-
-                        if (srcTypeIdx == BuiltInTypeIndex::int32) {
-                            // Widen i32 to i64 for the return value
-                            snprintf(buf, sizeof(buf), "  %%ret_ext = sext i32 %%%s_load to i64\n", varName);
+                            snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
+                                    varName, srcType, srcType, varName);
                             sb.append(buf);
-                            sb.append("  ret i64 %ret_ext\n");
+
+                            if (srcTypeIdx == BuiltInTypeIndex::int32) {
+                                // Widen i32 to i64 for the return value
+                                snprintf(buf, sizeof(buf), "  %%ret_ext = sext i32 %%%s_load to i64\n", varName);
+                                sb.append(buf);
+                                sb.append("  ret i64 %ret_ext\n");
+                            } else {
+                                snprintf(buf, sizeof(buf), "  ret i64 %%%s_load\n", varName);
+                                sb.append(buf);
+                            }
                         } else {
-                            snprintf(buf, sizeof(buf), "  ret i64 %%%s_load\n", varName);
-                            sb.append(buf);
+                            sb.append("  ret i64 0\n");
                         }
-                    } else {
+                    }
+                    else {
                         sb.append("  ret i64 0\n");
                     }
                 } else {
