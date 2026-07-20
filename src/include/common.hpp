@@ -131,7 +131,7 @@ struct StringBuilder {
     }
 
     const char *c_str() const {
-        assert(str != nullptr && currentStrLength < currentCapacity && currentStrLength > 0);
+        assert(str != nullptr && "StringBuilder is not initialized or has been freed");
         return str;
     }
 
