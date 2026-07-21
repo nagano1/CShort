@@ -1,5 +1,5 @@
-#include <cstdio>
-#include <cstring>
+#include <assert.h>
+#include <stdio.h>
 
 #include "parser.hpp"
 #include "ParseUtil.hpp"
@@ -80,6 +80,60 @@ fn Main()
     Alloc::deleteDocument(document);
 }
 
+void testCompileWasm1() {
+    constexpr char source[] = R"(
+fn Main()
+{
+    i64 a = 100 // implicit conversion path accepted
+    return a
+})";
+
+    auto *document = Alloc::newDocument(DocumentType::CodeDocument);
+    auto *context = document->context;
+
+    DocumentUtils::parseText(document, source, (int)strlen(source));
+    Validator::validateScript(document);
+
+    char *outputText = CompilerForWasm::compile(document, context->memBuffer);
+    printf("testCompileWasm1 outputText =\n%s\n", outputText);
+
+    assertContains(outputText, "(module");
+    assertContains(outputText, "(func $main (result i64)");
+    assertContains(outputText, "(local $a i64)");
+    assertContains(outputText, "i64.const 100");
+    assertContains(outputText, "local.set $a");
+    assertContains(outputText, "local.get $a");
+    assertContains(outputText, "return");
+    assertContains(outputText, "(export \"main\" (func $main))");
+
+    Alloc::deleteDocument(document);
+}
+
+void testCompileWasm2() {
+    constexpr char source[] = R"(
+fn Main()
+{
+    i32 a = 7
+    return a
+})";
+
+    auto *document = Alloc::newDocument(DocumentType::CodeDocument);
+    auto *context = document->context;
+
+    DocumentUtils::parseText(document, source, (int)strlen(source));
+    Validator::validateScript(document);
+
+    char *outputText = CompilerForWasm::compile(document, context->memBuffer);
+    printf("testCompileWasm2 outputText =\n%s\n", outputText);
+
+    assertContains(outputText, "(local $a i32)");
+    assertContains(outputText, "local.get $a");
+    assertContains(outputText, "i64.extend_i32_s"); // widening for i64 function result
+    assertContains(outputText, "return");
+
+    Alloc::deleteDocument(document);
+}
+
 
 void checkSemanticError(const char* str) {
 
@@ -90,6 +144,8 @@ void callTests()
 {
     testCompileLLVM1();
     testCompileLLVM2();
+    testCompileWasm1();
+    testCompileWasm2();
 
     /*
     checkSemanticError(R"(fn Main() { int a = 5
