@@ -22,4 +22,9 @@ namespace cshort
     struct CompilerForLLVM {
         static char *compile(DocumentStruct *document, MemBuffer &memBuffer);
     };
+
+    struct CompilerForWasm {
+        static char *compile(DocumentStruct *document, MemBuffer &memBufferForText);
+    };
+
 }
