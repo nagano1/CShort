@@ -53,6 +53,68 @@ static inline T *mallocForType() {
 }
 
 
+
+/**
+ * BinaryDataBuilder - A utility struct for building binary data in memory.
+ *
+ * Appends byte data to a dynamically growing internal buffer.
+ * The buffer grows by a fixed increment when it is exhausted.
+ */
+struct BinaryDataBuilder{
+    uint8_t *data = nullptr;      /* Pointer to the internal buffer */
+    size_t   size = 0;      /* Number of bytes currently written */
+    size_t   capacity = 0;  /* Total allocated capacity in bytes */
+
+    /**
+     * Initialise a BinaryDataBuilder with an initial capacity.
+     * Returns true on success, false if memory allocation failed.
+     */
+    bool init(size_t initial_capacity);
+
+    /**
+     * Release all resources held by the builder.
+     * After this call the struct should not be used without re-initialising.
+     */
+    void freeAll();
+
+    /**
+     * Append a single byte.
+     * Returns true on success, false on allocation failure.
+     */
+    bool append_byte(uint8_t byte);
+
+    /**
+     * Append a raw buffer of `len` bytes.
+     * Returns true on success, false on allocation failure.
+     */
+    bool append_bytes(const uint8_t *src, size_t len);
+
+    /**
+     * Append an unsigned 16-bit integer in little-endian order.
+     */
+    bool append_u16le(uint16_t value);
+
+    /**
+     * Append an unsigned 32-bit integer in little-endian order.
+     */
+    bool append_u32le(uint32_t value);
+
+    /**
+     * Append an unsigned 64-bit integer in little-endian order.
+     */
+    bool append_u64le(uint64_t value);
+
+    /**
+     * Reset the builder (size → 0) without freeing the buffer,
+     * so the buffer can be reused without a new allocation.
+     */
+    void reset();
+} ;
+
+/* Default initial capacity (when initial_capacity == 0) and growth step (bytes) */
+
+#define BINARY_DATA_BUILDER_DEFAULT_CAPACITY 64
+
 struct StringBuilder {
     utf8byte *str = nullptr;
     size_t currentStrLength = 0;

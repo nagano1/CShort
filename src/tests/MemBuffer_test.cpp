@@ -208,6 +208,40 @@ void testHashMap() {
     free(context);
 }
 
+void testBinaryDataBuilder() {
+    BinaryDataBuilder builder{};
+    assert(builder.init(0));
+    assert(builder.data != nullptr);
+
+    assert(builder.append_byte(0x12));
+    assert(builder.size == 1);
+    assert(builder.append_bytes((const uint8_t*)"\x34\x56", 2));
+    assert(builder.size == 3);
+    assert(builder.append_u16le(0x789A));
+    assert(builder.size == 5);
+
+    // Force growth beyond the default capacity and verify existing bytes are preserved.
+    uint8_t big[100];
+    for (size_t i = 0; i < sizeof(big); i++) {
+        big[i] = (uint8_t)i;
+    }
+    assert(builder.append_bytes(big, sizeof(big)));
+    assert(builder.size == 105);
+    assert(builder.capacity >= builder.size);
+    assert(builder.data[0] == 0x12);
+    assert(builder.data[1] == 0x34);
+    assert(builder.data[2] == 0x56);
+    assert(builder.data[3] == 0x9A);
+    assert(builder.data[4] == 0x78);
+    assert(builder.data[5] == 0x00);
+    assert(builder.data[104] == 99);
+    builder.reset();
+    assert(builder.size == 0);
+    assert(builder.data != nullptr);
+    builder.freeAll();
+    assert(builder.data == nullptr);
+}
+
 int main()
 {
     testNewTextHasNullTerminator();
@@ -218,6 +252,7 @@ int main()
     testMallocHeapEntrySmallAndLargeFree();
 
     testHashMap();
+    testBinaryDataBuilder();
     return 0;
 }
 
