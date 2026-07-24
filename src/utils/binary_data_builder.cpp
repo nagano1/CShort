@@ -42,6 +42,7 @@ static bool bdb_ensure_capacity(BinaryDataBuilder *b, size_t needed)
 
 bool BinaryDataBuilder::init(size_t initial_capacity)
 {
+    assert(data == nullptr && capacity == 0 && "BinaryDataBuilder is already initialized");
     if (initial_capacity == 0) {
         initial_capacity = BINARY_DATA_BUILDER_DEFAULT_CAPACITY;
     }
@@ -80,6 +81,11 @@ bool BinaryDataBuilder::append_bytes(const uint8_t *src, size_t len)
     if (len == 0) {
         return true;
     }
+    if (src == nullptr) {
+        assert(false && "src is nullptr");
+        return false;
+    }
+    
     if (!bdb_ensure_capacity(this, len)) {
         return false;
     }

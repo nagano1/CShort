@@ -61,9 +61,9 @@ static inline T *mallocForType() {
  * The buffer doubles in capacity when it is exhausted.
  */
 struct BinaryDataBuilder{
-    uint8_t *data;      /* Pointer to the internal buffer */
-    size_t   size;      /* Number of bytes currently written */
-    size_t   capacity;  /* Total allocated capacity in bytes */
+    uint8_t *data = nullptr;      /* Pointer to the internal buffer */
+    size_t   size = 0;      /* Number of bytes currently written */
+    size_t   capacity = 0;  /* Total allocated capacity in bytes */
 
     /**
      * Initialise a BinaryDataBuilder with an initial capacity.
