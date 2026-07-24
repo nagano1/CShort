@@ -58,7 +58,7 @@ static inline T *mallocForType() {
  * BinaryDataBuilder - A utility struct for building binary data in memory.
  *
  * Appends byte data to a dynamically growing internal buffer.
- * The buffer doubles in capacity when it is exhausted.
+ * The buffer grows by a fixed increment when it is exhausted.
  */
 struct BinaryDataBuilder{
     uint8_t *data = nullptr;      /* Pointer to the internal buffer */
@@ -111,7 +111,8 @@ struct BinaryDataBuilder{
     void reset();
 } ;
 
-/* Default initial capacity (when initial_capacity == 0) and growth step (bytes) */
+/* Default initial capacity (when initial_capacity == 0) and growth step (bytes) */
+
 #define BINARY_DATA_BUILDER_DEFAULT_CAPACITY 64
 
 struct StringBuilder {
