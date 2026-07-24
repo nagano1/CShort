@@ -111,7 +111,7 @@ struct BinaryDataBuilder{
     void reset();
 } ;
 
-/* Initial default capacity if none is specified */
+/* Default initial capacity (when initial_capacity == 0) and growth step (bytes) */
 #define BINARY_DATA_BUILDER_DEFAULT_CAPACITY 64
 
 struct StringBuilder {
