@@ -24,7 +24,8 @@ namespace cshort
     };
 
     struct CompilerForWasm {
-        static char *compile(DocumentStruct *document, MemBuffer &memBufferForText);
+        static char  *compile(DocumentStruct *document, MemBuffer &memBufferForText);
+        static size_t compileToBytes(DocumentStruct *document, MemBuffer &memBufferForText, uint8_t **outData);
     };
 
 }
