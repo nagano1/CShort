@@ -8,8 +8,7 @@
  * --------------------------------------------------------------------- */
 
 /**
- * Ensure that at least `needed` more bytes can be appended without
- * reallocating.  Doubles the capacity until it is large enough.
+ * Ensure that at least `needed` more bytes can be appended without reallocating.  
  * Returns true on success, false if realloc fails.
  */
 
@@ -24,8 +23,11 @@ static bool bdb_ensure_capacity(BinaryDataBuilder *b, size_t needed)
         return true; /* already enough room */
     }
 
-    /* Double the capacity until it covers the required size */
     size_t new_capacity = required + BINARY_DATA_BUILDER_DEFAULT_CAPACITY;
+    if (new_capacity < required) {
+        return false; /* overflow */
+    }
+    
     uint8_t *new_data = (uint8_t *)realloc(b->data, new_capacity);
     if (!new_data) {
         return false; /* allocation failed; original buffer is still valid */
