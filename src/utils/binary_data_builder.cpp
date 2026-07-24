@@ -16,16 +16,16 @@
 static bool bdb_ensure_capacity(BinaryDataBuilder *b, size_t needed)
 {
     size_t required = b->size + needed;
+    if (required < b->size) {
+        return false; /* overflow */
+    }
+
     if (required <= b->capacity) {
         return true; /* already enough room */
     }
 
     /* Double the capacity until it covers the required size */
-    size_t new_capacity = b->capacity ? b->capacity : BINARY_DATA_BUILDER_DEFAULT_CAPACITY;
-    while (new_capacity < required) {
-        new_capacity *= 2;
-    }
-
+    size_t new_capacity = required + BINARY_DATA_BUILDER_DEFAULT_CAPACITY;
     uint8_t *new_data = (uint8_t *)realloc(b->data, new_capacity);
     if (!new_data) {
         return false; /* allocation failed; original buffer is still valid */
