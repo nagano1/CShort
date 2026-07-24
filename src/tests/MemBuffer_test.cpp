@@ -208,6 +208,25 @@ void testHashMap() {
     free(context);
 }
 
+void testBinaryDataBuilder() {
+    BinaryDataBuilder builder{};
+    assert(builder.init(0));
+    assert(builder.data != nullptr);
+
+    assert(builder.append_byte(0x12));
+    assert(builder.size == 1);
+    assert(builder.append_bytes((const uint8_t*)"\x34\x56", 2));
+    assert(builder.size == 3);
+    assert(builder.append_u16le(0x789A));
+    assert(builder.size == 5);
+    assert(builder.data[0] == 0x12);
+    assert(builder.data[1] == 0x34);
+    assert(builder.data[2] == 0x56);
+    assert(builder.data[3] == 0x9A);
+    assert(builder.data[4] == 0x78);
+    builder.freeAll();
+}
+
 int main()
 {
     testNewTextHasNullTerminator();
@@ -218,6 +237,7 @@ int main()
     testMallocHeapEntrySmallAndLargeFree();
 
     testHashMap();
+    testBinaryDataBuilder();
     return 0;
 }
 
