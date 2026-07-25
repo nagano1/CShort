@@ -323,6 +323,7 @@ namespace cshort {
         SymbolTokenStruct endBodyNode;
         
         LocalVariableChain *localVariableChain;
+        //VoidHashMap *localVariableMap; // name -> index
 
         NodeBase *firstChildNode;
         NodeBase *lastChildNode;
