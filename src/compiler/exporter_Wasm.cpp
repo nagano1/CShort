@@ -311,6 +311,57 @@ namespace cshort {
             sec.freeAll();
         }
 
+        // Name section (custom section id=0): function and local variable names
+        // for debugger support (Wasm spec §binary-namesec).
+        {
+            static const uint8_t nameStr[] = {'n', 'a', 'm', 'e'}; // custom section id string
+            static const uint8_t mainStr[] = {'m', 'a', 'i', 'n'}; // function name
+
+            // Subsection 1 – function names: func 0 = "main"
+            BinaryDataBuilder fnNameBody;
+            fnNameBody.init(16);
+            emit_leb128_u(fnNameBody, 1);          // 1 entry
+            emit_leb128_u(fnNameBody, 0);          // func index 0
+            emit_leb128_u(fnNameBody, 4);          // length of "main"
+            fnNameBody.append_bytes(mainStr, 4);
+
+            BinaryDataBuilder nameSec;
+            nameSec.init(256);
+
+            // Custom section name must be exactly "name" (0x6E 0x61 0x6D 0x65)
+            emit_leb128_u(nameSec, 4);
+            nameSec.append_bytes(nameStr, 4);
+
+            // Emit function-names subsection (id=1)
+            nameSec.append_byte(0x01);
+            emit_leb128_u(nameSec, (uint64_t)fnNameBody.size);
+            nameSec.append_bytes(fnNameBody.data, fnNameBody.size);
+            fnNameBody.freeAll();
+
+            // Emit local-names subsection (id=2) only when there are named locals
+            if (localCount > 0) {
+                BinaryDataBuilder localNameBody;
+                localNameBody.init(64 + (size_t)localCount * 32);
+                emit_leb128_u(localNameBody, 1);   // 1 function entry (func 0)
+                emit_leb128_u(localNameBody, 0);   // func index 0
+                emit_leb128_u(localNameBody, (uint64_t)localCount);
+                for (int i = 0; i < localCount; i++) {
+                    emit_leb128_u(localNameBody, (uint64_t)i);
+                    const char *n = localNames[i] != nullptr ? localNames[i] : "";
+                    size_t nlen = strlen(n);
+                    emit_leb128_u(localNameBody, (uint64_t)nlen);
+                    localNameBody.append_bytes((const uint8_t *)n, nlen);
+                }
+                nameSec.append_byte(0x02);
+                emit_leb128_u(nameSec, (uint64_t)localNameBody.size);
+                nameSec.append_bytes(localNameBody.data, localNameBody.size);
+                localNameBody.freeAll();
+            }
+
+            emit_section(module, 0x00, nameSec);
+            nameSec.freeAll();
+        }
+
         // Copy the finished module into the MemBuffer and return.
         size_t totalSize = module.size;
         uint8_t *buf = (uint8_t *)memBufferForText.newText((unsigned int)totalSize);
