@@ -28,4 +28,8 @@ namespace cshort
         static size_t compileToBytes(DocumentStruct *document, MemBuffer &memBufferForText, uint8_t **outData);
     };
 
+    struct CompilerForMSIL {
+        static char *compile(DocumentStruct *document, MemBuffer &memBuffer);
+    };
+
 }
