@@ -173,7 +173,7 @@ namespace cshort {
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(assign->expressionNode);
                     bool isInt32 = dstTypeIdx == BuiltInTypeIndex::int32;
                     
-                    snprintf(buf, sizeof(buf), isInt32 ? "    ldc.i4 %": "    ldc.i8 %" PRId64 "\n", numNode->num);
+                    snprintf(buf, sizeof(buf), (isInt32 ? "    ldc.i4 %\n": "    ldc.i8 %") PRId64 "\n", numNode->num);
                     sb.append(buf);
                 }
                 else {
