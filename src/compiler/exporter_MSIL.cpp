@@ -180,7 +180,7 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-                    int item;
+int32_t item;
                     if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != 0) {
                         int srcTypeIdx = item - 1; // stored value is typeIndex + 1
                         snprintf(buf, sizeof(buf), "    ldloc.s %s\n", varName);
