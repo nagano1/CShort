@@ -172,8 +172,8 @@ namespace cshort {
                 if (assign->expressionNode->vtable == VTables::NumberVTable) {
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(assign->expressionNode);
                     bool isInt32 = dstTypeIdx == BuiltInTypeIndex::int32;
-                    
-                    snprintf(buf, sizeof(buf), (isInt32 ? "    ldc.i4 %\n": "    ldc.i8 %") PRId64 "\n", numNode->num);
+                    snprintf(buf, sizeof(buf), (isInt32 ? "    ldc.i4 %" PRId64 "\n"
+                                                        : "    ldc.i8 %" PRId64 "\n") , numNode->num);
                     sb.append(buf);
                 }
                 else {
