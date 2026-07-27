@@ -46,6 +46,30 @@ namespace cshort {
         return text;
     }
 
+    // Example output
+    /*
+    .assembly extern mscorlib {}
+    .assembly CShort {}
+    .module CShort.exe
+
+    .class public auto ansi sealed Program extends [mscorlib]System.Object
+    {
+        .method public static int64 Main() cil managed
+        {
+            .entrypoint
+            .maxstack 8
+            .locals init (
+            [0] int32 b
+            )
+            ldc.i4 42
+            stloc.s b
+            ldloc.s b
+            conv.i8
+            ret
+        }
+    }
+    */
+
     char *CompilerForMSIL::compile(DocumentStruct *document, MemBuffer &memBufferForText) {
         FuncDefNodeStruct *mainFunc = document->mainFunc;
         if (mainFunc == nullptr) {
@@ -124,35 +148,35 @@ namespace cshort {
         }
 
         // Second pass: emit instructions
-        stmtNode = mainFunc->bodyNode.firstChildNode;
+        NodeBase *nextNode = mainFunc->bodyNode.firstChildNode;
         bool emittedRet = false;
 
-        while (stmtNode != nullptr) {
+        while (nextNode != nullptr) {
+            NodeBase *currentNode = nextNode;
+            nextNode = currentNode->nextNode;
+            
             // Assignment: i64 a = 100
-            if (stmtNode->vtable == VTables::AssignmentVTable) {
-                auto *assign = Cast::downcast<AssignmentNodeStruct *>(stmtNode);
+            if (currentNode->vtable == VTables::AssignmentVTable) {
+                auto *assign = Cast::downcast<AssignmentNodeStruct *>(currentNode);
 
                 if (assign->expressionNode == nullptr) {
-                    stmtNode = stmtNode->nextNode;
                     continue;
                 }
 
                 int dstTypeIdx = assign->typeIndex;
                 const char *varName = assign->variableNameToken.name;
                 if (varName == nullptr) {
-                    stmtNode = stmtNode->nextNode;
                     continue;
                 }
 
                 if (assign->expressionNode->vtable == VTables::NumberVTable) {
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(assign->expressionNode);
-                    if (dstTypeIdx == BuiltInTypeIndex::int32) {
-                        snprintf(buf, sizeof(buf), "    ldc.i4 %" PRId64 "\n", numNode->num);
-                    } else {
-                        snprintf(buf, sizeof(buf), "    ldc.i8 %" PRId64 "\n", numNode->num);
-                    }
+                    bool isInt32 = dstTypeIdx == BuiltInTypeIndex::int32;
+                    
+                    snprintf(buf, sizeof(buf), isInt32 ? "    ldc.i4 %": "    ldc.i8 %" PRId64 "\n", numNode->num);
                     sb.append(buf);
-                } else {
+                }
+                else {
                     // Unsupported expression: push 0 as fallback
                     if (dstTypeIdx == BuiltInTypeIndex::int32) {
                         sb.appendWithAutoLength("    ldc.i4 0\n");
@@ -165,17 +189,19 @@ namespace cshort {
                 sb.append(buf);
             }
             // Return statement: return <expr>
-            else if (stmtNode->vtable == VTables::ReturnStatementVTable) {
-                auto *retNode = Cast::downcast<ReturnStatementNodeStruct *>(stmtNode);
+            else if (currentNode->vtable == VTables::ReturnStatementVTable) {
+                auto *retNode = Cast::downcast<ReturnStatementNodeStruct *>(currentNode);
 
                 if (retNode->expressionNode == nullptr) {
                     sb.appendWithAutoLength("    ldc.i8 0\n");
-                } else if (retNode->expressionNode->vtable == VTables::NumberVTable) {
+                }
+                else if (retNode->expressionNode->vtable == VTables::NumberVTable) {
                     // return 100
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(retNode->expressionNode);
                     snprintf(buf, sizeof(buf), "    ldc.i8 %" PRId64 "\n", numNode->num);
                     sb.append(buf);
-                } else if (retNode->expressionNode->vtable == VTables::IdentifiersAccessVTable) {
+                }
+                else if (retNode->expressionNode->vtable == VTables::IdentifiersAccessVTable) {
                     // return a
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
@@ -200,8 +226,6 @@ int32_t item;
                 sb.appendWithAutoLength("    ret\n");
                 emittedRet = true;
             }
-
-            stmtNode = stmtNode->nextNode;
         }
 
         if (!emittedRet) {
