@@ -58,7 +58,8 @@ static inline T *mallocForType() {
  * BinaryDataBuilder - A utility struct for building binary data in memory.
  *
  * Appends byte data to a dynamically growing internal buffer.
- * The buffer grows by a fixed increment when it is exhausted.
+ * The buffer grows by a fixed increment when it is exhausted.
+
  */
 struct BinaryDataBuilder{
     uint8_t *data = nullptr;      /* Pointer to the internal buffer */
@@ -310,9 +311,9 @@ struct VoidHashMap {
         this->put(f4, static_cast<int>(SIZE - 1), val);
     }
 };
-
-// A simple hash map wrapper that uses int32_t as values, implemented using VoidHashMap.
-// key is `const char*` and value is int32_t. It uses VoidHashMap to store the key-value pairs, where the value is stored as a pointer to an int32_t.
+// A simple hash map wrapper that stores an int32_t value by encoding it into a pointer-sized integer.
+// Key is `const char*`, value is `int32_t` encoded via `intptr_t` in the underlying VoidHashMap.
+// Note: value 0 cannot be stored because nullptr is used to indicate "missing".
 // please avoid 1 for value 
 struct Int32HashMap {
     VoidHashMap voidHashMap;
