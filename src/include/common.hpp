@@ -310,3 +310,41 @@ struct VoidHashMap {
         this->put(f4, static_cast<int>(SIZE - 1), val);
     }
 };
+
+// A simple hash map wrapper that uses int32_t as values, implemented using VoidHashMap.
+// key is `const char*` and value is int32_t. It uses VoidHashMap to store the key-value pairs, where the value is stored as a pointer to an int32_t.
+// please avoid 1 for value 
+struct Int32HashMap {
+    VoidHashMap voidHashMap;
+
+    void init(MemBuffer *memBuffer) {
+        this->voidHashMap.init(memBuffer);
+    }
+
+    void put(const char *key, int keyLength, int32_t val) {
+        if (val == 0) {
+            // 0 is used to indicate that the key does not exist, so we cannot store 0 as a value.
+            // If you need to store 0, you can use a different value to represent it, such as -1 or some other sentinel value.
+            assert(false && "Cannot store 0 as a value in Int32HashMap");
+            return;
+        }
+        void *valPtr = (void *)(intptr_t)(val);
+        this->voidHashMap.put(key, keyLength, valPtr);
+    }
+    int32_t get(const char *key, int keyLength) {
+        // if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
+        void *item = this->voidHashMap.get(key, keyLength);
+        if (item == nullptr) {
+            return 0; // or some other default value
+        }
+        int32_t valPtr = (int)(intptr_t)item;
+        return valPtr;
+    }
+    bool hasKey(const char *key, int keyLength) {
+        return this->voidHashMap.hasKey(key, keyLength);
+    }
+    void deleteKey(const char *key, int keyLength) {
+        this->voidHashMap.deleteKey(key, keyLength);
+    }
+
+};
