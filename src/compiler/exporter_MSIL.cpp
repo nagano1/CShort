@@ -61,7 +61,7 @@ namespace cshort {
         // Track type of each named local variable (varName -> typeIndex)
         MemBuffer varTypeIndexMemBuffer;
         varTypeIndexMemBuffer.init();
-        VoidHashMap varTypeIndex;
+        Int32HashMap varTypeIndex;
         varTypeIndex.init(&varTypeIndexMemBuffer);
 
         // First pass: collect all local variable declarations for .locals init
@@ -88,7 +88,7 @@ namespace cshort {
                     continue;
                 }
 
-                varTypeIndex.put(varName, (int)strlen(varName), (void *)(intptr_t)(dstTypeIdx + 1)); // store typeIndex + 1 to avoid nullptr ambiguity
+                varTypeIndex.put(varName, (int)strlen(varName), dstTypeIdx + 1); // store typeIndex + 1 to avoid nullptr ambiguity
 
                 const char *typeName = msilTypeName(dstTypeIdx);
                 if (localCount == 0) {
@@ -180,10 +180,9 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-                    void *item;
-                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
-                        int srcTypeIdx = (int)(intptr_t)item - 1; // stored value is typeIndex + 1
-
+int32_t item;
+                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != 0) {
+                        int srcTypeIdx = item - 1; // stored value is typeIndex + 1
                         snprintf(buf, sizeof(buf), "    ldloc.s %s\n", varName);
                         sb.append(buf);
 

@@ -58,7 +58,8 @@ static inline T *mallocForType() {
  * BinaryDataBuilder - A utility struct for building binary data in memory.
  *
  * Appends byte data to a dynamically growing internal buffer.
- * The buffer grows by a fixed increment when it is exhausted.
+ * The buffer grows by a fixed increment when it is exhausted.
+
  */
 struct BinaryDataBuilder{
     uint8_t *data = nullptr;      /* Pointer to the internal buffer */
@@ -309,4 +310,42 @@ struct VoidHashMap {
     void put_x(const char(&f4)[SIZE], void *val) {
         this->put(f4, static_cast<int>(SIZE - 1), val);
     }
+};
+// A simple hash map wrapper that stores an int32_t value by encoding it into a pointer-sized integer.
+// Key is `const char*`, value is `int32_t` encoded via `intptr_t` in the underlying VoidHashMap.
+// Note: value 0 cannot be stored because nullptr is used to indicate "missing".
+// please avoid 1 for value 
+struct Int32HashMap {
+    VoidHashMap voidHashMap;
+
+    void init(MemBuffer *memBuffer) {
+        this->voidHashMap.init(memBuffer);
+    }
+
+    void put(const char *key, int keyLength, int32_t val) {
+        if (val == 0) {
+            // 0 is used to indicate that the key does not exist, so we cannot store 0 as a value.
+            // If you need to store 0, you can use a different value to represent it, such as -1 or some other sentinel value.
+            assert(false && "Cannot store 0 as a value in Int32HashMap");
+            return;
+        }
+        void *valPtr = (void *)(intptr_t)(val);
+        this->voidHashMap.put(key, keyLength, valPtr);
+    }
+    int32_t get(const char *key, int keyLength) {
+        // if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
+        void *item = this->voidHashMap.get(key, keyLength);
+        if (item == nullptr) {
+            return 0; // or some other default value
+        }
+        int32_t valPtr = (int)(intptr_t)item;
+        return valPtr;
+    }
+    bool hasKey(const char *key, int keyLength) {
+        return this->voidHashMap.hasKey(key, keyLength);
+    }
+    void deleteKey(const char *key, int keyLength) {
+        this->voidHashMap.deleteKey(key, keyLength);
+    }
+
 };
