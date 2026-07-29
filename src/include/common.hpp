@@ -311,9 +311,12 @@ struct VoidHashMap {
         this->put(f4, static_cast<int>(SIZE - 1), val);
     }
 };
-// A simple hash map wrapper that stores an int32_t value by encoding it into a pointer-sized integer.
-// Key is `const char*`, value is `int32_t` encoded via `intptr_t` in the underlying VoidHashMap.
-// Note: value 0 cannot be stored because nullptr is used to indicate "missing".
+// A simple hash map wrapper that stores an int32_t value by encoding it into a pointer-sized integer.
+
+// Key is `const char*`, value is `int32_t` encoded via `intptr_t` in the underlying VoidHashMap.
+
+// Note: value 0 cannot be stored because nullptr is used to indicate "missing".
+
 // please avoid 1 for value 
 struct Int32HashMap {
     VoidHashMap voidHashMap;

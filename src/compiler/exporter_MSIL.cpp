@@ -158,7 +158,6 @@ namespace cshort {
             // Assignment: i64 a = 100
             if (currentNode->vtable == VTables::AssignmentVTable) {
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(currentNode);
-
                 if (assign->expressionNode == nullptr) {
                     continue;
                 }
@@ -168,21 +167,17 @@ namespace cshort {
                 if (varName == nullptr) {
                     continue;
                 }
-
+                
+                bool isInt32 = dstTypeIdx == BuiltInTypeIndex::int32;
                 if (assign->expressionNode->vtable == VTables::NumberVTable) {
                     auto *numNode = Cast::downcast<NumberNodeStruct *>(assign->expressionNode);
-                    bool isInt32 = dstTypeIdx == BuiltInTypeIndex::int32;
                     snprintf(buf, sizeof(buf), (isInt32 ? "    ldc.i4 %" PRId64 "\n"
                                                         : "    ldc.i8 %" PRId64 "\n") , numNode->num);
                     sb.append(buf);
                 }
                 else {
                     // Unsupported expression: push 0 as fallback
-                    if (dstTypeIdx == BuiltInTypeIndex::int32) {
-                        sb.appendWithAutoLength("    ldc.i4 0\n");
-                    } else {
-                        sb.appendWithAutoLength("    ldc.i8 0\n");
-                    }
+                    sb.appendWithAutoLength(isInt32 ? "    ldc.i4 0\n" : "    ldc.i8 0\n");
                 }
 
                 snprintf(buf, sizeof(buf), "    stloc.s %s\n", varName);
@@ -206,7 +201,7 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-int32_t item;
+                    int item;
                     if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != 0) {
                         int srcTypeIdx = item - 1; // stored value is typeIndex + 1
                         snprintf(buf, sizeof(buf), "    ldloc.s %s\n", varName);
@@ -216,10 +211,12 @@ int32_t item;
                             // Widen i32 to i64 for the return value
                             sb.appendWithAutoLength("    conv.i8\n");
                         }
-                    } else {
+                    }
+                    else {
                         sb.appendWithAutoLength("    ldc.i8 0\n");
                     }
-                } else {
+                }
+                else {
                     sb.appendWithAutoLength("    ldc.i8 0\n");
                 }
 
