@@ -216,6 +216,7 @@ void testHashMap() {
         assert(zeroValue != nullptr);
         assert(*zeroValue == 0);
     }
+    
 
     {
         auto *voidHashMap = context->newMem<VoidHashMap>();
