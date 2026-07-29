@@ -43,6 +43,15 @@ namespace cshort {
         return text;
     }
 
+    /*
+    define i64 @main() {
+    entry:
+        %a = alloca i64
+        store i64 100, i64* %a
+        %a_load = load i64, i64* %a
+        ret i64 %a_load
+    }
+    */
     char *CompilerForLLVM::compile(DocumentStruct *document, MemBuffer &memBufferForText) {
         FuncDefNodeStruct *mainFunc = document->mainFunc;
         if (mainFunc == nullptr) {
@@ -63,7 +72,7 @@ namespace cshort {
         // Track type of each named local variable (varName -> typeIndex)
         MemBuffer varTypeIndexMemBuffer;
         varTypeIndexMemBuffer.init();
-        VoidHashMap varTypeIndex;
+        Int32HashMap varTypeIndex;
         varTypeIndex.init(&varTypeIndexMemBuffer);
 
         auto *statementNode = mainFunc->bodyNode.firstChildNode;
@@ -96,7 +105,7 @@ namespace cshort {
                 }
 
                 const char *dstType = llvmTypeName(dstTypeIdx);
-                varTypeIndex.put(varName, (int)strlen(varName), (void *)(intptr_t)(dstTypeIdx + 1)); // store typeIndex + 1 to avoid nullptr ambiguity
+                varTypeIndex.put(varName, (int)strlen(varName), dstTypeIdx + 1); // store typeIndex + 1 to avoid 0 ambiguity
 
                 // alloca
                 snprintf(buf, sizeof(buf), "  %%%s = alloca %s\n", varName, dstType);
@@ -130,9 +139,9 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-                    void *item;
-                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
-                        int srcTypeIdx = (int)(intptr_t)item - 1; // stored value is typeIndex + 1 to avoid nullptr ambiguity
+                    int item;
+                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != 0) {
+                        int srcTypeIdx = (int)(item) - 1; // stored value is typeIndex + 1 to avoid 0 ambiguity
                         const char *srcType = llvmTypeName(srcTypeIdx);
 
                         snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",
