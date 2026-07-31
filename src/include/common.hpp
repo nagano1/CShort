@@ -361,6 +361,10 @@ struct HashMap {
         hashNode->next = newHashNode;
     }
 
+    T get_as_value(const char *key, int keyLength) {
+        return *this->get(key, keyLength);
+    }
+
     T *get(const char *key, int keyLength) {
         auto hashKey = calc_hash(key, keyLength);
         auto *hashNode = this->entries[hashKey];
@@ -418,6 +422,12 @@ struct HashMap {
     T *get_x(const char(&f4)[SIZE]) {
         return this->get(f4, static_cast<int>(SIZE - 1));
     }
+
+    template<std::size_t SIZE>
+    T get_as_value_x(const char(&f4)[SIZE]) {
+        return *this->get_x(f4);
+    }
+
     template<std::size_t SIZE>
     void put_x(const char(&f4)[SIZE], T val) {
         this->put(f4, static_cast<int>(SIZE - 1), val);
