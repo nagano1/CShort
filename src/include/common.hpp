@@ -289,7 +289,7 @@ struct HashMap {
 
     void init(MemBuffer *memBuffer1) {
         this->memBuffer = memBuffer1;
-        this->entries = this->memBuffer->newMemArray<HashNode<T> *>(HashNode_TABLE_SIZE);
+        this->entries = this->memBuffer->template newMemArray<HashNode<T> *>(HashNode_TABLE_SIZE);
         this->entries_length = HashNode_TABLE_SIZE;
         memset(this->entries, 0, sizeof(HashNode<T> *) * this->entries_length);
     }
@@ -321,7 +321,7 @@ struct HashMap {
         auto *hashNode = this->entries[hashInt];
 
         if (hashNode == nullptr) {
-            auto *newHashNode = this->memBuffer->newMem<HashNode<T> >(1);
+            auto *newHashNode = this->memBuffer->template newMem<HashNode<T> >(1);
             newHashNode->next = nullptr;
             newHashNode->key = this->memBuffer->newTextAssign(keyA, static_cast<unsigned int>(keyLength));
             newHashNode->keyLength = keyLength;
@@ -352,7 +352,7 @@ struct HashMap {
             hashNode = hashNode->next;
         }
 
-        auto *newHashNode = this->memBuffer->newMem<HashNode<T> >(1);
+        auto *newHashNode = this->memBuffer->template newMem<HashNode<T> >(1);
         newHashNode->next = nullptr;
         newHashNode->key = this->memBuffer->newTextAssign(keyA, static_cast<unsigned int>(keyLength));
         newHashNode->keyLength = keyLength;
