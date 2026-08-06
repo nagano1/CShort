@@ -58,7 +58,8 @@ static inline T *mallocForType() {
  * BinaryDataBuilder - A utility struct for building binary data in memory.
  *
  * Appends byte data to a dynamically growing internal buffer.
- * The buffer grows by a fixed increment when it is exhausted.
+ * The buffer grows by a fixed increment when it is exhausted.
+
  */
 struct BinaryDataBuilder{
     uint8_t *data = nullptr;      /* Pointer to the internal buffer */
@@ -270,43 +271,169 @@ struct MemBuffer {
 
 #define HashNode_TABLE_SIZE 104
 
-struct VoidHashNode {
-    VoidHashNode *next;
+template<typename T>
+struct HashNode {
+    HashNode<T> *next;
     char *key;
     int keyLength;
-    void *voidPtrItem;
+    T item;
+    bool occupied;
 };
 
-struct VoidHashMap {
+template<typename T>
+struct HashMap {
     // entries is an array of pointers to the first node in each linked list (bucket) of the hash table.
-    VoidHashNode **entries;
+    HashNode<T> **entries;
     size_t entries_length; // number of entries in the hash table
     MemBuffer *memBuffer;
 
-    void init(MemBuffer *memBuffer1);
+    void init(MemBuffer *memBuffer1) {
+        this->memBuffer = memBuffer1;
+        this->entries = this->memBuffer->template newMemArray<HashNode<T> *>(HashNode_TABLE_SIZE);
+        this->entries_length = HashNode_TABLE_SIZE;
+        memset(this->entries, 0, sizeof(HashNode<T> *) * this->entries_length);
+    }
 
     template<std::size_t SIZE>
     static int calc_hash_x(const char(&f4)[SIZE], size_t max) {
-        return VoidHashMap::calc_hash_impl(f4, static_cast<int>(SIZE - 1), max);
+        return HashMap<T>::calc_hash_impl(f4, static_cast<int>(SIZE - 1), max);
     }
     int calc_hash(const char *key, int keyLength) {
-        return VoidHashMap::calc_hash_impl(key, keyLength, this->entries_length);
+        return HashMap<T>::calc_hash_impl(key, keyLength, this->entries_length);
     }
     // Calculate the hash value of a key, given the key and its length,
     // and the maximum value for the hash (usually the size of the hash table).
-    static int calc_hash_impl(const char *key, int keyLength, size_t max);
-    
-    void put(const char *keyA, int keyLength, void *val);
-    void *get(const char *key, int keyLength);
-    bool hasKey(const char *key, int keyLength);
-    void deleteKey(const char *key, int keyLength);
+    static int calc_hash_impl(const char *key, int keyLength, size_t max) {
+        assert(key != nullptr);
+        assert(keyLength >= 0);
+        assert(max > 0);
+
+        uint32_t hash = 2166136261u;
+        for (int i = 0; i < keyLength; i++) {
+            hash ^= static_cast<uint8_t>(key[i]);
+            hash *= 16777619u;
+        }
+        return hash % max;
+    }
+
+    void put(const char *keyA, int keyLength, T val) {
+        auto hashInt = HashMap<T>::calc_hash_impl(keyA, keyLength, this->entries_length);
+        auto *hashNode = this->entries[hashInt];
+
+        if (hashNode == nullptr) {
+            auto *newHashNode = this->memBuffer->template newMem<HashNode<T> >(1);
+            newHashNode->next = nullptr;
+            newHashNode->key = this->memBuffer->newTextAssign(keyA, static_cast<unsigned int>(keyLength));
+            newHashNode->keyLength = keyLength;
+            newHashNode->item = val;
+            newHashNode->occupied = true;
+            this->entries[hashInt] = newHashNode;
+            return;
+        }
+
+        while (hashNode != nullptr) {
+            if (hashNode->occupied && hashNode->keyLength == keyLength) {
+                bool isSameKey = true;
+                for (int i = 0; i < keyLength; i++) {
+                    if (hashNode->key[i] != keyA[i]) {
+                        isSameKey = false;
+                        break;
+                    }
+                }
+                if (isSameKey) {
+                    hashNode->item = val;
+                    return;
+                }
+            }
+
+            if (hashNode->next == nullptr) {
+                break;
+            }
+            hashNode = hashNode->next;
+        }
+
+        auto *newHashNode = this->memBuffer->template newMem<HashNode<T> >(1);
+        newHashNode->next = nullptr;
+        newHashNode->key = this->memBuffer->newTextAssign(keyA, static_cast<unsigned int>(keyLength));
+        newHashNode->keyLength = keyLength;
+        newHashNode->item = val;
+        newHashNode->occupied = true;
+        hashNode->next = newHashNode;
+    }
+
+    T get_as_value(const char *key, int keyLength) {
+        return *this->get(key, keyLength);
+    }
+
+    T *get(const char *key, int keyLength) {
+        auto hashKey = calc_hash(key, keyLength);
+        auto *hashNode = this->entries[hashKey];
+        while (hashNode != nullptr) {
+            if (hashNode->occupied && hashNode->keyLength == keyLength) {
+                bool isSameKey = true;
+                for (int i = 0; i < keyLength; i++) {
+                    if (hashNode->key[i] != key[i]) {
+                        isSameKey = false;
+                        break;
+                    }
+                }
+                if (isSameKey) {
+                    return &hashNode->item;
+                }
+            }
+            hashNode = hashNode->next;
+        }
+        return nullptr;
+    }
+    bool hasKey(const char *key, int keyLength) {
+        return this->get(key, keyLength) != nullptr;
+    }
+    void deleteKey(const char *key, int keyLength) {
+        int hashKey = calc_hash(key, keyLength);
+        auto *hashNode = this->entries[hashKey];
+        HashNode<T> *prevNode = nullptr;
+
+        while (hashNode != nullptr) {
+            if (hashNode->occupied && hashNode->keyLength == keyLength) {
+                bool isSameKey = true;
+                for (int i = 0; i < keyLength; i++) {
+                    if (hashNode->key[i] != key[i]) {
+                        isSameKey = false;
+                        break;
+                    }
+                }
+                if (isSameKey) {
+                    hashNode->occupied = false;
+                    if (prevNode == nullptr) {
+                        this->entries[hashKey] = hashNode->next;
+                    } else {
+                        prevNode->next = hashNode->next;
+                    }
+                    hashNode->next = nullptr;
+                    return;
+                }
+            }
+            prevNode = hashNode;
+            hashNode = hashNode->next;
+        }
+    }
 
     template<std::size_t SIZE>
-    void *get_x(const char(&f4)[SIZE]) {
+    T *get_x(const char(&f4)[SIZE]) {
         return this->get(f4, static_cast<int>(SIZE - 1));
     }
+
     template<std::size_t SIZE>
-    void put_x(const char(&f4)[SIZE], void *val) {
+    T get_as_value_x(const char(&f4)[SIZE]) {
+        return *this->get_x(f4);
+    }
+
+    template<std::size_t SIZE>
+    void put_x(const char(&f4)[SIZE], T val) {
         this->put(f4, static_cast<int>(SIZE - 1), val);
     }
 };
+
+using VoidHashNode = HashNode<void *>;
+using VoidHashMap = HashMap<void *>;
+using Int32HashMap = HashMap<int32_t>;

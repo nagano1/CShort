@@ -80,6 +80,32 @@ fn Main()
     Alloc::deleteDocument(document);
 }
 
+void testCompileLLVM_i32() {
+    constexpr char source[] = R"(
+fn Main()
+{
+    i32 b = 42
+    return b
+})";
+
+    auto *document = Alloc::newDocument(DocumentType::CodeDocument);
+    auto *context = document->context;
+
+    DocumentUtils::parseText(document, source, (int)strlen(source));
+
+    Validator::validateScript(document);
+    char *outputText = CompilerForLLVM::compile(document, context->memBuffer);
+    printf("testCompileLLVM_i32 outputText =\n%s\n", outputText);
+
+    assertContains(outputText, "alloca i32");
+    assertContains(outputText, "store i32 42");
+    assertContains(outputText, "load i32");
+    assertContains(outputText, "sext i32");
+    assertContains(outputText, "ret i64");
+
+    Alloc::deleteDocument(document);
+}
+
 
 void checkSemanticError(const char* str) {
 
@@ -90,6 +116,7 @@ void callTests()
 {
     testCompileLLVM1();
     testCompileLLVM2();
+    testCompileLLVM_i32();
 
     /*
     checkSemanticError(R"(fn Main() { int a = 5

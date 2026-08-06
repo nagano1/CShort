@@ -82,7 +82,8 @@ namespace cshort
         }
 
         TypeEntry* getTypeEntryByName(const char *typeName, int length) {
-            return (TypeEntry*)this->typeNameMap->get(typeName, length);
+            auto *typeEntry = this->typeNameMap->get(typeName, length);
+            return typeEntry != nullptr ? (TypeEntry*)*typeEntry : nullptr;
         }
 
 
