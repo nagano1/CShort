@@ -189,21 +189,45 @@ void testHashMap() {
         hashMap->put_x(thirdItemKey, context->newMem<DocumentStruct>());
         hashMap->put_x(thirdItemKey, context->newMem<DocumentStruct>());
 
-        auto *node = (NodeBase*)hashMap->get_x(firstItemKey);
-        assert(node == firstItem);
+        auto *node = hashMap->get_x(firstItemKey);
+        assert(node != nullptr);
+        assert(*node == firstItem);
 
         assert(hashMap->hasKey(firstItemKey, sizeof(firstItemKey) - 1));
         hashMap->deleteKey(firstItemKey, sizeof(firstItemKey) - 1);
         assert(hashMap->get_x(firstItemKey) == nullptr);
 
-        node = (NodeBase*)hashMap->get_x(thirdItemKey);
+        node = hashMap->get_x(thirdItemKey);
         assert(node != nullptr);
+        assert(*node != nullptr);
         
         {
             auto *node2 = hashMap->get_x("empty");
             assert(node2 == nullptr);
         }
     }
+
+    {
+        auto *intHashMap = context->newMem<Int32HashMap>();
+        assert(intHashMap != nullptr);
+        intHashMap->init(&context->memBuffer);
+        intHashMap->put_x("zero", 0);
+        auto *zeroValue = intHashMap->get_x("zero");
+        assert(zeroValue != nullptr);
+        assert(*zeroValue == 0);
+    }
+    
+
+    {
+        auto *voidHashMap = context->newMem<VoidHashMap>();
+        assert(voidHashMap != nullptr);
+        voidHashMap->init(&context->memBuffer);
+        voidHashMap->put_x("nullValue", nullptr);
+        auto *nullValue = voidHashMap->get_x("nullValue");
+        assert(nullValue != nullptr);
+        assert(*nullValue == nullptr);
+    }
+
     context->dispose();
     free(context);
 }

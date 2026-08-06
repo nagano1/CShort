@@ -105,7 +105,7 @@ namespace cshort {
                 }
 
                 const char *dstType = llvmTypeName(dstTypeIdx);
-                varTypeIndex.put(varName, (int)strlen(varName), dstTypeIdx + 1); // store typeIndex + 1 to avoid 0 ambiguity
+                varTypeIndex.put(varName, (int)strlen(varName), dstTypeIdx);
 
                 // alloca
                 snprintf(buf, sizeof(buf), "  %%%s = alloca %s\n", varName, dstType);
@@ -139,9 +139,9 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-                    int item;
-                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != 0) {
-                        int srcTypeIdx = (int)(item) - 1; // stored value is typeIndex + 1 to avoid 0 ambiguity
+                    int32_t *item;
+                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
+                        int srcTypeIdx = *item;
                         const char *srcType = llvmTypeName(srcTypeIdx);
 
                         snprintf(buf, sizeof(buf), "  %%%s_load = load %s, %s* %%%s\n",

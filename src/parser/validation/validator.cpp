@@ -52,8 +52,8 @@ namespace cshort {
             VariableBlock *block = this->lastVariableBlock;
             while (block != nullptr) {
                 if (block->variableMap->hasKey(name, nameLength)) {
-                    auto *assign = (AssignmentNodeStruct *) block->variableMap->get(name, nameLength);
-                    return assign;
+                    auto *assign = block->variableMap->get(name, nameLength);
+                    return assign != nullptr ? (AssignmentNodeStruct *)*assign : nullptr;
                 }
                 block = block->prev;
             }

@@ -112,7 +112,7 @@ namespace cshort {
                     continue;
                 }
 
-                varTypeIndex.put(varName, (int)strlen(varName), dstTypeIdx + 1); // store typeIndex + 1 to avoid nullptr ambiguity
+                varTypeIndex.put(varName, (int)strlen(varName), dstTypeIdx);
 
                 const char *typeName = msilTypeName(dstTypeIdx);
                 if (localCount == 0) {
@@ -201,9 +201,9 @@ namespace cshort {
                     auto *identNode = Cast::downcast<IdentifiersAccessNodeStruct *>(retNode->expressionNode);
                     const char *varName = identNode->identifierToken.name;
 
-                    int item;
-                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != 0) {
-                        int srcTypeIdx = item - 1; // stored value is typeIndex + 1
+                    int32_t *item;
+                    if (varName != nullptr && (item = varTypeIndex.get(varName, (int)strlen(varName))) != nullptr) {
+                        int srcTypeIdx = *item;
                         snprintf(buf, sizeof(buf), "    ldloc.s %s\n", varName);
                         sb.append(buf);
 
