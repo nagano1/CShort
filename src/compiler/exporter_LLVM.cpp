@@ -43,6 +43,15 @@ namespace cshort {
         return text;
     }
 
+    /*
+    define i64 @main() {
+    entry:
+        %a = alloca i64
+        store i64 100, i64* %a
+        %a_load = load i64, i64* %a
+        ret i64 %a_load
+    }
+    */
     char *CompilerForLLVM::compile(DocumentStruct *document, MemBuffer &memBufferForText) {
         FuncDefNodeStruct *mainFunc = document->mainFunc;
         if (mainFunc == nullptr) {
