@@ -186,6 +186,7 @@ namespace cshort {
         int         localCount = 0;
 
         auto *stmtNode = mainFunc->bodyNode.firstChildNode;
+        // Only assignments with type declaration (e.g., `let a: i64 = 3`) are considered local variable declarations.
         while (stmtNode != nullptr) {
             if (stmtNode->vtable == VTables::AssignmentVTable) {
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(stmtNode);
