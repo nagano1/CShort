@@ -114,7 +114,7 @@ struct BinaryDataBuilder{
 
 /* Default initial capacity (when initial_capacity == 0) and growth step (bytes) */
 
-#define BINARY_DATA_BUILDER_DEFAULT_CAPACITY 64
+#define BINARY_DATA_BUILDER_DEFAULT_CAPACITY 2048
 
 struct StringBuilder {
     utf8byte *str = nullptr;

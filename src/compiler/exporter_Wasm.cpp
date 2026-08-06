@@ -186,14 +186,18 @@ namespace cshort {
         int         localCount = 0;
 
         auto *stmtNode = mainFunc->bodyNode.firstChildNode;
+        // Only assignments with type/let declaration (e.g., `let a: i64 = 3`) are considered local variable declarations.
         while (stmtNode != nullptr) {
             if (stmtNode->vtable == VTables::AssignmentVTable) {
                 auto *assign = Cast::downcast<AssignmentNodeStruct *>(stmtNode);
-                int typeIdx = assign->typeIndex;
-                if (typeIdx != BuiltInTypeIndex::int32 && typeIdx != BuiltInTypeIndex::int64) {
-                    return emit_wasm_fallback(memBufferForText, outData);
-                }
-                if (localCount < WASM_MAX_LOCALS) {
+                if (assign->hasTypeOrLet) { // exclude assignments without type declaration (e.g., a = 3)
+                    int typeIdx = assign->typeIndex;
+                    if (typeIdx != BuiltInTypeIndex::int32 && typeIdx != BuiltInTypeIndex::int64) {
+                        return emit_wasm_fallback(memBufferForText, outData);
+                    }
+                    if (localCount >= WASM_MAX_LOCALS) {
+                        return emit_wasm_fallback(memBufferForText, outData);
+                    }
                     localNames[localCount] = assign->variableNameToken.name;
                     localTypes[localCount] = typeIdx;
                     localCount++;
