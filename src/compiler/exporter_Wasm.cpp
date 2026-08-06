@@ -195,11 +195,12 @@ namespace cshort {
                     if (typeIdx != BuiltInTypeIndex::int32 && typeIdx != BuiltInTypeIndex::int64) {
                         return emit_wasm_fallback(memBufferForText, outData);
                     }
-                    if (localCount < WASM_MAX_LOCALS) {
-                        localNames[localCount] = assign->variableNameToken.name;
-                        localTypes[localCount] = typeIdx;
-                        localCount++;
+                    if (localCount >= WASM_MAX_LOCALS) {
+                        return emit_wasm_fallback(memBufferForText, outData);
                     }
+                    localNames[localCount] = assign->variableNameToken.name;
+                    localTypes[localCount] = typeIdx;
+                    localCount++;
                 }
             }
             stmtNode = stmtNode->nextNode;
